@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.9" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\BuildingBlocks.Shared\BuildingBlocks.Shared.csproj" />
+    </ItemGroup>
+
+</Project>

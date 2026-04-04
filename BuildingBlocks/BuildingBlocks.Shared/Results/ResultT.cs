@@ -4,22 +4,18 @@ namespace BuildingBlocks.Shared.Results;
 
 public class Result<T> : Result
 {
-    private readonly T? _value;
-
-    public T Value => IsSuccess
-        ? _value!
-        : throw new InvalidOperationException("Cannot access value of a failure result");
+    public T? Value { get; }
 
     private Result(T value)
-        : base(true, null)
+        : base(true, Error.None)
     {
-        _value = value;
+        Value = value;
     }
 
     private Result(Error error)
         : base(false, error)
     {
-        _value = default;
+        Value = default;
     }
 
     public static Result<T> Success(T value)
@@ -27,8 +23,4 @@ public class Result<T> : Result
 
     public static new Result<T> Failure(Error error)
         => new(error);
-
-    // 🔥 Optional (recommended)
-    public static implicit operator Result<T>(T value)
-        => Success(value);
 }

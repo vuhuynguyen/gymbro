@@ -7,18 +7,22 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentValidation" Version="12.1.1" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
         <PackageReference Include="MediatR" Version="14.1.0" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Scalar.AspNetCore" Version="2.13.19" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\BuildingBlocks\Infrastructure\BuildingBlocks.Infrastructure.Identity\BuildingBlocks.Infrastructure.Identity.csproj" />
       <ProjectReference Include="..\..\BuildingBlocks\Infrastructure\BuildingBlocks.Infrastructure.Persistence\BuildingBlocks.Infrastructure.Persistence.csproj" />
       <ProjectReference Include="..\..\Modules\Modules.Exercise\Modules.Exercise.csproj" />
+      <ProjectReference Include="..\..\BuildingBlocks\Application\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
     </ItemGroup>
 
 </Project>

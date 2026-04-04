@@ -1,4 +1,4 @@
-namespace Modules.Exercise.Entities;
+namespace Modules.ExerciseModule.Entities;
 
 public enum MuscleGroup
 {

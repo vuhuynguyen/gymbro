@@ -1,4 +1,4 @@
-using BuildingBlocks.Application.Interfaces;
+using BuildingBlocks.Application.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
 namespace BuildingBlocks.Infrastructure.Persistence.Services;

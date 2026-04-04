@@ -8,9 +8,9 @@ namespace BuildingBlocks.Infrastructure.Persistence.Entities;
 public class Translation : BaseEntity
 {
     public Guid EntityId { get; private set; }
-    public string EntityType { get; private set; }
+    public string EntityType { get; private set; } = null!;
 
-    public string Language { get; private set; }
-    public string Key { get; private set; }
-    public string Value { get; private set; }
+    public string Language { get; private set; } = null!;
+    public string Key { get; private set; } = null!;
+    public string Value { get; private set; } = null!;
 }

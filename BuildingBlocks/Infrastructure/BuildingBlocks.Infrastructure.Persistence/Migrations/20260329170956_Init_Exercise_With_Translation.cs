@@ -18,7 +18,7 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     DefaultName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     DefaultDescription = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    MuscleGroup = table.Column<int>(type: "integer", maxLength: 100, nullable: false),
+                    MuscleGroup = table.Column<int>(type: "integer", nullable: false),
                     ImageUrl = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     TenantId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreatedOnUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),

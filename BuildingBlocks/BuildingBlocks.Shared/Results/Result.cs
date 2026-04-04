@@ -1,20 +1,19 @@
-namespace BuildingBlocks.Shared.Results;
-
 using BuildingBlocks.Shared.Errors;
+
+namespace BuildingBlocks.Shared.Results;
 
 public class Result
 {
     public bool IsSuccess { get; }
     public bool IsFailure => !IsSuccess;
+    public Error Error { get; }
 
-    public Error? Error { get; }
-
-    protected Result(bool isSuccess, Error? error)
+    protected Result(bool isSuccess, Error error)
     {
-        if (isSuccess && error is not null)
+        if (isSuccess && error != Error.None)
             throw new ArgumentException("Success result cannot have error");
 
-        if (!isSuccess && error is null)
+        if (!isSuccess && error == Error.None)
             throw new ArgumentException("Failure result must have error");
 
         IsSuccess = isSuccess;
@@ -22,7 +21,7 @@ public class Result
     }
 
     public static Result Success()
-        => new(true, null);
+        => new(true, Error.None);
 
     public static Result Failure(Error error)
         => new(false, error);

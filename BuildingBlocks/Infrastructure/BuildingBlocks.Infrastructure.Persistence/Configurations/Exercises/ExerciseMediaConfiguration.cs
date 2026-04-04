@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Modules.Exercise.Entities;
+using Modules.ExerciseModule.Entities;
 
-namespace BuildingBlocks.Infrastructure.Persistence.Configurations.Exercise;
+namespace BuildingBlocks.Infrastructure.Persistence.Configurations.Exercises;
 
 public class ExerciseMediaConfiguration : IEntityTypeConfiguration<ExerciseMedia>
 {

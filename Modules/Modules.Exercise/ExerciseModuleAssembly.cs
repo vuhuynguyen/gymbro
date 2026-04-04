@@ -1,4 +1,4 @@
-namespace Modules.Exercise;
+namespace Modules.ExerciseModule;
 
 public static class ExerciseModuleAssembly
 {

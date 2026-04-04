@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ExerciseRoot = Modules.Exercise.Entities.Exercise;
+using Modules.ExerciseModule.Entities;
 
-namespace BuildingBlocks.Infrastructure.Persistence.Configurations.Exercise;
+namespace BuildingBlocks.Infrastructure.Persistence.Configurations.Exercises;
 
-public class ExerciseConfiguration : IEntityTypeConfiguration<ExerciseRoot>
+public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
 {
-    public void Configure(EntityTypeBuilder<ExerciseRoot> builder)
+    public void Configure(EntityTypeBuilder<Exercise> builder)
     {
         builder.ToTable("Exercises");
 
@@ -19,9 +19,10 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<ExerciseRoot>
         builder.Property(x => x.DefaultDescription)
             .HasMaxLength(1000);
 
+        // Enum stored as integer (Npgsql); do not use HasMaxLength on numeric enums.
         builder.Property(x => x.MuscleGroup)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasConversion<int>();
 
         builder.Property(x => x.ImageUrl)
             .HasMaxLength(500);
@@ -55,19 +56,19 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<ExerciseRoot>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Metadata
-            .FindNavigation(nameof(ExerciseRoot.Instructions))!
+            .FindNavigation(nameof(Exercise.Instructions))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Metadata
-            .FindNavigation(nameof(ExerciseRoot.Tags))!
+            .FindNavigation(nameof(Exercise.Tags))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Metadata
-            .FindNavigation(nameof(ExerciseRoot.Media))!
+            .FindNavigation(nameof(Exercise.Media))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Metadata
-            .FindNavigation(nameof(ExerciseRoot.Warnings))!
+            .FindNavigation(nameof(Exercise.Warnings))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

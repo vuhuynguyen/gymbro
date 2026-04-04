@@ -1,12 +1,12 @@
 using BuildingBlocks.Shared.DomainPrimitives;
 
-namespace Modules.Exercise.Entities;
+namespace Modules.ExerciseModule.Entities;
 
 public class ExerciseMedia : BaseEntity
 {
     public Guid ExerciseId { get; set; }
-    public string Type { get; set; } // Image | Video
-    public string Url { get; set; }
+    public string Type { get; set; } = null!; // Image | Video
+    public string Url { get; set; } = null!;
     
     private ExerciseMedia() { }
     

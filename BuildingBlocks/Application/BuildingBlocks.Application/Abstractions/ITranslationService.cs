@@ -1,4 +1,4 @@
-namespace BuildingBlocks.Application.Interfaces;
+namespace BuildingBlocks.Application.Abstractions;
 
 public interface ITranslationService
 {

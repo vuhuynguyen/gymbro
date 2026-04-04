@@ -1,11 +1,11 @@
 using BuildingBlocks.Shared.DomainPrimitives;
 
-namespace Modules.Exercise.Entities;
+namespace Modules.ExerciseModule.Entities;
 
 public class ExerciseTag : BaseEntity
 {
     public Guid ExerciseId { get; private set; }
-    public string Tag { get; private set; }
+    public string Tag { get; private set; } = null!;
     
     private ExerciseTag() { }
     

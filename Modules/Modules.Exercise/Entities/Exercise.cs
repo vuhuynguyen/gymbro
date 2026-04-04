@@ -1,6 +1,6 @@
 using BuildingBlocks.Shared.DomainPrimitives;
 
-namespace Modules.Exercise.Entities;
+namespace Modules.ExerciseModule.Entities;
 
 /// <summary>
 /// Exercise bounded context. Related rows use ExerciseId foreign keys only (no reference-typed navigations from children to this aggregate).
@@ -8,10 +8,10 @@ namespace Modules.Exercise.Entities;
 /// </summary>
 public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
 {
-    public string DefaultName { get; private set; }
-    public string DefaultDescription { get; private set; }
+    public string DefaultName { get; private set; } = null!;
+    public string DefaultDescription { get; private set; } = null!;
     public MuscleGroup MuscleGroup { get; private set; }
-    public string ImageUrl { get; private set; }
+    public string ImageUrl { get; private set; } = null!;
 
     private readonly List<ExerciseInstruction> _instructions = new();
     public IReadOnlyCollection<ExerciseInstruction> Instructions => _instructions;
@@ -38,7 +38,6 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
 
         return new Exercise
         {
-            TenantId = null,
             DefaultName = name,
             MuscleGroup = muscleGroup,
             ImageUrl = imageUrl,
@@ -72,7 +71,7 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
     
     public void AddMedia(string url, string type)
     {
-        _media.Add(new ExerciseMedia(Id, url, type));
+        _media.Add(new ExerciseMedia(Id, type, url));
     }
     
     public void AddWarning(string content)

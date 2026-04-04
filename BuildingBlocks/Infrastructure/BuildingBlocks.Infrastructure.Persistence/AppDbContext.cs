@@ -1,21 +1,20 @@
 using System.Linq.Expressions;
+using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Infrastructure.Persistence.Entities;
 using BuildingBlocks.Infrastructure.Persistence.Services.Interfaces;
 using BuildingBlocks.Shared.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
 using BuildingBlocks.Shared.DomainPrimitives;
-using Modules.Exercise.Entities;
+using Modules.ExerciseModule.Entities;
 
 namespace BuildingBlocks.Infrastructure.Persistence;
 
 public class AppDbContext(
     DbContextOptions<AppDbContext> options,
     IDbContextServices services)
-    : DbContext(options)
+    : DbContext(options), IUnitOfWork
 {
-    public const string Schema = "GymBro";
-
     private readonly IPublisher _publisher = services.Publisher;
     public ICurrentUser CurrentUser { get; } = services.CurrentUser;
 

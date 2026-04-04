@@ -85,7 +85,7 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.ToTable("Translations", (string)null);
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.Exercise", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.Exercise", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -127,7 +127,6 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("MuscleGroup")
-                        .HasMaxLength(100)
                         .HasColumnType("integer");
 
                     b.Property<Guid?>("TenantId")
@@ -140,7 +139,7 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.ToTable("Exercises", (string)null);
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.ExerciseInstruction", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.ExerciseInstruction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -186,7 +185,7 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.ToTable("ExerciseInstructions", (string)null);
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.ExerciseMedia", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.ExerciseMedia", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -233,7 +232,7 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.ToTable("ExerciseMedia", (string)null);
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.ExerciseTag", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.ExerciseTag", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -276,7 +275,7 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.ToTable("ExerciseTags", (string)null);
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.ExerciseWarning", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.ExerciseWarning", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -318,43 +317,43 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.ToTable("ExerciseWarnings", (string)null);
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.ExerciseInstruction", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.ExerciseInstruction", b =>
                 {
-                    b.HasOne("Modules.Exercise.Entities.Exercise", null)
+                    b.HasOne("Modules.ExerciseModule.Entities.Exercise", null)
                         .WithMany("Instructions")
                         .HasForeignKey("ExerciseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.ExerciseMedia", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.ExerciseMedia", b =>
                 {
-                    b.HasOne("Modules.Exercise.Entities.Exercise", null)
+                    b.HasOne("Modules.ExerciseModule.Entities.Exercise", null)
                         .WithMany("Media")
                         .HasForeignKey("ExerciseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.ExerciseTag", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.ExerciseTag", b =>
                 {
-                    b.HasOne("Modules.Exercise.Entities.Exercise", null)
+                    b.HasOne("Modules.ExerciseModule.Entities.Exercise", null)
                         .WithMany("Tags")
                         .HasForeignKey("ExerciseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.ExerciseWarning", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.ExerciseWarning", b =>
                 {
-                    b.HasOne("Modules.Exercise.Entities.Exercise", null)
+                    b.HasOne("Modules.ExerciseModule.Entities.Exercise", null)
                         .WithMany("Warnings")
                         .HasForeignKey("ExerciseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Modules.Exercise.Entities.Exercise", b =>
+            modelBuilder.Entity("Modules.ExerciseModule.Entities.Exercise", b =>
                 {
                     b.Navigation("Instructions");
 

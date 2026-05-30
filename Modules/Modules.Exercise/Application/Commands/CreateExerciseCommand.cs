@@ -3,9 +3,23 @@ using MediatR;
 
 namespace Modules.ExerciseModule.Application.Commands;
 
+public record ExerciseMuscleInput(string Muscle, bool IsPrimary);
+
+public record ExerciseMediaInput(string Url, string Type);
+
 public record CreateExerciseCommand(
     string Name,
     string Description,
-    string MuscleGroup,
-    string? ImageUrl
+    string Type,
+    string MovementType,
+    string Difficulty,
+    string Equipment,
+    int? EstimatedCaloriesBurn,
+    int? AverageDurationSeconds,
+    string? ImageUrl,
+    IReadOnlyList<ExerciseMuscleInput> Muscles,
+    IReadOnlyList<string>? Instructions,
+    IReadOnlyList<string>? Tags,
+    IReadOnlyList<ExerciseMediaInput>? Media,
+    IReadOnlyList<string>? Warnings
 ) : IRequest<Result<Guid>>;

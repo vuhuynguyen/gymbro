@@ -1,0 +1,24 @@
+using BuildingBlocks.Shared.Results;
+using MediatR;
+using BuildingBlocks.Application.Authorization;
+using Modules.WorkoutSessionModule.Application.DTOs;
+using Modules.WorkoutSessionModule.Entities;
+
+namespace Modules.WorkoutSessionModule.Application.Commands;
+
+public sealed record LogSetCommand(
+    Guid SessionId,
+    Guid ExerciseId,
+    Guid? PlanSetId,
+    int SetNumber,
+    PerformedSetType SetType,
+    int? Reps,
+    decimal? WeightKg,
+    int? DurationSeconds,
+    int? DistanceM,
+    int? Rpe,
+    int? RestSeconds,
+    bool IsCompleted) : IRequest<Result<PerformedSetDto>>, ITenantAuthorizedRequest
+{
+    public Permission RequiredPermission => Permission.WorkoutLogCreate;
+}

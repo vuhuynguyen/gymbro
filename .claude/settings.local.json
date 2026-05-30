@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat postcss.config.js)",
+      "Bash(cat postcss.config.cjs)",
+      "Bash(lsof -ti:4200)",
+      "Bash(kill 2264 39072)"
+    ]
+  }
+}

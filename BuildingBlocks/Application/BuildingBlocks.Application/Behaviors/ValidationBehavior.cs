@@ -1,4 +1,4 @@
-using System.Reflection;
+using BuildingBlocks.Application.Pipeline;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using FluentValidation;
@@ -32,33 +32,9 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
         if (failures.Count == 0)
             return await next();
 
-        return TryResultFailure(failures, out var resultResponse) 
+        var message = string.Join("; ", failures.Select(f => f.ErrorMessage));
+        return ResultPipelineHelper.TryCreateFailure<TResponse>(Error.Validation(message), out var resultResponse)
             ? resultResponse
             : throw new ValidationException(failures);
-    }
-
-    private static bool TryResultFailure(
-        IReadOnlyList<ValidationFailure> failures,
-        out TResponse response)
-    {
-        response = default!;
-
-        var type = typeof(TResponse);
-        if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(Result<>))
-            return false;
-
-        var message = string.Join("; ", failures.Select(f => f.ErrorMessage));
-        var valueType = type.GenericTypeArguments[0];
-        var resultType = typeof(Result<>).MakeGenericType(valueType);
-        var failureMethod = resultType.GetMethod(
-            "Failure",
-            BindingFlags.Public | BindingFlags.Static,
-            [typeof(Error)]);
-
-        if (failureMethod?.Invoke(null, [Error.Validation(message)]) is not TResponse r)
-            return false;
-
-        response = r;
-        return true;
     }
 }

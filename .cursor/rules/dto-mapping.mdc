@@ -1,0 +1,41 @@
+---
+description: >-
+  DTO mapping convention for MediatR handlers: explicit mapping in Application/Mapping
+  helpers, not inline in handlers.
+globs:
+  - "**/Application/**/*Handler*.cs"
+  - "**/Application/Mapping/*.cs"
+alwaysApply: false
+---
+
+# DTO mapping (handlers)
+
+Full convention: repo root `CLAUDE.md` → **DTO mapping**.
+
+## Do
+
+- Put entity/DTO projection in `Modules.<Module>/Application/Mapping/<Module>Mapping.cs` (`internal static`).
+- Handlers: load data → authorize → call mapper → return `Result<T>`.
+- EF list/detail queries: expose `Expression<Func<Entity, Dto>>` on the mapper when projecting in SQL.
+- Materialize join results then map when EF projection would be unreadable.
+
+## Don't
+
+- Inline `new FooDto(...)` with nested children in handlers (especially when duplicated).
+- Add AutoMapper, Mapster, or similar.
+
+## Examples in this repo
+
+| Module | Mapper |
+|---|---|
+| WorkoutSession | `Application/Mapping/SessionMapping.cs` |
+| WorkoutPlan | `Application/Mapping/WorkoutPlanMapping.cs` |
+| Exercise | `Application/Mapping/ExerciseMapping.cs` |
+| User | `Application/Mapping/UserMapping.cs` |
+
+## Handler shape
+
+```csharp
+var nameById = await SessionMapping.GetExerciseNamesAsync(exerciseRepository, session.Exercises, ct);
+return Result.Success(SessionMapping.ToActiveSessionDto(session, snapshot, nameById));
+```

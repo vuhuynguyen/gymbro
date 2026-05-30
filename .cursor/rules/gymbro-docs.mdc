@@ -1,0 +1,43 @@
+---
+description: >-
+  GymBro shared documentation system: read architecture, domain, and API docs
+  before any backend work. Enforces doc-first workflow for all .NET changes.
+globs:
+  - "**/*.cs"
+alwaysApply: true
+---
+
+# GymBro API — Documentation System
+
+Before any backend task, read the relevant shared docs in `../docs/`:
+
+| What you need | Read |
+|---|---|
+| Project structure, layers | `../docs/architecture.md` |
+| Domain entities, EF filters | `../docs/domain-model.md` |
+| API surface (major endpoints) | `../docs/backend-api.md` |
+| Auth, JWT, ICurrentUser | `../docs/architecture.md` |
+| Tenant lifecycle, roles | `../docs/permissions-and-roles.md` · `../docs/business-flows.md` |
+| Permission matrix | `../docs/permissions-and-roles.md` |
+| Invite / registration | `../docs/business-flows.md` |
+| Doc index + patterns | `../docs/README.md` · `../docs/coding-patterns.md` |
+
+## Key conventions
+
+- All handlers return `Result<T>` — never throw
+- Controllers only map Result → HTTP status codes
+- EF global filters: tenant isolation + soft-delete (admin bypasses both)
+- `X-Tenant-Id` header required for all tenant-scoped API calls
+- FluentValidation validators live beside their command files
+- Namespaces: `Modules.<ModuleName>.<Layer>.<Subfolder>`
+- DTO mapping: explicit only in `Application/Mapping/<Module>Mapping.cs` (see repo root `CLAUDE.md`)
+
+## Update rules (MANDATORY)
+
+After every code change, update the corresponding doc:
+
+- New endpoint → `../docs/backend-api.md`
+- New entity field → `../docs/domain-model.md`
+- New permission check → `../docs/permissions-and-roles.md`
+- Invite / bootstrap change → `../docs/business-flows.md`
+- Tenant isolation change → `../docs/architecture.md`

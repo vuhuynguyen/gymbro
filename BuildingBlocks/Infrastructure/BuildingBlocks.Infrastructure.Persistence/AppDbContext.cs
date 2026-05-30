@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using MediatR;
 using BuildingBlocks.Shared.DomainPrimitives;
 using Modules.ExerciseModule.Entities;
+using Modules.UserModule.Entities;
+using Modules.WorkoutPlanModule.Entities;
+using Modules.WorkoutSessionModule.Entities;
 
 namespace BuildingBlocks.Infrastructure.Persistence;
 
@@ -17,9 +20,19 @@ public class AppDbContext(
 {
     private readonly IPublisher _publisher = services.Publisher;
     public ICurrentUser CurrentUser { get; } = services.CurrentUser;
+    public ITenantContext TenantContext { get; } = services.TenantContext;
 
     public DbSet<Exercise> Exercises { get; set; } = null!;
     public DbSet<Translation> Translations { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Tenant> Tenants { get; set; } = null!;
+    public DbSet<UserTenantRole> UserTenantRoles { get; set; } = null!;
+    public DbSet<Invite> Invites { get; set; } = null!;
+    public DbSet<WorkoutPlan> WorkoutPlans { get; set; } = null!;
+    public DbSet<PlanAssignment> PlanAssignments { get; set; } = null!;
+    public DbSet<WorkoutSession> WorkoutSessions { get; set; } = null!;
+    public DbSet<PerformedExercise> PerformedExercises { get; set; } = null!;
+    public DbSet<PerformedSet> PerformedSets { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +43,21 @@ public class AppDbContext(
         ApplyGlobalFilters(modelBuilder);
     }
 
+    public async Task ExecuteTransactionalAsync(Func<Task> action, CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            await action();
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var utcNow = DateTime.UtcNow;
@@ -37,18 +65,30 @@ public class AppDbContext(
             .Entries<Entity>()
             .SelectMany(e => e.Entity.DomainEvents)
             .ToList();
-        
+
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
+            var userId = CurrentUser.UserId;
+            var hasUser = userId != Guid.Empty;
+
             switch (entry.State)
             {
                 case EntityState.Added:
                     entry.Entity.CreatedOnUtc = utcNow;
+                    if (hasUser)
+                        entry.Property(nameof(BaseEntity.CreatedBy)).CurrentValue = userId;
                     break;
                 case EntityState.Modified:
                     entry.Entity.ModifiedOnUtc = utcNow;
+                    if (hasUser)
+                        entry.Property(nameof(BaseEntity.ModifiedBy)).CurrentValue = userId;
                     break;
                 case EntityState.Deleted:
+                    // Only aggregate roots that opt into ISoftDelete become soft-deletes.
+                    // Child rows (e.g. ExerciseMuscle) use unique indexes that block re-insertion.
+                    if (entry.Entity is not ISoftDelete)
+                        break;
+
                     entry.State = EntityState.Modified;
                     entry.Entity.IsDeleted = true;
                     entry.Entity.DeletedOnUtc = utcNow;
@@ -67,6 +107,9 @@ public class AppDbContext(
             await _publisher.Publish(domainEvent, cancellationToken);
         }
 
+        foreach (var entry in ChangeTracker.Entries<Entity>())
+            entry.Entity.ClearDomainEvents();
+
         return result;
     }
 
@@ -81,35 +124,32 @@ public class AppDbContext(
 
             var parameter = Expression.Parameter(clrType, "e");
 
-            Expression? finalExpression = null;
-
             // ========================
-            // 1. Admin bypass
+            // 1. Admin bypass (from ICurrentUser — identity concern)
             // ========================
             var currentUserExpr = Expression.Property(
                 Expression.Constant(this),
                 nameof(CurrentUser));
 
-            var isAdminExpr = Expression.Property(
-                currentUserExpr,
-                nameof(ICurrentUser.IsAdmin));
-
+            var isAdminExpr = Expression.Property(currentUserExpr, nameof(ICurrentUser.IsAdmin));
             var isAdmin = Expression.Equal(isAdminExpr, Expression.Constant(true));
 
             // ========================
-            // 2. Tenant / Shared logic
+            // 2. Tenant / Shared logic (from ITenantContext — location concern)
             // ========================
+            var tenantContextExpr = Expression.Property(
+                Expression.Constant(this),
+                nameof(TenantContext));
+
             Expression? tenantExpression = null;
 
             if (typeof(ITenantEntity).IsAssignableFrom(clrType))
             {
-                // e.TenantId == currentTenant
-                tenantExpression = BuildTenantFilter(parameter, currentUserExpr);
+                tenantExpression = BuildTenantFilter(parameter, tenantContextExpr);
             }
             else if (typeof(ISharedEntity).IsAssignableFrom(clrType))
             {
-                // e.TenantId == null || e.TenantId == currentTenant
-                tenantExpression = BuildSharedFilter(parameter, currentUserExpr);
+                tenantExpression = BuildSharedFilter(parameter, tenantContextExpr);
             }
 
             // ========================
@@ -129,34 +169,25 @@ public class AppDbContext(
             Expression? combined = tenantExpression;
 
             if (combined != null && softDeleteExpression != null)
-            {
                 combined = Expression.AndAlso(combined, softDeleteExpression);
-            }
             else if (combined == null)
-            {
                 combined = softDeleteExpression;
-            }
 
-            // ========================
-            // 5. Admin override
-            // ========================
-            finalExpression = combined != null ? Expression.OrElse(isAdmin, combined) : isAdmin;
+            if (combined == null)
+                continue;
 
-            var lambda = Expression.Lambda(finalExpression, parameter);
-
-            modelBuilder.Entity(clrType).HasQueryFilter(lambda);
+            // Admin always bypasses all filters
+            var finalExpression = Expression.OrElse(isAdmin, combined);
+            modelBuilder.Entity(clrType).HasQueryFilter(Expression.Lambda(finalExpression, parameter));
         }
     }
-    
+
     private static Expression BuildSharedFilter(
         ParameterExpression parameter,
-        MemberExpression currentUserExpr)
+        MemberExpression tenantContextExpr)
     {
         var tenantProperty = Expression.Property(parameter, nameof(ISharedEntity.TenantId));
-
-        var tenantId = Expression.Property(
-            currentUserExpr,
-            nameof(ICurrentUser.TenantId));
+        var tenantId = Expression.Property(tenantContextExpr, nameof(ITenantContext.TenantId));
 
         var isGlobal = Expression.Equal(tenantProperty, Expression.Constant(null));
         var isTenant = Expression.Equal(tenantProperty, tenantId);
@@ -166,13 +197,10 @@ public class AppDbContext(
 
     private static Expression BuildTenantFilter(
         ParameterExpression parameter,
-        MemberExpression currentUserExpr)
+        MemberExpression tenantContextExpr)
     {
         var tenantProperty = Expression.Property(parameter, nameof(ITenantEntity.TenantId));
-
-        var tenantId = Expression.Property(
-            currentUserExpr,
-            nameof(ICurrentUser.TenantId));
+        var tenantId = Expression.Property(tenantContextExpr, nameof(ITenantContext.TenantId));
 
         return Expression.Equal(tenantProperty, tenantId);
     }

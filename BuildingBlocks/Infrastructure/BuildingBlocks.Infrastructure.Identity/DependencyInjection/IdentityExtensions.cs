@@ -13,7 +13,9 @@ public static class IdentityExtensions
     {
         services.AddHttpContextAccessor();
 
-        services.AddScoped<ICurrentUser, CurrentUser>();
+        services.AddScoped<CurrentUser>();
+        services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<CurrentUser>());
+        services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<CurrentUser>());
 
         return services;
     }

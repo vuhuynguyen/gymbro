@@ -7,6 +7,8 @@ namespace BuildingBlocks.Infrastructure.Persistence.Repositories;
 public class Repository<T>(AppDbContext context) : IRepository<T>
     where T : AggregateRoot
 {
+    protected AppDbContext Db => context;
+
     public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
         await context.Set<T>().AddAsync(entity, cancellationToken);
@@ -21,7 +23,7 @@ public class Repository<T>(AppDbContext context) : IRepository<T>
     {
         context.Set<T>().Remove(entity);
     }
-    
+
     public IQueryable<T> Query()
     {
         return context.Set<T>().AsQueryable();

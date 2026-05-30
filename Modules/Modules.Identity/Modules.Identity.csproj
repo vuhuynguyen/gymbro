@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Modules.IdentityModule</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FluentValidation" Version="12.1.1" />
+        <PackageReference Include="MediatR" Version="14.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
+        <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.17.0" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\BuildingBlocks\Application\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
+        <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Shared\BuildingBlocks.Shared.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,29 @@
+---
+description: >-
+  Loads senior fullstack .NET standards for C# work in gymbro: Clean Architecture,
+  CQRS, MediatR, domain richness, Result-based APIs. Complements the Agent Skill
+  senior-dotnet-angular-fullstack.
+globs:
+  - "**/*.cs"
+alwaysApply: false
+---
+
+# Fullstack standards (backend workspace)
+
+When editing C# in this repository, follow the Agent Skill **senior-dotnet-angular-fullstack** at `.cursor/skills/senior-dotnet-angular-fullstack/SKILL.md` (Clean Architecture, module boundaries, CQRS/MediatR, FluentValidation, thin controllers, EF Core boundaries, Result pattern).
+
+For Angular UI work, open the **GymBroPortal** workspace and use its `.cursor/rules/angular-frontend.mdc` and **figma-design-system.mdc** together with the same skill.
+
+## Shared documentation (read before any task)
+
+| What you need | Read |
+|---|---|
+| Project structure, layers | `../../docs/architecture.md` |
+| Domain entities, EF filters | `../../docs/domain-model.md` |
+| API surface (major endpoints) | `../../docs/backend-api.md` |
+| Auth / JWT / ICurrentUser | `../../docs/architecture.md` |
+| Tenant lifecycle, roles | `../../docs/permissions-and-roles.md` · `../../docs/business-flows.md` |
+| Permission matrix | `../../docs/permissions-and-roles.md` |
+| Invite / registration | `../../docs/business-flows.md` |
+
+After every change, update the **one** owning doc listed in `../../docs/README.md`.

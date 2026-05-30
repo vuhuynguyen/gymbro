@@ -4,16 +4,12 @@ using MediatR;
 
 namespace BuildingBlocks.Infrastructure.Persistence.Services;
 
-public class DbContextServices : IDbContextServices
+public class DbContextServices(
+    ICurrentUser currentUser,
+    ITenantContext tenantContext,
+    IPublisher publisher) : IDbContextServices
 {
-    public ICurrentUser CurrentUser { get; }
-    public IPublisher Publisher { get; }
-
-    public DbContextServices(
-        ICurrentUser currentUser,
-        IPublisher publisher)
-    {
-        CurrentUser = currentUser;
-        Publisher = publisher;
-    }
+    public ICurrentUser CurrentUser { get; } = currentUser;
+    public ITenantContext TenantContext { get; } = tenantContext;
+    public IPublisher Publisher { get; } = publisher;
 }

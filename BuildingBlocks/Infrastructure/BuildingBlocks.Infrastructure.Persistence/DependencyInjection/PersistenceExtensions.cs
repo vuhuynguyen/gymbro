@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Modules.ExerciseModule.Application.Abstractions;
+using Modules.UserModule.Application.Abstractions;
+using Modules.WorkoutPlanModule.Application.Abstractions;
+using Modules.WorkoutSessionModule.Application.Abstractions;
 
 namespace BuildingBlocks.Infrastructure.Persistence.DependencyInjection;
 
@@ -30,7 +33,16 @@ public static class PersistenceExtensions
 
         // Specific repositories
         services.AddScoped<IExerciseRepository, ExerciseRepository>();
-        
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<IUserTenantRoleRepository, UserTenantRoleRepository>();
+        services.AddScoped<IInviteRepository, InviteRepository>();
+        services.AddScoped<IWorkoutPlanRepository, WorkoutPlanRepository>();
+        services.AddScoped<IPlanAssignmentRepository, PlanAssignmentRepository>();
+        services.AddScoped<IWorkoutSessionRepository, WorkoutSessionRepository>();
+        services.AddScoped<IPerformedExerciseRepository, PerformedExerciseRepository>();
+        services.AddScoped<IPerformedSetRepository, PerformedSetRepository>();
+
         return services;
     }
 }

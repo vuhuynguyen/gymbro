@@ -19,10 +19,24 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(x => x.DefaultDescription)
             .HasMaxLength(1000);
 
-        // Enum stored as integer (Npgsql); do not use HasMaxLength on numeric enums.
-        builder.Property(x => x.MuscleGroup)
+        builder.Property(x => x.Type)
             .IsRequired()
             .HasConversion<int>();
+
+        builder.Property(x => x.MovementType)
+            .IsRequired()
+            .HasConversion<int>();
+
+        builder.Property(x => x.Difficulty)
+            .IsRequired()
+            .HasConversion<int>();
+
+        builder.Property(x => x.Equipment)
+            .IsRequired()
+            .HasConversion<int>();
+
+        builder.Property(x => x.EstimatedCaloriesBurn);
+        builder.Property(x => x.AverageDurationSeconds);
 
         builder.Property(x => x.ImageUrl)
             .HasMaxLength(500);
@@ -55,6 +69,11 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
             .HasForeignKey(x => x.ExerciseId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasMany(x => x.Muscles)
+            .WithOne()
+            .HasForeignKey(x => x.ExerciseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Metadata
             .FindNavigation(nameof(Exercise.Instructions))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
@@ -69,6 +88,10 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
 
         builder.Metadata
             .FindNavigation(nameof(Exercise.Warnings))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.Metadata
+            .FindNavigation(nameof(Exercise.Muscles))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

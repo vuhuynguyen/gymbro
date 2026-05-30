@@ -27,6 +27,9 @@
       <ProjectReference Include="..\..\Application\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
       <ProjectReference Include="..\..\BuildingBlocks.Shared\BuildingBlocks.Shared.csproj" />
       <ProjectReference Include="..\..\..\Modules\Modules.Exercise\Modules.Exercise.csproj" />
+      <ProjectReference Include="..\..\..\Modules\Modules.User\Modules.User.csproj" />
+      <ProjectReference Include="..\..\..\Modules\Modules.WorkoutPlan\Modules.WorkoutPlan.csproj" />
+      <ProjectReference Include="..\..\..\Modules\Modules.WorkoutSession\Modules.WorkoutSession.csproj" />
     </ItemGroup>
 
 </Project>

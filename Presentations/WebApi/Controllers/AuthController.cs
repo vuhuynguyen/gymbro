@@ -1,0 +1,75 @@
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Modules.IdentityModule.Application.Commands;
+using Modules.UserModule.Application.Queries;
+using WebApi.Requests.Auth;
+using WebApi.Http;
+
+namespace WebApi.Controllers;
+
+[ApiController]
+[Route("api/auth")]
+public class AuthController(IMediator mediator) : ControllerBase
+{
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterCommand cmd)
+    {
+        var result = await mediator.Send(cmd);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+        return Ok(new { token = result.Value });
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginCommand cmd)
+    {
+        var result = await mediator.Send(cmd);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+        return Ok(new { token = result.Value });
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var result = await mediator.Send(new RequestPasswordResetCommand(request.Email));
+        if (result.IsFailure)
+            return BadRequest(result.Error.Message);
+        return Ok(new { success = true });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var result = await mediator.Send(
+            new ResetPasswordCommand(request.Email, request.Token, request.NewPassword));
+        if (result.IsFailure)
+            return BadRequest(result.Error.Message);
+        return NoContent();
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
+    {
+        var email = User.FindFirst("email")?.Value;
+        var result = await mediator.Send(new GetMeQuery(email));
+        if (result.IsFailure)
+            return result.ToFailureResult(this);
+        return Ok(result.Value);
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand cmd)
+    {
+        var result = await mediator.Send(cmd);
+        if (result.IsFailure)
+        {
+            if (result.Error.Code == "NotFound") return NotFound(result.Error.Message);
+            return BadRequest(result.Error);
+        }
+        return NoContent();
+    }
+}

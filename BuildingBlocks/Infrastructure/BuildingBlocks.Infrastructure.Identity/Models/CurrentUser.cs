@@ -3,35 +3,13 @@ using Microsoft.AspNetCore.Http;
 
 namespace BuildingBlocks.Infrastructure.Identity.Models;
 
-public class CurrentUser : ICurrentUser
+public class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUser, ITenantContext
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public CurrentUser(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
-    //
-    // public Guid UserId =>
-    //     Guid.Parse(GetClaim("sub"));
-    //
-    // public Guid TenantId =>
-    //     Guid.Parse(GetClaim("tenant_id"));
-    //
-    // public bool IsAdmin =>
-    //     bool.Parse(GetClaim("is_admin"));
-
-    public Guid UserId { get; }
-    Guid? ICurrentUser.TenantId => TenantId;
-
-    public Guid TenantId
+    public Guid UserId
     {
         get
         {
-            var claim = _httpContextAccessor.HttpContext?
-                .User?
-                .FindFirst("tenant_id")?.Value;
-
+            var claim = httpContextAccessor.HttpContext?.User?.FindFirst("domainUserId")?.Value;
             return claim != null ? Guid.Parse(claim) : Guid.Empty;
         }
     }
@@ -40,20 +18,30 @@ public class CurrentUser : ICurrentUser
     {
         get
         {
-            var claim = _httpContextAccessor.HttpContext?
-                .User?
-                .FindFirst("role")?.Value;
-
-            return claim == "admin";
+            var claim = httpContextAccessor.HttpContext?.User?.FindFirst("is_admin")?.Value;
+            return claim == "true";
         }
     }
 
-    private string GetClaim(string name)
+    public Guid? TenantId
     {
-        return _httpContextAccessor
-                   .HttpContext?
-                   .User?
-                   .FindFirst(name)?.Value
-               ?? throw new Exception($"Claim '{name}' not found");
+        get
+        {
+            var httpContext = httpContextAccessor.HttpContext;
+            if (httpContext is null)
+                return null;
+
+            // The raw X-Tenant-Id header is NEVER trusted directly. TenantResolutionMiddleware
+            // verifies the caller is a member of the requested tenant (or is a platform admin)
+            // and only then stores the id here. This closes X-Tenant-Id spoofing and the
+            // resulting cross-tenant data leakage through the EF global query filters.
+            if (httpContext.Items.TryGetValue(TenantConstants.ValidatedTenantIdItemKey, out var value)
+                && value is Guid tenantId)
+            {
+                return tenantId;
+            }
+
+            return null;
+        }
     }
 }

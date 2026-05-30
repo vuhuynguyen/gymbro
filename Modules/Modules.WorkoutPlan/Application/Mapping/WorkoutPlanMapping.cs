@@ -103,6 +103,10 @@ internal static class WorkoutPlanMapping
             assignment.StartDate,
             assignment.FrequencyDaysPerWeek,
             assignment.VisibilityMode,
+            assignment.HideExercises,
+            assignment.HideSetsReps,
+            assignment.HideFutureWorkouts,
+            assignment.DisableTraineeEditing,
             assignment.IsCustomized);
 
     public static PlanAssignmentListDto ToPlanAssignmentListDto(

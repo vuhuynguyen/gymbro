@@ -12,6 +12,10 @@ public sealed record PlanAssignmentSummaryDto(
     DateOnly StartDate,
     int FrequencyDaysPerWeek,
     PlanVisibilityMode VisibilityMode,
+    bool HideExercises,
+    bool HideSetsReps,
+    bool HideFutureWorkouts,
+    bool DisableTraineeEditing,
     bool IsCustomized);
 
 public sealed record PlanAssignmentListDto(

@@ -1,7 +1,6 @@
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.WorkoutPlanModule.Application.DTOs;
-using Modules.WorkoutPlanModule.Entities;
 
 namespace Modules.WorkoutPlanModule.Application.Queries;
 

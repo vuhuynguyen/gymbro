@@ -15,8 +15,8 @@ gymbro/
         BuildingBlocks.Shared/         # Result/Error, domain primitives, marker interfaces, ICurrentUser/ITenantContext
         BuildingBlocks.Application/    # pipeline behaviors (Validation/Authorization/PlatformAdmin) + markers, ResultPipelineHelper, IUnitOfWork/IRepository
         Infrastructure/                # AppDbContext (filters/soft-delete/audit/event dispatch), repositories, CurrentUser, TokenService
-        BuildingBlocks.EvenBus/        # DEAD (misspelled, unwired) — do not use; cross-module events use MediatR notifications
 ```
+Cross-module events use **MediatR notifications** (no event-bus project).
 Module ownership, public APIs, and forbidden dependencies: [`../../docs/MODULES.md`](../../docs/MODULES.md).
 
 ## Run / migrate / seed
@@ -28,13 +28,15 @@ dotnet run --project Presentations/WebApi      # OpenAPI + Scalar in dev
 ```
 Config `ConnectionStrings:Database` + `Jwt:*` via **user-secrets/env**, never committed (`UserSecretsId` on `WebApi.csproj`). Secret rotation completed 2026-05-30 — see [`SECRETS_RUNBOOK.md`](SECRETS_RUNBOOK.md). Seeded admin (Development only): `admin@gymbro.local` / `Admin@123456`. Two DbContexts (`AppDbContext`, `IdentityDbContext`) — details in [`../../docs/DATABASE.md`](../../docs/DATABASE.md).
 
+**Operational endpoints:** `GET /health` (liveness) + `GET /health/ready` (DB readiness), both anonymous. Structured JSON logging (per-request TraceId/RequestId scopes) outside Development; readable console in dev. Owned by [`../../docs/SYSTEM_OVERVIEW.md`](../../docs/SYSTEM_OVERVIEW.md).
+
 ## Mandatory conventions
 - **`Result`/`Result<T>` everywhere** — handlers never throw for business rules; controllers map `Error.Code` → HTTP. Unexpected exceptions → `GlobalExceptionHandler` (no stack traces to clients).
 - **Thin controllers** — bind request → dispatch one MediatR command/query → map `Result`. No business logic.
-- **One handler per use case**; **FluentValidation** validators live beside the command. MediatR pipeline (in order): `ValidationBehavior`, then `AuthorizationBehavior` (`Modules.User/Application/Authorization/` — see [`../../docs/PERMISSIONS.md`](../../docs/PERMISSIONS.md)).
+- **One handler per use case**; **FluentValidation** validators live beside the command. MediatR pipeline (in order): `ValidationBehavior` → `AuthorizationBehavior` → `PlatformAdminBehavior` — all in `BuildingBlocks.Application/Authorization` (the `TenantRoleResolver` membership lookup, memoized per request via `IRequestRoleCache`, lives in `Modules.User/Application/Authorization`). See [`../../docs/PERMISSIONS.md`](../../docs/PERMISSIONS.md).
 - **Namespaces** `Modules.<Module>Module.<Layer>.<Subfolder>` (note: folders are `Modules.X`, namespaces `Modules.XModule`).
 - **Authorization** — hybrid model: implement `ITenantAuthorizedRequest` when a request needs validated tenant + one static permission (`AuthorizationBehavior` runs before the handler); keep ownership, `CanAccessResourceAsync`, route-`tenantId`, and admin bypass in handlers. Full model: [`../../docs/PERMISSIONS.md`](../../docs/PERMISSIONS.md).
-- **Tests** — `Tests/Gymbro.Tests.csproj` (unit + authorization convention tests). Run: `dotnet test Tests/Gymbro.Tests.csproj`. Integration tests (Testcontainers) remain TODO — see `Tests/IntegrationTargets.TODO.cs`.
+- **Tests** — run `dotnet test Tests/Gymbro.Tests.csproj`. ⚠ Integration tests (Testcontainers) **self-skip without Docker** (or a `GYMBRO_TEST_DB` connection). Full strategy, inventory, and gaps: [`../../docs/TESTING.md`](../../docs/TESTING.md).
 
 ## How to add a feature (checklist)
 1. **Domain:** add/extend the aggregate under `Modules.<Feature>/Entities` (private setters + factory invariants).

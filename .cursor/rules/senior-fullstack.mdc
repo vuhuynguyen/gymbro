@@ -16,14 +16,17 @@ For Angular UI work, open the **GymBroPortal** workspace and use its `.cursor/ru
 
 ## Shared documentation (read before any task)
 
+System facts live in the root `docs/` SSOT (routed by [`../../../docs/README.md`](../../../docs/README.md));
+backend solution layout / build / patterns in [`../../docs/BACKEND.md`](../../docs/BACKEND.md).
+
 | What you need | Read |
 |---|---|
-| Project structure, layers | `../../docs/architecture.md` |
-| Domain entities, EF filters | `../../docs/domain-model.md` |
-| API surface (major endpoints) | `../../docs/backend-api.md` |
-| Auth / JWT / ICurrentUser | `../../docs/architecture.md` |
-| Tenant lifecycle, roles | `../../docs/permissions-and-roles.md` · `../../docs/business-flows.md` |
-| Permission matrix | `../../docs/permissions-and-roles.md` |
-| Invite / registration | `../../docs/business-flows.md` |
+| Big picture, stack, risks | `../../../docs/SYSTEM_OVERVIEW.md` |
+| Module boundaries, endpoints, dependencies | `../../../docs/MODULES.md` |
+| Domain entities, EF filters, tenancy | `../../../docs/DATABASE.md` |
+| Authorization, roles, permission matrix | `../../../docs/PERMISSIONS.md` |
+| Lifecycle rules (plan/assignment/session/membership) | `../../../docs/BUSINESS_RULES.md` |
+| Flows (onboarding, invites, sessions) | `../../../docs/USER_FLOWS.md` |
+| Solution layout, build/run/migrate | `../../docs/BACKEND.md` |
 
-After every change, update the **one** owning doc listed in `../../docs/README.md`.
+After every change, update the **one** owning doc listed in `../../../docs/README.md`.

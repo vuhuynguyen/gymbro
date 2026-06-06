@@ -1,4 +1,5 @@
 using BuildingBlocks.Shared.DomainPrimitives;
+using Modules.WorkoutPlanModule.Application;
 
 namespace Modules.WorkoutPlanModule.Entities;
 

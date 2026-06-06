@@ -1,7 +1,6 @@
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using BuildingBlocks.Application.Authorization;
-using Modules.WorkoutPlanModule.Entities;
 
 namespace Modules.WorkoutPlanModule.Application.Commands;
 

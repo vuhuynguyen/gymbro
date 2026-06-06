@@ -1,5 +1,3 @@
-using Modules.WorkoutPlanModule.Entities;
-
 namespace Modules.WorkoutPlanModule.Application.DTOs;
 
 public sealed record PlanAssignmentSummaryDto(

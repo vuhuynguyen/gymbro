@@ -58,8 +58,12 @@ cd gymbro/Presentations/WebApi
 dotnet user-secrets set "Jwt:Secret" "<generated-key>"
 # prod: env var Jwt__Secret, or a Key Vault reference
 ```
-**Impact:** the key is symmetric, so **every existing JWT becomes invalid immediately**. Tokens are 24h with no
-refresh, so all users must re-login — pick a low-traffic window and communicate it.
+**Impact:** the key is symmetric, so **every existing access JWT becomes invalid immediately**. Access tokens are
+short-lived (~15 min); **opaque refresh tokens are not signed by this key**, so clients holding a valid
+`gymbro_refresh` cookie silently re-authenticate — rotating the signing key alone does **not** force a re-login.
+To force full re-login (e.g. if the key itself leaked), also revoke refresh tokens (`POST /api/auth/logout-all`
+per user, or clear the `RefreshTokens` table — which rotates SecurityStamps). Token lifecycle:
+[`../../docs/REFRESH_TOKEN_DESIGN.md`](../../docs/REFRESH_TOKEN_DESIGN.md). Pick a low-traffic window and communicate it.
 
 ### 2c. Confirm secrets are not in any tracked file
 ```bash

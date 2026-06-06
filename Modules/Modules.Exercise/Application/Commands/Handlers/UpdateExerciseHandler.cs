@@ -3,7 +3,6 @@ using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Modules.ExerciseModule.Application.Abstractions;
 using Modules.ExerciseModule.Application.Caching;
 using Modules.ExerciseModule.Application.Commands;
@@ -14,7 +13,7 @@ namespace Modules.ExerciseModule.Application.Commands.Handlers;
 public class UpdateExerciseHandler(
     IExerciseRepository repository,
     IUnitOfWork unitOfWork,
-    IMemoryCache cache,
+    ExerciseDetailCacheSignal detailCacheSignal,
     ExerciseSearchCacheSignal searchCacheSignal)
     : IRequestHandler<UpdateExerciseCommand, Result<Guid>>
 {
@@ -79,7 +78,9 @@ public class UpdateExerciseHandler(
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        cache.Remove(ExerciseCatalogCacheKeys.DetailScoped(exercise.Id, "admin"));
+        // Evict every cached detail entry for this exercise — admin AND each per-tenant scope, not just
+        // "admin". The scoped keys can't be enumerated, so trip the shared change-token instead.
+        detailCacheSignal.Invalidate();
         // Name/attributes/filters may have changed — every cached search page is now suspect.
         searchCacheSignal.Invalidate();
 

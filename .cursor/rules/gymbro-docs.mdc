@@ -9,35 +9,41 @@ alwaysApply: true
 
 # GymBro API — Documentation System
 
-Before any backend task, read the relevant shared docs in `../docs/`:
+Before any backend task, read the one authoritative doc that owns your topic. **System facts live in the
+root `docs/` SSOT** (routed by [`../../../docs/README.md`](../../../docs/README.md)); backend layout/build/
+patterns live in [`../../docs/BACKEND.md`](../../docs/BACKEND.md); conventions in the repo-root `CLAUDE.md`.
 
 | What you need | Read |
 |---|---|
-| Project structure, layers | `../docs/architecture.md` |
-| Domain entities, EF filters | `../docs/domain-model.md` |
-| API surface (major endpoints) | `../docs/backend-api.md` |
-| Auth, JWT, ICurrentUser | `../docs/architecture.md` |
-| Tenant lifecycle, roles | `../docs/permissions-and-roles.md` · `../docs/business-flows.md` |
-| Permission matrix | `../docs/permissions-and-roles.md` |
-| Invite / registration | `../docs/business-flows.md` |
-| Doc index + patterns | `../docs/README.md` · `../docs/coding-patterns.md` |
+| Big picture, stack, run, risks | `../../../docs/SYSTEM_OVERVIEW.md` |
+| Module boundaries, endpoints, dependencies | `../../../docs/MODULES.md` |
+| Domain entities, EF filters, tenancy | `../../../docs/DATABASE.md` |
+| Authorization, roles, permission matrix, tenant isolation | `../../../docs/PERMISSIONS.md` |
+| Lifecycle rules (plan/assignment/session/membership) | `../../../docs/BUSINESS_RULES.md` |
+| End-to-end flows (onboarding, invites, sessions) | `../../../docs/USER_FLOWS.md` |
+| Token lifecycle (access/refresh/revocation) | `../../../docs/REFRESH_TOKEN_DESIGN.md` |
+| Solution layout, build/run/migrate, add-a-feature | `../../docs/BACKEND.md` |
 
 ## Key conventions
 
-- All handlers return `Result<T>` — never throw
-- Controllers only map Result → HTTP status codes
+- All handlers return `Result`/`Result<T>` — never throw for business rules
+- Controllers only map `Error.Code` → HTTP status codes (thin controllers)
 - EF global filters: tenant isolation + soft-delete (admin bypasses both)
-- `X-Tenant-Id` header required for all tenant-scoped API calls
+- `X-Tenant-Id` required for tenant-scoped calls; read via `ICurrentUser`/`ITenantContext`, never raw
 - FluentValidation validators live beside their command files
-- Namespaces: `Modules.<ModuleName>.<Layer>.<Subfolder>`
+- MediatR pipeline (order): `ValidationBehavior` → `AuthorizationBehavior` → `PlatformAdminBehavior`
+- Namespaces: `Modules.<Module>Module.<Layer>.<Subfolder>` (folders are `Modules.X`)
 - DTO mapping: explicit only in `Application/Mapping/<Module>Mapping.cs` (see repo root `CLAUDE.md`)
 
 ## Update rules (MANDATORY)
 
-After every code change, update the corresponding doc:
+When behavior changes, update the **one** root `docs/*` file that owns that fact (see `../../../docs/README.md`):
 
-- New endpoint → `../docs/backend-api.md`
-- New entity field → `../docs/domain-model.md`
-- New permission check → `../docs/permissions-and-roles.md`
-- Invite / bootstrap change → `../docs/business-flows.md`
-- Tenant isolation change → `../docs/architecture.md`
+- New/changed endpoint or module dependency → `MODULES.md`
+- New entity / field / EF filter → `DATABASE.md`
+- Permission or tenant-isolation change → `PERMISSIONS.md`
+- Lifecycle rule (plan/assignment/session/membership) → `BUSINESS_RULES.md`
+- Flow change (onboarding, invite, session) → `USER_FLOWS.md`
+- Token lifecycle change → `REFRESH_TOKEN_DESIGN.md`
+
+Do not duplicate a fact across docs; link instead.

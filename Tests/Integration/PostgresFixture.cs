@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Modules.ExerciseModule;
+using Modules.ExerciseModule.Application.Caching;
 using Modules.IdentityModule;
 using Modules.IdentityModule.DependencyInjection;
 using Modules.IdentityModule.Infrastructure.Identity;
@@ -150,6 +151,11 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddLogging();
         services.AddMemoryCache();
         services.AddDataProtection();   // UserManager's default token providers need IDataProtectionProvider.
+
+        // Exercise catalog cache-invalidation signals (singletons, as in Program.cs) — the exercise
+        // handlers depend on them, so they must be registered for any test that dispatches one.
+        services.AddSingleton<ExerciseSearchCacheSignal>();
+        services.AddSingleton<ExerciseDetailCacheSignal>();
 
         // Same MediatR composition as Program.cs (all five module assemblies + pipeline behaviors).
         services.AddMediatR(cfg =>

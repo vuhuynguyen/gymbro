@@ -19,7 +19,8 @@ public class GetExerciseByIdHandler(
     ICurrentUser currentUser,
     ITenantContext tenantContext,
     ITenantAuthorizationService tenantAuth,
-    IMemoryCache cache)
+    IMemoryCache cache,
+    ExerciseDetailCacheSignal detailCacheSignal)
     : IRequestHandler<GetExerciseByIdQuery, Result<ExerciseDetailDto>>
 {
     private static readonly TimeSpan DetailCacheTtl = TimeSpan.FromMinutes(2);
@@ -66,10 +67,15 @@ public class GetExerciseByIdHandler(
         if (exercise == null)
             return Result<ExerciseDetailDto>.Failure(Error.NotFound("Exercise not found."));
 
-        cache.Set(cacheKey, exercise, new MemoryCacheEntryOptions
+        var entryOptions = new MemoryCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = DetailCacheTtl
-        });
+        };
+        // Link the entry to the shared signal so any catalog mutation evicts it immediately — across
+        // every tenant scope and admin — rather than serving stale detail until the TTL lapses. The
+        // scoped keys can't be enumerated for targeted removal, so this is the only reliable eviction.
+        entryOptions.AddExpirationToken(detailCacheSignal.Token);
+        cache.Set(cacheKey, exercise, entryOptions);
 
         return Result<ExerciseDetailDto>.Success(exercise);
     }

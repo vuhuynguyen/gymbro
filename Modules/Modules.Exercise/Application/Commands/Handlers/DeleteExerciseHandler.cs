@@ -2,7 +2,6 @@ using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using MediatR;
-using Microsoft.Extensions.Caching.Memory;
 using Modules.ExerciseModule.Application.Abstractions;
 using Modules.ExerciseModule.Application.Caching;
 using Modules.ExerciseModule.Application.Commands;
@@ -12,7 +11,7 @@ namespace Modules.ExerciseModule.Application.Commands.Handlers;
 public class DeleteExerciseHandler(
     IExerciseRepository repository,
     IUnitOfWork unitOfWork,
-    IMemoryCache cache,
+    ExerciseDetailCacheSignal detailCacheSignal,
     ExerciseSearchCacheSignal searchCacheSignal)
     : IRequestHandler<DeleteExerciseCommand, Result>
 {
@@ -30,12 +29,13 @@ public class DeleteExerciseHandler(
             return Result.Failure(Error.NotFound("Exercise not found."));
         }
 
-        var id = exercise.Id;
         repository.Remove(exercise);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        cache.Remove(ExerciseCatalogCacheKeys.DetailScoped(id, "admin"));
-        // A removed exercise must disappear from every cached search page.
+        // A removed exercise must disappear from every cached detail entry — admin AND each per-tenant
+        // scope, not just "admin". The scoped keys can't be enumerated, so trip the shared change-token.
+        detailCacheSignal.Invalidate();
+        // ...and from every cached search page.
         searchCacheSignal.Invalidate();
 
         return Result.Success();

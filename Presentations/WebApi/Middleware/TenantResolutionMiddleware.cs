@@ -1,3 +1,4 @@
+using BuildingBlocks.Application.Authorization;
 using BuildingBlocks.Shared.Abstractions;
 using Modules.UserModule.Application.Abstractions;
 
@@ -38,7 +39,14 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
                     userId, tenantId, context.RequestAborted);
 
                 if (membership is not null)
+                {
                     context.Items[TenantConstants.ValidatedTenantIdItemKey] = tenantId;
+
+                    // Seed the per-request role cache so the AuthorizationBehavior and any handler-level
+                    // permission checks that follow reuse this lookup instead of re-querying UserTenantRole.
+                    context.RequestServices.GetRequiredService<IRequestRoleCache>()
+                        .Set(userId, tenantId, membership.Role);
+                }
             }
         }
 

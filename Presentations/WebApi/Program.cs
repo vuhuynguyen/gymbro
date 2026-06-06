@@ -26,10 +26,25 @@ using Modules.UserModule.Application.Authorization;
 using Modules.WorkoutPlanModule;
 using Modules.WorkoutSessionModule;
 using WebApi.Composition;
+using WebApi.HealthChecks;
 using WebApi.Middleware;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Structured (JSON) logging outside Development so logs are machine-parseable for aggregation; scopes
+// carry the per-request TraceId/RequestId/RequestPath that GlobalExceptionHandler also stamps onto error
+// responses, letting an error's traceId be matched to its logs. Development keeps the readable console.
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Logging.ClearProviders();
+    builder.Logging.AddJsonConsole(options =>
+    {
+        options.IncludeScopes = true;
+        options.UseUtcTimestamp = true;
+    });
+}
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -64,6 +79,8 @@ builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddSingleton<IPermissionService, PermissionService>();
 builder.Services.AddScoped<ITenantRoleResolver, TenantRoleResolver>();
 builder.Services.AddScoped<ITenantAuthorizationService, TenantAuthorizationService>();
+// Per-request memo so the membership/role lookup runs once per request instead of 2-4 times.
+builder.Services.AddScoped<IRequestRoleCache, RequestRoleCache>();
 
 var jwtSecret = builder.Configuration["Jwt:Secret"];
 if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
@@ -135,8 +152,16 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddMemoryCache();
 
+// Health: /health is a dependency-free liveness probe; /health/ready additionally verifies DB
+// connectivity (both EF contexts) via the "ready"-tagged check.
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" });
+
 // One shared change-token instance evicts all cached exercise-search pages on any catalog mutation.
 builder.Services.AddSingleton<ExerciseSearchCacheSignal>();
+// The detail cache needs the same cross-scope eviction: its per-tenant + admin entries can't be
+// enumerated for targeted removal, so they link to this signal instead.
+builder.Services.AddSingleton<ExerciseDetailCacheSignal>();
 
 // Rate limiting for the unauthenticated/abuse-prone auth surface, partitioned per client IP.
 // "auth" guards brute-force-able endpoints (login, register, password reset); "auth-refresh" is
@@ -211,6 +236,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<TenantResolutionMiddleware>();
 app.MapControllers();
+
+// Liveness: app is up (no dependencies checked). Readiness: DB reachable (the "ready"-tagged check).
+// Both are anonymous (no [Authorize]) so orchestrators can probe without a token.
+app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
 
 await DatabaseMigrationStartup.EnsureMigrationsAppliedAsync(app.Services);
 await DbSeeder.SeedAsync(app.Services);

@@ -1,5 +1,6 @@
 namespace WebApi.Requests.WorkoutPlan;
 
+using Modules.WorkoutPlanModule.Application;
 using Modules.WorkoutPlanModule.Entities;
 
 public sealed class CreateWorkoutPlanRequest

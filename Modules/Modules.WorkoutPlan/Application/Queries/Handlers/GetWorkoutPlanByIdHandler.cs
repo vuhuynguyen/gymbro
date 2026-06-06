@@ -29,6 +29,7 @@ public sealed class GetWorkoutPlanByIdHandler(
         var tenantId = tenantContext.TenantId!.Value;
 
         var plan = await repository.Query()
+            .AsNoTracking()
             .Include(p => p.Workouts)
             .ThenInclude(w => w.Exercises)
             .ThenInclude(e => e.PrescribedSets)

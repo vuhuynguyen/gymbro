@@ -28,5 +28,13 @@ public sealed class WorkoutSessionConfiguration : IEntityTypeConfiguration<Worko
 
         builder.HasIndex(x => new { x.TraineeId, x.StartedAt });
         builder.HasIndex(x => new { x.TraineeId, x.Status });
+
+        // One InProgress session per trainee per tenant at a time. The partial index
+        // (filtered to Status = InProgress) lets the same trainee start a new session once the
+        // previous one is completed or abandoned.
+        builder.HasIndex(x => new { x.TenantId, x.TraineeId })
+            .IsUnique()
+            .HasFilter("\"Status\" = 1")
+            .HasDatabaseName("IX_WorkoutSessions_TenantId_TraineeId_InProgress");
     }
 }

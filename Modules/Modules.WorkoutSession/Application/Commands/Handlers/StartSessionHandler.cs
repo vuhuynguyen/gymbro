@@ -3,6 +3,7 @@ using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Modules.WorkoutPlanModule.Application.Queries;
 using Modules.WorkoutPlanModule.Entities;
 using Modules.WorkoutSessionModule.Application.Abstractions;
@@ -29,7 +30,8 @@ public sealed class StartSessionHandler(
 
         var existing = await sessionRepository.GetActiveForTraineeAsync(currentUser.UserId, cancellationToken);
         if (existing != null)
-            return Result<SessionStartResultDto>.Failure(Conflict("Conflict", "You already have an in-progress session."));
+            return Result<SessionStartResultDto>.Failure(
+                Conflict("Conflict", "You already have an active session. Finish or abandon it before starting a new one."));
 
         string? snapshotJson = null;
         string? workoutName = null;
@@ -100,7 +102,18 @@ public sealed class StartSessionHandler(
             session.SeedPlannedExercises(plannedExercises);
 
         await sessionRepository.AddAsync(session, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Race: a concurrent request created an in-progress session after the pre-check above;
+            // the partial unique index (one in-progress session per trainee per tenant) rejects this insert.
+            return Result<SessionStartResultDto>.Failure(
+                Conflict("Conflict", "You already have an active session. Finish or abandon it before starting a new one."));
+        }
 
         var snapshotDto = SessionMapping.DeserializeSnapshot(snapshotJson);
         if (snapshotDto != null && hideSetsRepsForCaller)

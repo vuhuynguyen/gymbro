@@ -18,16 +18,21 @@ public static class PersistenceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // IMPORTANT: Use AddDbContext, never AddDbContextPool. AppDbContext.ApplyGlobalFilters uses
+        // Expression.Constant(this) to capture a live reference to CurrentUser/TenantContext in the
+        // compiled EF query filter. This is safe because both properties delegate to
+        // IHttpContextAccessor (AsyncLocal) on every call. Pool-reuse would share one context instance
+        // across requests; that is currently harmless, but it creates a latent correctness risk that
+        // is best eliminated at the registration layer.
         services.AddDbContext<AppDbContext>(options =>
         {
             options.UseNpgsql(configuration.GetConnectionString("Database"));
         });
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
-        
+
         services.AddScoped<IDbContextServices, DbContextServices>();
-        services.AddScoped<ITranslationService, TranslationService>();
-        
+
         // Generic repository
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 

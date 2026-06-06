@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using BuildingBlocks.Application.Abstractions;
-using BuildingBlocks.Infrastructure.Persistence.Entities;
 using BuildingBlocks.Infrastructure.Persistence.Services.Interfaces;
 using BuildingBlocks.Shared.Abstractions;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +22,6 @@ public class AppDbContext(
     public ITenantContext TenantContext { get; } = services.TenantContext;
 
     public DbSet<Exercise> Exercises { get; set; } = null!;
-    public DbSet<Translation> Translations { get; set; } = null!;
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Tenant> Tenants { get; set; } = null!;
     public DbSet<UserTenantRole> UserTenantRoles { get; set; } = null!;
@@ -129,6 +127,13 @@ public class AppDbContext(
             // ========================
             // 1. Admin bypass (from ICurrentUser — identity concern)
             // ========================
+            // INVARIANT: Expression.Constant(this) captures this DbContext instance in the compiled EF
+            // query filter. The filter is safe because CurrentUser and TenantContext read from
+            // IHttpContextAccessor.HttpContext on every call (AsyncLocal, not cached), so they always
+            // return the value for the request that is currently executing — not the request that
+            // constructed this instance. This guarantee BREAKS if either property is ever changed to
+            // cache its value at construction time. AddDbContext (not AddDbContextPool) is used to
+            // keep one instance per request and avoid cross-request confusion; see PersistenceExtensions.
             var currentUserExpr = Expression.Property(
                 Expression.Constant(this),
                 nameof(CurrentUser));

@@ -2,6 +2,7 @@ using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Modules.WorkoutPlanModule.Application.Abstractions;
 using Modules.WorkoutPlanModule.Application.Authorization;
 using Modules.WorkoutPlanModule.Entities;
@@ -45,7 +46,16 @@ public sealed class UpdateWorkoutPlanHandler(
             request.WorkoutsPerWeek);
 
         await repository.AddAsync(next, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Concurrent edit created the same version; caller should reload and retry.
+            return Result.Failure(Conflict("Conflict", "This plan was modified concurrently. Refresh and try again."));
+        }
 
         return Result.Success();
     }

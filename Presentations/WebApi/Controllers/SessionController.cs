@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Modules.WorkoutSessionModule.Application.Commands;
 using Modules.WorkoutSessionModule.Application.Queries;
 using Modules.WorkoutSessionModule.Entities;
+using WebApi.Http;
 using WebApi.Requests.Session;
 
 namespace WebApi.Controllers;
@@ -24,7 +25,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.BodyweightKg), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return CreatedAtAction(nameof(GetById), new { sessionId = result.Value.SessionId }, result.Value);
     }
@@ -35,7 +36,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetActiveSessionQuery(), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         if (result.Value == null)
             return NoContent();
@@ -57,7 +58,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new ListSessionsQuery(traineeId, from, to, status, planAssignmentId, page, pageSize), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return Ok(result.Value);
     }
@@ -68,7 +69,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetSessionByIdQuery(sessionId), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return Ok(result.Value);
     }
@@ -87,7 +88,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.Notes), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return StatusCode(201, result.Value);
     }
@@ -107,7 +108,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.Notes), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return Ok(new { updated = true });
     }
@@ -134,7 +135,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.IsCompleted), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return StatusCode(201, result.Value);
     }
@@ -161,7 +162,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.SetType), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return Ok(new { updated = true });
     }
@@ -176,7 +177,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new DeleteSetCommand(sessionId, exerciseId, setId), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return NoContent();
     }
@@ -194,7 +195,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.CompletedAt), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return Ok(result.Value);
     }
@@ -208,16 +209,9 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new AbandonSessionCommand(sessionId, request.Notes), ct);
 
         if (result.IsFailure)
-            return MapError(result.Error);
+            return result.ToFailureResult(this);
 
         return Ok(new { sessionId, status = "Abandoned" });
     }
 
-    private IActionResult MapError(BuildingBlocks.Shared.Errors.Error error) => error.Code switch
-    {
-        "NotFound" => NotFound(error.Message),
-        "Unauthorized" => StatusCode(403, error.Message),
-        "Conflict" => Conflict(error.Message),
-        _ => BadRequest(error.Message)
-    };
 }

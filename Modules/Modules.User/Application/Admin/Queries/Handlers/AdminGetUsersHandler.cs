@@ -1,5 +1,3 @@
-using BuildingBlocks.Shared.Abstractions;
-using BuildingBlocks.Shared.Authorization;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,16 +8,12 @@ using Modules.UserModule.Application.Mapping;
 namespace Modules.UserModule.Application.Admin.Queries.Handlers;
 
 public class AdminGetUsersHandler(
-    IUserRepository userRepository,
-    ICurrentUser currentUser)
+    IUserRepository userRepository)
     : IRequestHandler<AdminGetUsersQuery, Result<List<AdminUserDto>>>
 {
     public async Task<Result<List<AdminUserDto>>> Handle(
         AdminGetUsersQuery request, CancellationToken cancellationToken)
     {
-        if (AdminPolicy.Deny<List<AdminUserDto>>(currentUser) is { } denied)
-            return denied;
-
         // Bound the result set. Defaults keep the response shape (a bare list) backward compatible
         // with existing callers while clamping the page size so the whole table can never be loaded.
         var page = request.Page < 1 ? 1 : request.Page;

@@ -15,7 +15,8 @@ public sealed record PerformedSetDto(
     int? RestSeconds,
     bool IsCompleted,
     decimal? EstimatedOneRepMaxKg,
-    DateTimeOffset LoggedAt);
+    DateTimeOffset LoggedAt,
+    bool IsPr);
 
 public sealed record PerformedExerciseDto(
     Guid Id,
@@ -78,7 +79,21 @@ public sealed record SessionSummaryDto(
     int TotalExercises,
     int? RpeOverall,
     Guid? PlanAssignmentId,
-    string? WorkoutName);
+    string? WorkoutName,
+    decimal TotalVolumeKg,
+    int PrCount,
+    string? ProgramName,
+    int? PlanWeek,
+    int? WeeklyGoal);
+
+/// <summary>A working set that established a new estimated-1RM record for its lift in a session.</summary>
+public sealed record SessionPrDto(
+    Guid ExerciseId,
+    string? ExerciseName,
+    decimal WeightKg,
+    int Reps,
+    decimal EstimatedOneRepMaxKg,
+    decimal? PreviousEstimatedOneRepMaxKg);
 
 public sealed record SessionListDto(
     IReadOnlyList<SessionSummaryDto> Items,
@@ -102,4 +117,8 @@ public sealed record SessionDetailDto(
     Guid? PlannedWorkoutId,
     string? WorkoutNameSnapshot,
     IReadOnlyList<PerformedExerciseDto> Exercises,
-    SessionSnapshotDto? Snapshot);
+    SessionSnapshotDto? Snapshot,
+    decimal TotalVolumeKg,
+    string? ProgramName,
+    int? PlanWeek,
+    IReadOnlyList<SessionPrDto> Prs);

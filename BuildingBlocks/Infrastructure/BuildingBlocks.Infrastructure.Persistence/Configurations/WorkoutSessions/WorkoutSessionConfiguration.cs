@@ -16,10 +16,12 @@ public sealed class WorkoutSessionConfiguration : IEntityTypeConfiguration<Worko
         builder.Property(x => x.Source).IsRequired();
         builder.Property(x => x.Status).IsRequired();
         builder.Property(x => x.StartedAt).IsRequired();
+        builder.Property(x => x.PrCount).IsRequired().HasDefaultValue(0);
         builder.Property(x => x.BodyweightKg).HasPrecision(5, 1);
         builder.Property(x => x.WorkoutNameSnapshot).HasMaxLength(200);
         builder.Property(x => x.ClientTimezone).HasMaxLength(60);
         builder.Property(x => x.Notes).HasMaxLength(1000);
+        builder.Property(x => x.SnapshotJson).HasColumnType("jsonb");
 
         builder.Navigation(x => x.Exercises)
             .UsePropertyAccessMode(PropertyAccessMode.Field);

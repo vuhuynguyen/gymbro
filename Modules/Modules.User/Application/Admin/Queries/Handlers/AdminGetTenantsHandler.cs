@@ -1,5 +1,3 @@
-using BuildingBlocks.Shared.Abstractions;
-using BuildingBlocks.Shared.Authorization;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,16 +10,12 @@ namespace Modules.UserModule.Application.Admin.Queries.Handlers;
 public class AdminGetTenantsHandler(
     ITenantRepository tenantRepository,
     IUserRepository userRepository,
-    IUserTenantRoleRepository roleRepository,
-    ICurrentUser currentUser)
+    IUserTenantRoleRepository roleRepository)
     : IRequestHandler<AdminGetTenantsQuery, Result<List<AdminTenantDto>>>
 {
     public async Task<Result<List<AdminTenantDto>>> Handle(
         AdminGetTenantsQuery request, CancellationToken cancellationToken)
     {
-        if (AdminPolicy.Deny<List<AdminTenantDto>>(currentUser) is { } denied)
-            return denied;
-
         // Bound the result set with a clamped page/pageSize; defaults preserve the bare-list response shape.
         var page = request.Page < 1 ? 1 : request.Page;
         var pageSize = request.PageSize < 1 ? 50 : Math.Min(request.PageSize, 200);

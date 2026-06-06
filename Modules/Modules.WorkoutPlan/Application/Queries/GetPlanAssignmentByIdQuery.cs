@@ -11,4 +11,8 @@ public sealed record GetPlanAssignmentByIdQuery(Guid Id)
 public sealed record PlanAssignmentForSessionDto(
     Guid Id,
     Guid TraineeId,
-    PlanVisibilityMode VisibilityMode);
+    PlanVisibilityMode VisibilityMode,
+    bool HideExercises,
+    bool HideSetsReps,
+    bool HideFutureWorkouts,
+    bool DisableTraineeEditing);

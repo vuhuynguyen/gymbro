@@ -8,6 +8,7 @@ using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutPlanModule.Application.Abstractions;
 using Modules.WorkoutPlanModule.Application.DTOs;
 using Modules.WorkoutPlanModule.Application.Mapping;
+using Modules.WorkoutPlanModule.Entities;
 using static BuildingBlocks.Shared.Errors.CommonErrors;
 
 namespace Modules.WorkoutPlanModule.Application.Queries.Handlers;
@@ -37,15 +38,18 @@ public sealed class GetWorkoutPlanByIdHandler(
             return Result<WorkoutPlanDetailDto>.Failure(NotFound("NotFound", "Plan not found."));
 
         var canViewAllTemplates =
-            await tenantAuth.HasPermissionAsync(tenantId, Permission.WorkoutLogViewAll, cancellationToken);
+            await tenantAuth.HasPermissionAsync(tenantId, Permission.PlanViewAll, cancellationToken);
 
+        // Clients may only see plans they are assigned, and the assignment's visibility flags govern
+        // what the trainee sees (Guided mode). Coaches/admins (canViewAllTemplates) see the full plan.
+        PlanAssignment? traineeAssignment = null;
         if (!canViewAllTemplates)
         {
-            var assigned = await assignmentRepository.Query()
-                .AnyAsync(
+            traineeAssignment = await assignmentRepository.Query()
+                .FirstOrDefaultAsync(
                     a => a.TraineeId == currentUser.UserId && a.PlanId == plan.Id,
                     cancellationToken);
-            if (!assigned)
+            if (traineeAssignment == null)
                 return Result<WorkoutPlanDetailDto>.Failure(NotFound("NotFound", "Plan not found."));
         }
 
@@ -59,7 +63,11 @@ public sealed class GetWorkoutPlanByIdHandler(
         if (namesResult.IsFailure)
             return Result<WorkoutPlanDetailDto>.Failure(namesResult.Error);
 
-        return Result<WorkoutPlanDetailDto>.Success(
-            WorkoutPlanMapping.ToWorkoutPlanDetailDto(plan, namesResult.Value!));
+        var dto = WorkoutPlanMapping.ToWorkoutPlanDetailDto(plan, namesResult.Value!);
+
+        if (traineeAssignment != null)
+            dto = WorkoutPlanMapping.RedactForTrainee(dto, traineeAssignment);
+
+        return Result<WorkoutPlanDetailDto>.Success(dto);
     }
 }

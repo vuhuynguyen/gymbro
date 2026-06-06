@@ -8,7 +8,8 @@ namespace Modules.WorkoutPlanModule.Application.Queries;
 public sealed record ListPlanAssignmentsQuery(
     Guid? TraineeId,
     int Page = 1,
-    int PageSize = 10) : IRequest<Result<PlanAssignmentListDto>>, ITenantAuthorizedRequest
+    int PageSize = 10,
+    bool ActiveOnly = false) : IRequest<Result<PlanAssignmentListDto>>, ITenantAuthorizedRequest
 {
     public Permission RequiredPermission => Permission.PlanView;
 }

@@ -14,6 +14,9 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
     public int? DurationWeeks { get; private set; }
     public int? WorkoutsPerWeek { get; private set; }
 
+    /// <summary>Retired template: hidden from the active plan list, not editable, not assignable. Reversible.</summary>
+    public bool IsArchived { get; private set; }
+
     private readonly List<PlanWorkout> _workouts = new();
     public IReadOnlyCollection<PlanWorkout> Workouts => _workouts;
 
@@ -51,17 +54,6 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
         };
     }
 
-    public void UpdateMetadata(string name, string? description, int? durationWeeks, int? workoutsPerWeek)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required.", nameof(name));
-
-        Name = name.Trim();
-        Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
-        DurationWeeks = durationWeeks;
-        WorkoutsPerWeek = workoutsPerWeek;
-    }
-
     /// <summary>Replaces all plan workouts and their exercises (plan builder save).</summary>
     public void ReplaceStructure(
         IReadOnlyList<(string Name, int Order, IReadOnlyList<(Guid ExerciseId, int Order, IReadOnlyList<PlanWorkoutSetData> Sets)> Exercises)> workouts)
@@ -84,6 +76,11 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
     public void MarkDeleted()
     {
         IsDeleted = true;
+    }
+
+    public void SetArchived(bool archived)
+    {
+        IsArchived = archived;
     }
 
     public static WorkoutPlan CreateNewVersion(

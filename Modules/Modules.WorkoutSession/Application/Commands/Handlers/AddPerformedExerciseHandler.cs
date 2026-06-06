@@ -2,6 +2,8 @@ using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
+using Modules.ExerciseModule.Application.Queries;
+using Modules.WorkoutPlanModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Application.DTOs;
 using Modules.WorkoutSessionModule.Application.Mapping;
@@ -15,7 +17,8 @@ public sealed class AddPerformedExerciseHandler(
     IPerformedExerciseRepository exerciseRepository,
     IUnitOfWork unitOfWork,
     ITenantContext tenantContext,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IMediator mediator)
     : IRequestHandler<AddPerformedExerciseCommand, Result<PerformedExerciseDto>>
 {
     public async Task<Result<PerformedExerciseDto>> Handle(
@@ -34,12 +37,26 @@ public sealed class AddPerformedExerciseHandler(
         if (session.Status != SessionStatus.InProgress)
             return Result<PerformedExerciseDto>.Failure(Conflict("Conflict", "Session is not in progress."));
 
+        // DisableTraineeEditing: a locked assignment forbids adding ad-hoc exercises. Ad-hoc
+        // sessions (no assignment) and deleted assignments impose no restriction.
+        if (await TraineeEditingDisabledGuard.IsDisabledAsync(mediator, session.PlanAssignmentId, cancellationToken))
+            return Result<PerformedExerciseDto>.Failure(
+                Unauthorized("Forbidden", "Editing the planned workout is disabled for this assignment."));
+
+        // Capture the exercise name now so the log survives a later rename/delete of the exercise.
+        var namesResult = await mediator.Send(
+            new ResolveExerciseNamesQuery(new[] { request.ExerciseId }), cancellationToken);
+        var exerciseName = namesResult.IsSuccess
+            ? namesResult.Value!.GetValueOrDefault(request.ExerciseId)
+            : null;
+
         var exercise = PerformedExercise.Create(
             session.Id,
             tenantId,
             request.ExerciseId,
             request.PlanWorkoutExerciseId,
-            request.Order);
+            request.Order,
+            exerciseName);
 
         await exerciseRepository.AddAsync(exercise, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

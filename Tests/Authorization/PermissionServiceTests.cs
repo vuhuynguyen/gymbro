@@ -6,15 +6,15 @@ namespace Gymbro.Tests.Authorization;
 
 /// <summary>
 /// Pure unit tests (no DB) locking in the S1 permission matrix via <see cref="PermissionService"/>:
-/// Owner has all 11 permissions; Client has exactly PlanView/ClientView/WorkoutLogCreate/WorkoutLogViewOwn
-/// and NOT ClientRemove/PlanCreate/WorkoutLogViewAll; an unknown (non-member) role has none.
+/// Owner has all 12 permissions; Client has exactly PlanView/ClientView/WorkoutLogCreate/WorkoutLogViewOwn
+/// and NOT ClientRemove/PlanCreate/PlanViewAll/WorkoutLogViewAll; an unknown (non-member) role has none.
 /// </summary>
 public sealed class PermissionServiceTests
 {
     private readonly PermissionService _sut = new();
 
     [Fact]
-    public void Owner_has_all_eleven_permissions()
+    public void Owner_has_all_twelve_permissions()
     {
         foreach (var permission in Enum.GetValues<Permission>())
         {
@@ -23,7 +23,7 @@ public sealed class PermissionServiceTests
                 $"Owner should have {permission}");
         }
 
-        Assert.Equal(11, Enum.GetValues<Permission>().Length);
+        Assert.Equal(12, Enum.GetValues<Permission>().Length);
     }
 
     [Theory]
@@ -32,6 +32,7 @@ public sealed class PermissionServiceTests
     [InlineData(Permission.PlanUpdate)]
     [InlineData(Permission.PlanDelete)]
     [InlineData(Permission.PlanAssign)]
+    [InlineData(Permission.PlanViewAll)]
     [InlineData(Permission.InviteCreate)]
     [InlineData(Permission.WorkoutLogViewAll)]
     public void Owner_has_owner_only_permissions(Permission permission)
@@ -55,6 +56,7 @@ public sealed class PermissionServiceTests
     [InlineData(Permission.PlanUpdate)]
     [InlineData(Permission.PlanDelete)]
     [InlineData(Permission.PlanAssign)]
+    [InlineData(Permission.PlanViewAll)]
     [InlineData(Permission.InviteCreate)]
     [InlineData(Permission.WorkoutLogViewAll)]
     public void Client_is_denied_owner_only_permissions(Permission permission)

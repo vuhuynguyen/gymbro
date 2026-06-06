@@ -29,7 +29,6 @@ public sealed class TenantResolutionMiddleware(RequestDelegate next)
         {
             if (IsPlatformAdmin(context))
             {
-                // Admins operate across tenants; honour the header as-is.
                 context.Items[TenantConstants.ValidatedTenantIdItemKey] = tenantId;
             }
             else if (TryGetDomainUserId(context, out var userId))

@@ -15,6 +15,7 @@ public class PermissionService : IPermissionService
                 Permission.PlanDelete        => true,
                 Permission.PlanAssign        => true,
                 Permission.PlanView          => true,
+                Permission.PlanViewAll       => true,
                 Permission.ClientView        => true,
                 Permission.ClientRemove      => true,
                 Permission.InviteCreate      => true,

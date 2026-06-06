@@ -1,11 +1,10 @@
 using BuildingBlocks.Application.Abstractions;
-using BuildingBlocks.Shared.Abstractions;
-using BuildingBlocks.Shared.Authorization;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.ExerciseModule.Application.Abstractions;
+using Modules.ExerciseModule.Application.Caching;
 using Modules.ExerciseModule.Application.Commands;
 using Modules.ExerciseModule.Entities;
 
@@ -14,14 +13,13 @@ namespace Modules.ExerciseModule.Application.Commands.Handlers;
 public class CreateExerciseHandler(
     IExerciseRepository repository,
     IUnitOfWork unitOfWork,
-    ICurrentUser currentUser)
+    ExerciseSearchCacheSignal searchCacheSignal)
     : IRequestHandler<CreateExerciseCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
         CreateExerciseCommand request,
         CancellationToken cancellationToken)
     {
-        if (AdminPolicy.Deny<Guid>(currentUser) is { } denied) return denied;
         var exists = await repository.Query()
             .AnyAsync(x => x.DefaultName == request.Name, cancellationToken);
 
@@ -69,6 +67,9 @@ public class CreateExerciseHandler(
 
         await repository.AddAsync(exercise, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // A new exercise makes every cached search page stale (it may now belong in any of them).
+        searchCacheSignal.Invalidate();
 
         return Result<Guid>.Success(exercise.Id);
     }

@@ -19,6 +19,13 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
     public string? Notes { get; private set; }
     public string? ClientTimezone { get; private set; }
 
+    /// <summary>
+    /// Number of exercises in this session that set a new e1RM personal record versus the trainee's
+    /// prior history. Finalized once, when the session reaches a terminal state (see <see cref="Complete"/>);
+    /// read directly by the session list so it never re-walks full history per page. 0 while in progress.
+    /// </summary>
+    public int PrCount { get; private set; }
+
     private readonly List<PerformedExercise> _exercises = new();
     public IReadOnlyCollection<PerformedExercise> Exercises => _exercises;
 
@@ -58,10 +65,28 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
         };
     }
 
-    public void Complete(int? rpeOverall, string? notes, DateTimeOffset? completedAt)
+    /// <summary>
+    /// Pre-populates the session with the planned workout's exercises (in order) so the trainee sees
+    /// the plan to perform immediately. Called once at start for plan-based sessions; targets/sets are
+    /// resolved from the stored snapshot on read.
+    /// </summary>
+    public void SeedPlannedExercises(
+        IEnumerable<(Guid ExerciseId, Guid? PlanWorkoutExerciseId, int Order, string? ExerciseName)> planned)
+    {
+        ArgumentNullException.ThrowIfNull(planned);
+        var tenantId = TenantId ?? throw new InvalidOperationException("TenantId is not set.");
+
+        foreach (var p in planned.OrderBy(x => x.Order))
+            _exercises.Add(PerformedExercise.Create(
+                Id, tenantId, p.ExerciseId, p.PlanWorkoutExerciseId, p.Order, p.ExerciseName));
+    }
+
+    public void Complete(int? rpeOverall, string? notes, DateTimeOffset? completedAt, int prCount)
     {
         if (Status != SessionStatus.InProgress)
             throw new InvalidOperationException("Only in-progress sessions can be completed.");
+        if (prCount < 0)
+            throw new ArgumentOutOfRangeException(nameof(prCount));
 
         var now = completedAt ?? DateTimeOffset.UtcNow;
         Status = SessionStatus.Completed;
@@ -69,6 +94,7 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
         DurationSeconds = (int)(now - StartedAt).TotalSeconds;
         RpeOverall = rpeOverall;
         Notes = notes;
+        PrCount = prCount;
 
         RaiseDomainEvent(new SessionCompletedEvent(Id, TraineeId, TenantId!.Value, DateTimeOffset.UtcNow));
     }

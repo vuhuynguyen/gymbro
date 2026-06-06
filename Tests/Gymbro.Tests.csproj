@@ -13,11 +13,17 @@
         <PackageReference Include="xunit" Version="2.9.2" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
         <PackageReference Include="NSubstitute" Version="5.3.0" />
+        <!-- Integration tests spin up a throwaway Postgres. Needs Docker at run time; the
+             integration facts skip themselves when no container engine is reachable. -->
+        <PackageReference Include="Testcontainers.PostgreSql" Version="4.0.0" />
+        <PackageReference Include="Xunit.SkippableFact" Version="1.5.23" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\BuildingBlocks\Application\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
         <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.Shared\BuildingBlocks.Shared.csproj" />
+        <ProjectReference Include="..\BuildingBlocks\Infrastructure\BuildingBlocks.Infrastructure.Persistence\BuildingBlocks.Infrastructure.Persistence.csproj" />
+        <ProjectReference Include="..\BuildingBlocks\Infrastructure\BuildingBlocks.Infrastructure.Identity\BuildingBlocks.Infrastructure.Identity.csproj" />
         <ProjectReference Include="..\Modules\Modules.Exercise\Modules.Exercise.csproj" />
         <ProjectReference Include="..\Modules\Modules.Identity\Modules.Identity.csproj" />
         <ProjectReference Include="..\Modules\Modules.User\Modules.User.csproj" />

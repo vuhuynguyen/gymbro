@@ -2,6 +2,7 @@ using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
+using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Entities;
 using static BuildingBlocks.Shared.Errors.CommonErrors;
@@ -12,7 +13,8 @@ public sealed class UpdatePerformedExerciseHandler(
     IWorkoutSessionRepository sessionRepository,
     IPerformedExerciseRepository exerciseRepository,
     IUnitOfWork unitOfWork,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IMediator mediator)
     : IRequestHandler<UpdatePerformedExerciseCommand, Result>
 {
     public async Task<Result> Handle(UpdatePerformedExerciseCommand request, CancellationToken cancellationToken)
@@ -26,6 +28,12 @@ public sealed class UpdatePerformedExerciseHandler(
 
         if (session.Status != SessionStatus.InProgress)
             return Result.Failure(Conflict("Conflict", "Session is not in progress."));
+
+        // DisableTraineeEditing: a locked assignment forbids skipping or substituting planned
+        // exercises. Ad-hoc sessions and deleted assignments impose no restriction.
+        if (await TraineeEditingDisabledGuard.IsDisabledAsync(mediator, session.PlanAssignmentId, cancellationToken))
+            return Result.Failure(
+                Unauthorized("Forbidden", "Editing the planned workout is disabled for this assignment."));
 
         var exercise = await exerciseRepository.GetByIdWithSetsAsync(request.ExerciseId, cancellationToken);
         if (exercise == null || exercise.SessionId != session.Id)
@@ -43,7 +51,14 @@ public sealed class UpdatePerformedExerciseHandler(
             if (request.SubstituteExerciseId == null)
                 return Result.Failure(Validation("SubstituteExerciseId", "SubstituteExerciseId is required for substitution."));
 
-            exercise.Substitute(request.SubstituteExerciseId.Value, request.Notes);
+            // Capture the substitute's name now for durable history.
+            var namesResult = await mediator.Send(
+                new ResolveExerciseNamesQuery(new[] { request.SubstituteExerciseId.Value }), cancellationToken);
+            var substituteName = namesResult.IsSuccess
+                ? namesResult.Value!.GetValueOrDefault(request.SubstituteExerciseId.Value)
+                : null;
+
+            exercise.Substitute(request.SubstituteExerciseId.Value, substituteName, request.Notes);
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken);

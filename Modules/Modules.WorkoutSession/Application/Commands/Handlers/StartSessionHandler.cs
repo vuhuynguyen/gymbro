@@ -34,6 +34,10 @@ public sealed class StartSessionHandler(
         string? snapshotJson = null;
         string? workoutName = null;
         Guid? plannedWorkoutId = request.PlannedWorkoutId;
+        // The caller is always the performing trainee; redact the start response when their assignment
+        // hides sets/reps so the prescription never reaches them (the stored snapshot stays full).
+        var hideSetsRepsForCaller = false;
+        var plannedExercises = new List<(Guid ExerciseId, Guid? PlanWorkoutExerciseId, int Order, string? ExerciseName)>();
 
         if (request.Source == SessionSource.FromAssignment)
         {
@@ -52,6 +56,9 @@ public sealed class StartSessionHandler(
             if (assignment.TraineeId != currentUser.UserId)
                 return Result<SessionStartResultDto>.Failure(Unauthorized("Unauthorized", "This assignment does not belong to you."));
 
+            hideSetsRepsForCaller =
+                assignment.VisibilityMode == PlanVisibilityMode.Guided && assignment.HideSetsReps;
+
             if (assignment.VisibilityMode != PlanVisibilityMode.Blind && plannedWorkoutId.HasValue)
             {
                 var workoutResult = await mediator.Send(
@@ -65,8 +72,15 @@ public sealed class StartSessionHandler(
                 if (workoutSnapshot != null)
                 {
                     workoutName = workoutSnapshot.Name;
+                    // Store the full snapshot; the trainee's view is redacted on read (filter-on-read).
                     var snapshot = SessionMapping.BuildSnapshot(workoutSnapshot);
                     snapshotJson = JsonSerializer.Serialize(snapshot);
+
+                    // Pre-populate the session with the plan's exercises so the trainee sees the
+                    // workout to perform immediately (planned sets are resolved from the snapshot).
+                    plannedExercises = workoutSnapshot.Exercises
+                        .Select(e => (e.ExerciseId, (Guid?)e.Id, e.Order, e.ExerciseName))
+                        .ToList();
                 }
             }
         }
@@ -82,10 +96,15 @@ public sealed class StartSessionHandler(
             request.ClientTimezone,
             request.BodyweightKg);
 
+        if (plannedExercises.Count > 0)
+            session.SeedPlannedExercises(plannedExercises);
+
         await sessionRepository.AddAsync(session, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var snapshotDto = SessionMapping.DeserializeSnapshot(snapshotJson);
+        if (snapshotDto != null && hideSetsRepsForCaller)
+            snapshotDto = SessionMapping.RedactSnapshotTargets(snapshotDto);
 
         return Result<SessionStartResultDto>.Success(
             SessionMapping.ToSessionStartResultDto(session, snapshotDto));

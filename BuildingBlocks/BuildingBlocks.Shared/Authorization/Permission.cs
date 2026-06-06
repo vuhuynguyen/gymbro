@@ -8,6 +8,7 @@ public enum Permission
     PlanDelete,
     PlanAssign,
     PlanView,
+    PlanViewAll,
 
     // Clients
     ClientView,

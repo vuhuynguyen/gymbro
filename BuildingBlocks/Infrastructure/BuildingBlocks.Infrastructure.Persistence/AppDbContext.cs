@@ -75,7 +75,9 @@ public class AppDbContext(
             {
                 case EntityState.Added:
                     entry.Entity.CreatedOnUtc = utcNow;
-                    if (hasUser)
+                    // Preserve a CreatedBy a factory already set; only stamp when none is present.
+                    var hasCreator = entry.Entity.CreatedBy is { } creator && creator != Guid.Empty;
+                    if (hasUser && !hasCreator)
                         entry.Property(nameof(BaseEntity.CreatedBy)).CurrentValue = userId;
                     break;
                 case EntityState.Modified:

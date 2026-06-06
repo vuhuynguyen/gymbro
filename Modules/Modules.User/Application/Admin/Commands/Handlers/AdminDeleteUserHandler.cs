@@ -1,7 +1,5 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Application.Messaging;
-using BuildingBlocks.Shared.Abstractions;
-using BuildingBlocks.Shared.Authorization;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using MediatR;
@@ -11,26 +9,29 @@ namespace Modules.UserModule.Application.Admin.Commands.Handlers;
 
 public class AdminDeleteUserHandler(
     IUserRepository userRepository,
-    ICurrentUser currentUser,
     IUnitOfWork unitOfWork,
-    IMediator mediator)
+    IMediator mediator,
+    ICrossStoreTransaction crossStoreTransaction)
     : IRequestHandler<AdminDeleteUserCommand, Result>
 {
     public async Task<Result> Handle(AdminDeleteUserCommand request, CancellationToken cancellationToken)
     {
-        if (AdminPolicy.Deny(currentUser) is { } denied)
-            return denied;
-
         var user = await userRepository.GetByIdAsync(request.UserId, cancellationToken);
         if (user == null)
             return Result.Failure(Error.NotFound("User not found."));
 
+        // The domain User (DB1) soft-delete and the Identity AppUser (DB3) hard-delete (done by the
+        // UserDeletedNotification handler) live in separate contexts on the same database. Wrap both in
+        // one cross-store transaction so they commit or roll back together — a failed Identity cleanup
+        // rolls the domain delete back rather than leaving an orphaned AppUser.
+        await using var transaction = await crossStoreTransaction.BeginAsync(cancellationToken);
+
         userRepository.Remove(user);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Cross-store cleanup: the domain User and Identity AppUser live in separate
-        // contexts (no FK). Notify Identity to delete the orphaned AppUser (DB3).
         await mediator.Publish(new UserDeletedNotification(request.UserId), cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
 
         return Result.Success();
     }

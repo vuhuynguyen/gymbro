@@ -11,7 +11,8 @@ public sealed record WorkoutPlanSummaryDto(
     int? DurationWeeks,
     int? WorkoutsPerWeek,
     DateTimeOffset CreatedOnUtc,
-    int WorkoutCount);
+    int WorkoutCount,
+    bool IsArchived);
 
 public sealed record WorkoutPlanListDto(
     IReadOnlyList<WorkoutPlanSummaryDto> Items,

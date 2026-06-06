@@ -14,7 +14,8 @@ public sealed class PlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete
     public bool HideSetsReps { get; private set; }
     public bool HideFutureWorkouts { get; private set; }
     public bool DisableTraineeEditing { get; private set; }
-    public bool IsCustomized { get; private set; }
+    /// <summary>Paused assignments are kept (history preserved) but hidden from the trainee's start-workout picker.</summary>
+    public bool IsActive { get; private set; }
     public string? SnapshotJson { get; private set; }
 
     Guid ITenantEntity.TenantId => TenantId!.Value;
@@ -61,10 +62,15 @@ public sealed class PlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete
             HideSetsReps = hideSetsReps,
             HideFutureWorkouts = hideFutureWorkouts,
             DisableTraineeEditing = disableTraineeEditing,
+            IsActive = true,
             SnapshotJson = string.IsNullOrWhiteSpace(snapshotJson) ? null : snapshotJson.Trim(),
-            IsCustomized = false,
             IsDeleted = false
         };
+    }
+
+    public void SetActive(bool active)
+    {
+        IsActive = active;
     }
 
     public void ApplyNewVersion(Guid planId, int planVersion, string? snapshotJson)
@@ -74,11 +80,6 @@ public sealed class PlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete
         PlanId = planId;
         PlanVersion = planVersion;
         SnapshotJson = string.IsNullOrWhiteSpace(snapshotJson) ? null : snapshotJson.Trim();
-    }
-
-    public void MarkCustomized()
-    {
-        IsCustomized = true;
     }
 
     public void UpdateConfiguration(

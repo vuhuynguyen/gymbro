@@ -1,6 +1,7 @@
+using BuildingBlocks.Application.Authorization;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 
 namespace Modules.ExerciseModule.Application.Commands;
 
-public record DeleteExerciseCommand(Guid ExerciseId) : IRequest<Result>;
+public record DeleteExerciseCommand(Guid ExerciseId) : IRequest<Result>, IPlatformAdminRequest;

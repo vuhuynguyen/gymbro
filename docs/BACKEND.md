@@ -12,8 +12,8 @@ gymbro/
 ├── Modules/Modules.{Identity,User,Exercise,WorkoutPlan,WorkoutSession}/
 │       Application/ (Commands, Queries, Handlers, Validators, DTOs)  ·  Entities/  ·  Infrastructure/ (Identity only)
 └── BuildingBlocks/
-        BuildingBlocks.Shared/         # Result/Error, domain primitives, marker interfaces, AdminPolicy, ICurrentUser/ITenantContext
-        BuildingBlocks.Application/    # ValidationBehavior, ResultPipelineHelper, IUnitOfWork/IRepository
+        BuildingBlocks.Shared/         # Result/Error, domain primitives, marker interfaces, ICurrentUser/ITenantContext
+        BuildingBlocks.Application/    # pipeline behaviors (Validation/Authorization/PlatformAdmin) + markers, ResultPipelineHelper, IUnitOfWork/IRepository
         Infrastructure/                # AppDbContext (filters/soft-delete/audit/event dispatch), repositories, CurrentUser, TokenService
         BuildingBlocks.EvenBus/        # DEAD (misspelled, unwired) — do not use; cross-module events use MediatR notifications
 ```

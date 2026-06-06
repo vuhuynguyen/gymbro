@@ -1,6 +1,4 @@
 using BuildingBlocks.Application.Abstractions;
-using BuildingBlocks.Shared.Abstractions;
-using BuildingBlocks.Shared.Authorization;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using MediatR;
@@ -16,16 +14,14 @@ namespace Modules.ExerciseModule.Application.Commands.Handlers;
 public class UpdateExerciseHandler(
     IExerciseRepository repository,
     IUnitOfWork unitOfWork,
-    ICurrentUser currentUser,
-    IMemoryCache cache)
+    IMemoryCache cache,
+    ExerciseSearchCacheSignal searchCacheSignal)
     : IRequestHandler<UpdateExerciseCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
         UpdateExerciseCommand request,
         CancellationToken cancellationToken)
     {
-        if (AdminPolicy.Deny<Guid>(currentUser) is { } denied) return denied;
-
         var exercise = await repository.GetForUpdateAsync(request.ExerciseId, cancellationToken);
 
         if (exercise == null)
@@ -84,6 +80,8 @@ public class UpdateExerciseHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         cache.Remove(ExerciseCatalogCacheKeys.DetailScoped(exercise.Id, "admin"));
+        // Name/attributes/filters may have changed — every cached search page is now suspect.
+        searchCacheSignal.Invalidate();
 
         return Result<Guid>.Success(exercise.Id);
     }

@@ -1,6 +1,4 @@
 using BuildingBlocks.Application.Abstractions;
-using BuildingBlocks.Shared.Abstractions;
-using BuildingBlocks.Shared.Authorization;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using MediatR;
@@ -14,17 +12,18 @@ namespace Modules.ExerciseModule.Application.Commands.Handlers;
 public class DeleteExerciseHandler(
     IExerciseRepository repository,
     IUnitOfWork unitOfWork,
-    ICurrentUser currentUser,
-    IMemoryCache cache)
+    IMemoryCache cache,
+    ExerciseSearchCacheSignal searchCacheSignal)
     : IRequestHandler<DeleteExerciseCommand, Result>
 {
     public async Task<Result> Handle(
         DeleteExerciseCommand request,
         CancellationToken cancellationToken)
     {
-        if (AdminPolicy.Deny(currentUser) is { } denied) return denied;
-
-        var exercise = await repository.GetByIdAsync(request.ExerciseId, cancellationToken);
+        // The Exercise itself is ISoftDelete (SaveChanges converts its delete to a soft-delete), but its
+        // children are not — leaving them unloaded would orphan them (the parent's soft-delete is an
+        // UPDATE, so the DB-level ON DELETE CASCADE never fires).
+        var exercise = await repository.GetForUpdateAsync(request.ExerciseId, cancellationToken);
 
         if (exercise == null)
         {
@@ -36,6 +35,8 @@ public class DeleteExerciseHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         cache.Remove(ExerciseCatalogCacheKeys.DetailScoped(id, "admin"));
+        // A removed exercise must disappear from every cached search page.
+        searchCacheSignal.Invalidate();
 
         return Result.Success();
     }

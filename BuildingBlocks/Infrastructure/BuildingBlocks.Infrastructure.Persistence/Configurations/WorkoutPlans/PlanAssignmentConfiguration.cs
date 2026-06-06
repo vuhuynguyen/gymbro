@@ -21,7 +21,7 @@ public sealed class PlanAssignmentConfiguration : IEntityTypeConfiguration<PlanA
         builder.Property(x => x.HideSetsReps).HasDefaultValue(false);
         builder.Property(x => x.HideFutureWorkouts).HasDefaultValue(false);
         builder.Property(x => x.DisableTraineeEditing).HasDefaultValue(false);
-        builder.Property(x => x.IsCustomized).HasDefaultValue(false);
+        builder.Property(x => x.IsActive).HasDefaultValue(true);
         builder.Property(x => x.SnapshotJson).HasColumnType("jsonb");
 
         builder.Property(x => x.TenantId).IsRequired();
@@ -29,5 +29,11 @@ public sealed class PlanAssignmentConfiguration : IEntityTypeConfiguration<PlanA
 
         builder.HasIndex(x => new { x.TenantId, x.TraineeId });
         builder.HasIndex(x => new { x.TenantId, x.PlanId });
+
+        // At most one live assignment of a given plan to a given trainee; filtered on IsDeleted so a
+        // soft-deleted (revoked) assignment does not block re-assigning the same plan later.
+        builder.HasIndex(x => new { x.TenantId, x.TraineeId, x.PlanId })
+            .IsUnique()
+            .HasFilter("\"IsDeleted\" = false");
     }
 }

@@ -18,9 +18,10 @@ public sealed class WorkoutPlanController(IMediator mediator) : ControllerBase
         [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
+        [FromQuery] bool archived = false,
         CancellationToken cancellationToken = default)
     {
-        var result = await mediator.Send(new ListWorkoutPlansQuery(search, page, pageSize), cancellationToken);
+        var result = await mediator.Send(new ListWorkoutPlansQuery(search, page, pageSize, archived), cancellationToken);
 
         if (result.IsFailure)
         {
@@ -135,14 +136,31 @@ public sealed class WorkoutPlanController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("{id:guid}/archive")]
+    public async Task<IActionResult> Archive(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new SetWorkoutPlanArchivedCommand(id, true), cancellationToken);
+
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
+    }
+
+    [HttpPut("{id:guid}/unarchive")]
+    public async Task<IActionResult> Unarchive(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new SetWorkoutPlanArchivedCommand(id, false), cancellationToken);
+
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
+    }
+
     [HttpGet("assignments")]
     public async Task<IActionResult> ListAssignments(
         [FromQuery] Guid? traineeId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
+        [FromQuery] bool activeOnly = false,
         CancellationToken cancellationToken = default)
     {
-        var result = await mediator.Send(new ListPlanAssignmentsQuery(traineeId, page, pageSize), cancellationToken);
+        var result = await mediator.Send(new ListPlanAssignmentsQuery(traineeId, page, pageSize, activeOnly), cancellationToken);
         if (result.IsFailure)
         {
             return result.ToFailureResult(this);
@@ -234,5 +252,19 @@ public sealed class WorkoutPlanController(IMediator mediator) : ControllerBase
         }
 
         return Ok(new { updated = result.Value });
+    }
+
+    [HttpPut("assignments/{assignmentId:guid}/pause")]
+    public async Task<IActionResult> PauseAssignment(Guid assignmentId, CancellationToken cancellationToken = default)
+    {
+        var result = await mediator.Send(new SetPlanAssignmentActiveCommand(assignmentId, false), cancellationToken);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
+    }
+
+    [HttpPut("assignments/{assignmentId:guid}/resume")]
+    public async Task<IActionResult> ResumeAssignment(Guid assignmentId, CancellationToken cancellationToken = default)
+    {
+        var result = await mediator.Send(new SetPlanAssignmentActiveCommand(assignmentId, true), cancellationToken);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
     }
 }

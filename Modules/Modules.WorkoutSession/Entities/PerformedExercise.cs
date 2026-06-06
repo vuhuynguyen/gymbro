@@ -6,6 +6,8 @@ public sealed class PerformedExercise : BaseEntity, ITenantEntity
 {
     public Guid SessionId { get; private set; }
     public Guid ExerciseId { get; private set; }
+    /// <summary>Exercise name captured at log/substitute time so the log survives later renames/deletes.</summary>
+    public string? ExerciseName { get; private set; }
     public Guid? PlanWorkoutExerciseId { get; private set; }
     public Guid? SubstitutedFromExerciseId { get; private set; }
     public int Order { get; private set; }
@@ -24,7 +26,8 @@ public sealed class PerformedExercise : BaseEntity, ITenantEntity
         Guid tenantId,
         Guid exerciseId,
         Guid? planWorkoutExerciseId,
-        int order)
+        int order,
+        string? exerciseName)
     {
         if (sessionId == Guid.Empty) throw new ArgumentException("SessionId is required.", nameof(sessionId));
         if (tenantId == Guid.Empty) throw new ArgumentException("TenantId is required.", nameof(tenantId));
@@ -36,6 +39,7 @@ public sealed class PerformedExercise : BaseEntity, ITenantEntity
             TenantId = tenantId,
             SessionId = sessionId,
             ExerciseId = exerciseId,
+            ExerciseName = string.IsNullOrWhiteSpace(exerciseName) ? null : exerciseName.Trim(),
             PlanWorkoutExerciseId = planWorkoutExerciseId,
             Order = order,
             Status = ExercisePerformStatus.InProgress
@@ -48,10 +52,11 @@ public sealed class PerformedExercise : BaseEntity, ITenantEntity
         Notes = notes;
     }
 
-    public void Substitute(Guid substituteExerciseId, string? notes)
+    public void Substitute(Guid substituteExerciseId, string? substituteExerciseName, string? notes)
     {
         SubstitutedFromExerciseId = ExerciseId;
         ExerciseId = substituteExerciseId;
+        ExerciseName = string.IsNullOrWhiteSpace(substituteExerciseName) ? null : substituteExerciseName.Trim();
         Status = ExercisePerformStatus.Substituted;
         Notes = notes;
     }

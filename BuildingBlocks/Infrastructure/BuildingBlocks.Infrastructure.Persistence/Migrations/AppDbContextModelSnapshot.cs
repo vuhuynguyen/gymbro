@@ -601,10 +601,10 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<bool>("IsCustomized")
+                    b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false);
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -643,6 +643,10 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId", "PlanId");
 
                     b.HasIndex("TenantId", "TraineeId");
+
+                    b.HasIndex("TenantId", "TraineeId", "PlanId")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
 
                     b.ToTable("PlanAssignments", (string)null);
                 });
@@ -818,6 +822,11 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.Property<int?>("DurationWeeks")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("IsArchived")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -876,6 +885,10 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("ExerciseId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("ExerciseName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -1042,11 +1055,16 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("PlannedWorkoutId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("PrCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<int?>("RpeOverall")
                         .HasColumnType("integer");
 
                     b.Property<string>("SnapshotJson")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<int>("Source")
                         .HasColumnType("integer");

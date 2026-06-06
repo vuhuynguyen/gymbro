@@ -18,7 +18,8 @@ public class SearchExercisesHandler(
     ICurrentUser currentUser,
     ITenantContext tenantContext,
     ITenantAuthorizationService tenantAuth,
-    IMemoryCache cache)
+    IMemoryCache cache,
+    ExerciseSearchCacheSignal searchCacheSignal)
     : IRequestHandler<SearchExercisesQuery, Result<List<ExerciseDto>>>
 {
     private static readonly TimeSpan SearchCacheTtl = TimeSpan.FromSeconds(90);
@@ -111,10 +112,14 @@ public class SearchExercisesHandler(
             .Select(ExerciseMapping.ExerciseDtoProjection)
             .ToListAsync(cancellationToken);
 
-        cache.Set(cacheKey, datasource, new MemoryCacheEntryOptions
+        var entryOptions = new MemoryCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = SearchCacheTtl
-        });
+        };
+        // Link the entry to the shared signal so any catalog mutation evicts it immediately,
+        // rather than serving stale results until the TTL lapses.
+        entryOptions.AddExpirationToken(searchCacheSignal.Token);
+        cache.Set(cacheKey, datasource, entryOptions);
 
         return Result<List<ExerciseDto>>.Success(datasource);
     }

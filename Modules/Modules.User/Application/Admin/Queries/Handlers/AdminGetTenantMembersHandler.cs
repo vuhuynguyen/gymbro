@@ -1,5 +1,3 @@
-using BuildingBlocks.Shared.Abstractions;
-using BuildingBlocks.Shared.Authorization;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using MediatR;
@@ -12,16 +10,12 @@ namespace Modules.UserModule.Application.Admin.Queries.Handlers;
 
 public class AdminGetTenantMembersHandler(
     IUserTenantRoleRepository roleRepository,
-    IUserRepository userRepository,
-    ICurrentUser currentUser)
+    IUserRepository userRepository)
     : IRequestHandler<AdminGetTenantMembersQuery, Result<List<MemberDto>>>
 {
     public async Task<Result<List<MemberDto>>> Handle(
         AdminGetTenantMembersQuery request, CancellationToken cancellationToken)
     {
-        if (AdminPolicy.Deny<List<MemberDto>>(currentUser) is { } denied)
-            return denied;
-
         var roles = await roleRepository.GetByTenantAsync(request.TenantId, cancellationToken);
 
         if (roles.Count == 0)

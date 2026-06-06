@@ -25,7 +25,7 @@ public sealed class ListPlanAssignmentsHandler(
         var tenantId = tenantContext.TenantId!.Value;
 
         var canViewAllAssignments =
-            await tenantAuth.HasPermissionAsync(tenantId, Permission.WorkoutLogViewAll, cancellationToken);
+            await tenantAuth.HasPermissionAsync(tenantId, Permission.PlanViewAll, cancellationToken);
 
         if (!canViewAllAssignments)
         {
@@ -62,6 +62,10 @@ public sealed class ListPlanAssignmentsHandler(
             assignmentsWithTemplate = assignmentsWithTemplate.Where(x => x.Assignment.TraineeId == request.TraineeId.Value);
         else if (!canViewAllAssignments)
             assignmentsWithTemplate = assignmentsWithTemplate.Where(x => x.Assignment.TraineeId == currentUser.UserId);
+
+        // Trainee's start-workout picker requests active only; the coach list shows all (with state).
+        if (request.ActiveOnly)
+            assignmentsWithTemplate = assignmentsWithTemplate.Where(x => x.Assignment.IsActive);
 
         var totalCount = await assignmentsWithTemplate.CountAsync(cancellationToken);
         var pageRows = await assignmentsWithTemplate

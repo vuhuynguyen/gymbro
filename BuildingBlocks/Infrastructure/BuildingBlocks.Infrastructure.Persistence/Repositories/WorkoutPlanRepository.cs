@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Modules.WorkoutPlanModule.Application.Abstractions;
-using Modules.WorkoutPlanModule.Application.DTOs;
 using Modules.WorkoutPlanModule.Entities;
 
 namespace BuildingBlocks.Infrastructure.Persistence.Repositories;
@@ -26,41 +25,13 @@ public sealed class WorkoutPlanRepository(AppDbContext context)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<PlanWorkoutDetailDto?> GetWorkoutForSnapshotAsync(Guid workoutId, CancellationToken ct = default)
+    public async Task<PlanWorkout?> GetWorkoutWithExercisesAsync(Guid workoutId, CancellationToken ct = default)
     {
-        var workout = await Db.Set<PlanWorkout>()
+        return await Db.Set<PlanWorkout>()
             .AsNoTracking()
             .Include(w => w.Exercises)
             .ThenInclude(e => e.PrescribedSets)
             .FirstOrDefaultAsync(w => w.Id == workoutId, ct);
-
-        if (workout == null)
-            return null;
-
-        var exerciseIds = workout.Exercises.Select(e => e.ExerciseId).Distinct().ToList();
-        var exerciseNames = await Db.Set<Modules.ExerciseModule.Entities.Exercise>()
-            .AsNoTracking()
-            .Where(e => exerciseIds.Contains(e.Id))
-            .Select(e => new { e.Id, e.DefaultName })
-            .ToDictionaryAsync(e => e.Id, e => e.DefaultName, ct);
-
-        var exerciseDtos = workout.Exercises
-            .OrderBy(e => e.Order)
-            .Select(e => new PlanWorkoutExerciseDetailDto(
-                e.Id,
-                e.ExerciseId,
-                exerciseNames.TryGetValue(e.ExerciseId, out var name) ? name : null,
-                e.Order,
-                e.PrescribedSets
-                    .OrderBy(s => s.Order)
-                    .Select(s => new PlanSetDetailDto(
-                        s.Id, s.Order, s.SetType,
-                        s.TargetReps, s.TargetWeightKg, s.TargetRpe,
-                        s.TargetDurationSeconds, s.RestSeconds))
-                    .ToList()))
-            .ToList();
-
-        return new PlanWorkoutDetailDto(workout.Id, workout.Order, workout.Name, exerciseDtos);
     }
 
     public async Task ClearPlanStructureAsync(Guid workoutPlanId, CancellationToken cancellationToken = default)

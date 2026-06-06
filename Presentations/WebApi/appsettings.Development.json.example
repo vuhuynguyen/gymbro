@@ -1,0 +1,16 @@
+{
+  "ConnectionStrings": {
+    "Database": "Host=127.0.0.1;Port=5432;Database=GymBroDb;Username=YOUR_DB_USER;Password=YOUR_DB_PASSWORD"
+  },
+  "Jwt": {
+    "Issuer": "gymbro",
+    "Audience": "gymbro",
+    "Secret": "REPLACE_VIA_USER_SECRETS_OR_ENV_MIN_32_CHARS"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}

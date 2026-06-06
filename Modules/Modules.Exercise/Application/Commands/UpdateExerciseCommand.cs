@@ -1,3 +1,4 @@
+using BuildingBlocks.Application.Authorization;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 
@@ -19,4 +20,4 @@ public record UpdateExerciseCommand(
     IReadOnlyList<string>? Tags,
     IReadOnlyList<ExerciseMediaInput>? Media,
     IReadOnlyList<string>? Warnings
-) : IRequest<Result<Guid>>;
+) : IRequest<Result<Guid>>, IPlatformAdminRequest;

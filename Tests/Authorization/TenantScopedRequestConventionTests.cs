@@ -13,6 +13,7 @@ public sealed class TenantScopedRequestConventionTests
 
         var unclassified = discovered
             .Where(t => !typeof(ITenantAuthorizedRequest).IsAssignableFrom(t))
+            .Where(t => !typeof(IPlatformAdminRequest).IsAssignableFrom(t))
             .Where(t => !TenantAuthorizationExemptions.IsExempt(t.Name))
             .Select(t => t.Name)
             .ToList();
@@ -20,7 +21,7 @@ public sealed class TenantScopedRequestConventionTests
         Assert.True(
             unclassified.Count == 0,
             "Each authorized-controller MediatR request must implement ITenantAuthorizedRequest "
-            + "or be listed in TenantAuthorizationExemptions: "
+            + "or IPlatformAdminRequest, or be listed in TenantAuthorizationExemptions: "
             + string.Join(", ", unclassified));
     }
 
@@ -28,7 +29,8 @@ public sealed class TenantScopedRequestConventionTests
     public void Declarative_requests_do_not_appear_on_imperative_exemption_list()
     {
         var declarative = AuthorizedControllerRequestDiscovery.DiscoverRequestTypes()
-            .Where(t => typeof(ITenantAuthorizedRequest).IsAssignableFrom(t))
+            .Where(t => typeof(ITenantAuthorizedRequest).IsAssignableFrom(t)
+                || typeof(IPlatformAdminRequest).IsAssignableFrom(t))
             .Select(t => t.Name)
             .ToList();
 
@@ -38,7 +40,113 @@ public sealed class TenantScopedRequestConventionTests
 
         Assert.True(
             onExemption.Count == 0,
-            "Types implementing ITenantAuthorizedRequest must be removed from TenantAuthorizationExemptions: "
+            "Types implementing ITenantAuthorizedRequest or IPlatformAdminRequest "
+            + "must be removed from TenantAuthorizationExemptions: "
             + string.Join(", ", onExemption));
+    }
+
+    /// <summary>
+    /// The exemption set is a manually-maintained seam (security Finding 8): each entry must say why
+    /// it bypasses declarative gating, so a future addition can't slip in undocumented.
+    /// </summary>
+    [Fact]
+    public void Every_exemption_documents_a_reason()
+    {
+        var undocumented = TenantAuthorizationExemptions.All
+            .Where(e => string.IsNullOrWhiteSpace(e.Value.Reason) || e.Value.Reason.Trim().Length < 20)
+            .Select(e => e.Key)
+            .ToList();
+
+        Assert.True(
+            undocumented.Count == 0,
+            "Every TenantAuthorizationExemptions entry must carry a meaningful Reason explaining why it "
+            + "bypasses declarative authorization: " + string.Join(", ", undocumented));
+    }
+
+    /// <summary>
+    /// The static <c>ITenantAuthorizedRequest</c> gate can't express row-level rules, so
+    /// <see cref="ExemptionKind.ImperativeGuarded"/> handlers enforce access themselves. This catches a
+    /// handler that forgets the guard: its source must reference an authorization primitive. Pairs with
+    /// the integration tests that attempt cross-trainee reads through these endpoints
+    /// (see <c>Integration/CrossTraineeAccessTests</c>).
+    /// </summary>
+    [Fact]
+    public void Imperative_guarded_handlers_reference_an_authorization_check()
+    {
+        string[] authPrimitives =
+        [
+            "HasPermissionAsync",
+            "CanAccessResourceAsync",
+            "ResourceAccessGuard",
+            "currentUser.UserId",
+            "currentUser.IsAdmin",
+        ];
+
+        var unguarded = new List<string>();
+
+        foreach (var (requestName, exemption) in TenantAuthorizationExemptions.All)
+        {
+            if (exemption.Kind != ExemptionKind.ImperativeGuarded)
+                continue;
+
+            var handlerFile = LocateHandlerSource(requestName);
+            if (handlerFile is null)
+            {
+                unguarded.Add($"{requestName} (handler source not found)");
+                continue;
+            }
+
+            var source = File.ReadAllText(handlerFile);
+            if (!authPrimitives.Any(p => source.Contains(p, StringComparison.Ordinal)))
+                unguarded.Add($"{requestName} (no authorization primitive in {Path.GetFileName(handlerFile)})");
+        }
+
+        Assert.True(
+            unguarded.Count == 0,
+            "Each ImperativeGuarded exemption's handler must enforce access with one of "
+            + $"[{string.Join(", ", authPrimitives)}]. Missing: {string.Join("; ", unguarded)}");
+    }
+
+    /// <summary>
+    /// Resolves a request name (e.g. <c>ListSessionsQuery</c>) to its handler source file
+    /// (<c>ListSessionsHandler.cs</c>) by convention, searching the Modules tree.
+    /// </summary>
+    private static string? LocateHandlerSource(string requestName)
+    {
+        var baseName = requestName;
+        foreach (var suffix in new[] { "Query", "Command" })
+            if (baseName.EndsWith(suffix, StringComparison.Ordinal))
+            {
+                baseName = baseName[..^suffix.Length];
+                break;
+            }
+
+        var handlerFileName = baseName + "Handler.cs";
+        var modulesRoot = LocateModulesRoot();
+
+        return Directory
+            .EnumerateFiles(modulesRoot, handlerFileName, SearchOption.AllDirectories)
+            .FirstOrDefault(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}",
+                StringComparison.Ordinal));
+    }
+
+    private static string LocateModulesRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var candidate = Path.Combine(dir.FullName, "Modules");
+            if (Directory.Exists(candidate))
+                return candidate;
+
+            candidate = Path.Combine(dir.FullName, "gymbro", "Modules");
+            if (Directory.Exists(candidate))
+                return candidate;
+
+            dir = dir.Parent;
+        }
+
+        throw new InvalidOperationException(
+            "Could not locate the Modules directory for tenant authorization convention tests.");
     }
 }

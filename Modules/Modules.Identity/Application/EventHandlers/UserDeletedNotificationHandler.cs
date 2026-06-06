@@ -8,8 +8,9 @@ namespace Modules.IdentityModule.Application.EventHandlers;
 
 /// <summary>
 /// Deletes the Identity <see cref="AppUser"/> when the matching domain User is removed
-/// (the two live in separate stores with no FK — DB3). Idempotent and resilient: a missing
-/// AppUser is treated as a no-op so the originating delete is never rolled back.
+/// (the two live in separate stores with no FK — DB3). Runs inside the caller's cross-store
+/// transaction, so a missing AppUser stays an idempotent no-op, but a failed delete throws to roll
+/// the whole cross-store delete back rather than silently orphaning the AppUser.
 /// </summary>
 public sealed class UserDeletedNotificationHandler : INotificationHandler<UserDeletedNotification>
 {
@@ -41,12 +42,14 @@ public sealed class UserDeletedNotificationHandler : INotificationHandler<UserDe
         var result = await _userManager.DeleteAsync(appUser);
         if (!result.Succeeded)
         {
-            // Don't throw — the domain user is already deleted; surface for ops follow-up.
+            // Throw so the caller's cross-store transaction rolls back the domain delete too —
+            // better to fail the whole operation loudly than commit a half-deleted user.
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
             _logger.LogError(
                 "Failed to delete Identity AppUser for domain user {DomainUserId}: {Errors}",
                 notification.DomainUserId, errors);
-            return;
+            throw new InvalidOperationException(
+                $"Failed to delete Identity AppUser for domain user {notification.DomainUserId}: {errors}");
         }
 
         _logger.LogInformation(

@@ -29,7 +29,7 @@ public sealed class ListWorkoutPlansHandler(
         var search = request.Search?.Trim();
 
         var canViewAllTemplates =
-            await tenantAuth.HasPermissionAsync(tenantId, Permission.WorkoutLogViewAll, cancellationToken);
+            await tenantAuth.HasPermissionAsync(tenantId, Permission.PlanViewAll, cancellationToken);
 
         IQueryable<WorkoutPlan> query;
 
@@ -48,7 +48,9 @@ public sealed class ListWorkoutPlansHandler(
                     latestVersionPerTemplate,
                     p => new { p.TemplateId, p.Version },
                     latest => new { latest.TemplateId, latest.Version },
-                    (p, _) => p);
+                    (p, _) => p)
+                // Partition templates by whether their latest version is archived (retired) or active.
+                .Where(p => p.IsArchived == request.Archived);
         }
         else
         {

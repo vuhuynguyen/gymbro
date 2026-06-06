@@ -1,4 +1,3 @@
-using Modules.WorkoutPlanModule.Application.DTOs;
 using Modules.WorkoutPlanModule.Entities;
 
 namespace Modules.WorkoutPlanModule.Application.Abstractions;
@@ -21,6 +20,9 @@ public interface IWorkoutPlanRepository
 
     IQueryable<WorkoutPlan> Query();
 
-    /// <summary>Loads a single PlanWorkout with exercises, prescribed sets, and exercise names for session snapshot generation.</summary>
-    Task<PlanWorkoutDetailDto?> GetWorkoutForSnapshotAsync(Guid workoutId, CancellationToken ct = default);
+    /// <summary>
+    /// Loads a single PlanWorkout with its exercises and prescribed sets for session snapshot generation.
+    /// Exercise names are resolved cross-module by the handler (via <c>ResolveExerciseNamesQuery</c>), not here.
+    /// </summary>
+    Task<PlanWorkout?> GetWorkoutWithExercisesAsync(Guid workoutId, CancellationToken ct = default);
 }

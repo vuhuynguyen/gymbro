@@ -1,6 +1,11 @@
 using BuildingBlocks.Shared.Results;
 using MediatR;
+using Modules.IdentityModule.Application.Models;
 
 namespace Modules.IdentityModule.Application.Commands;
 
-public record RegisterCommand(string Email, string Password, string FullName) : IRequest<Result<string>>;
+public record RegisterCommand(string Email, string Password, string FullName) : IRequest<Result<TokenPair>>
+{
+    /// <summary>Caller IP, set by the controller for refresh-token audit. Not part of the request body.</summary>
+    public string? Ip { get; init; }
+}

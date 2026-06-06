@@ -35,6 +35,9 @@ public sealed class WorkoutPlanConfiguration : IEntityTypeConfiguration<WorkoutP
         builder.Property(x => x.IsDeleted)
             .HasDefaultValue(false);
 
+        builder.Property(x => x.IsArchived)
+            .HasDefaultValue(false);
+
         builder.HasIndex(x => new { x.TenantId, x.Name });
         builder.HasIndex(x => new { x.TemplateId, x.Version })
             .IsUnique()

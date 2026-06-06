@@ -16,7 +16,7 @@ public sealed record PlanAssignmentSummaryDto(
     bool HideSetsReps,
     bool HideFutureWorkouts,
     bool DisableTraineeEditing,
-    bool IsCustomized);
+    bool IsActive);
 
 public sealed record PlanAssignmentListDto(
     IReadOnlyList<PlanAssignmentSummaryDto> Items,

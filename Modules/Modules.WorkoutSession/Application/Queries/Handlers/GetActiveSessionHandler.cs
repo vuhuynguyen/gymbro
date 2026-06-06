@@ -2,6 +2,7 @@ using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.ExerciseModule.Application.Queries;
+using Modules.WorkoutPlanModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Application.DTOs;
 using Modules.WorkoutSessionModule.Application.Mapping;
@@ -28,7 +29,20 @@ public sealed class GetActiveSessionHandler(
         if (namesResult.IsFailure)
             return Result<ActiveSessionDto?>.Failure(namesResult.Error);
 
+        // HideSetsReps (filter-on-read): the active session always belongs to the calling trainee,
+        // so strip prescribed targets when their assignment hides them. Admins see the full snapshot.
+        if (snapshotDto != null && !currentUser.IsAdmin && session.PlanAssignmentId is { } assignmentId)
+        {
+            var assignmentResult = await mediator.Send(
+                new GetPlanAssignmentByIdQuery(assignmentId), cancellationToken);
+            if (assignmentResult.IsSuccess && assignmentResult.Value!.HideSetsReps)
+                snapshotDto = SessionMapping.RedactSnapshotTargets(snapshotDto);
+        }
+
+        // Prefer snapshot-captured names so the in-progress view matches what was prescribed.
+        var names = SessionMapping.MergeSnapshotNames(namesResult.Value!, snapshotDto);
+
         return Result<ActiveSessionDto?>.Success(
-            SessionMapping.ToActiveSessionDto(session, snapshotDto, namesResult.Value!));
+            SessionMapping.ToActiveSessionDto(session, snapshotDto, names));
     }
 }

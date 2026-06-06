@@ -235,9 +235,6 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
 
     private static string NormalizeMediaType(string? type)
     {
-        if (string.Equals(type?.Trim(), "Video", StringComparison.OrdinalIgnoreCase))
-            return "Video";
-
-        return "Image";
+        return string.Equals(type?.Trim(), "Video", StringComparison.OrdinalIgnoreCase) ? "Video" : "Image";
     }
 }

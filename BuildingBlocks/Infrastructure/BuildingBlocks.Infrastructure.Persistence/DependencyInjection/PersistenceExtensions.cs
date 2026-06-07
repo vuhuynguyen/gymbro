@@ -1,4 +1,5 @@
 using BuildingBlocks.Application.Abstractions;
+using BuildingBlocks.Infrastructure.Persistence.Outbox;
 using BuildingBlocks.Infrastructure.Persistence.Repositories;
 using BuildingBlocks.Infrastructure.Persistence.Services;
 using BuildingBlocks.Infrastructure.Persistence.Services.Interfaces;
@@ -32,6 +33,9 @@ public static class PersistenceExtensions
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
 
         services.AddScoped<IDbContextServices, DbContextServices>();
+
+        // Transactional-outbox dispatcher (the hosted polling loop lives at the composition root).
+        services.AddScoped<OutboxDispatcher>();
 
         // Generic repository
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

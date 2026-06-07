@@ -4,7 +4,7 @@ using Xunit;
 namespace Gymbro.Tests.Integration;
 
 /// <summary>
-/// Integration coverage for the imperative-authorization seam (security Finding 8): the workout-log
+/// Integration coverage for the imperative-authorization seam: the workout-log
 /// read endpoints are exempt from declarative <c>ITenantAuthorizedRequest</c> gating and instead do
 /// row-level checks inside their handlers via <c>ResourceAccessGuard</c>. These tests drive the real
 /// MediatR pipeline + EF global filters against a seeded two-trainee tenant and a second tenant, and

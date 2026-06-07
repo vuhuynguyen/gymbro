@@ -12,7 +12,7 @@ using Xunit;
 namespace Gymbro.Tests.Commands;
 
 /// <summary>
-/// Cross-store atomicity for admin user deletion (Finding 2 hardening). The domain <c>User</c> (DB1)
+/// Cross-store atomicity for admin user deletion. The domain <c>User</c> (DB1)
 /// soft-delete and the Identity <c>AppUser</c> (DB3) hard-delete must commit or roll back together via
 /// <see cref="ICrossStoreTransaction"/>. These verify the handler only commits on the happy path and
 /// never commits when the Identity cleanup fails — so the scope's disposal rolls the domain delete back

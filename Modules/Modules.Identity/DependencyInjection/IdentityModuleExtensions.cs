@@ -34,6 +34,7 @@ public static class IdentityModuleExtensions
 
         services.AddScoped<TokenService>();
         services.AddScoped<RefreshTokenService>();
+        services.AddScoped<ISecurityStampCacheService, SecurityStampCacheService>();
 
         // Periodic purge of expired refresh tokens so the table doesn't grow unbounded.
         services.AddHostedService<RefreshTokenCleanupService>();

@@ -1,0 +1,60 @@
+# Local full backend stack: Postgres + Redis + the GymBro API.
+#   docker compose up --build
+# The API self-migrates on boot here (Database__AutoMigrate=true) — single-instance/dev only. For a
+# multi-instance deploy, run migrations from a dedicated pre-deploy step and keep AutoMigrate off on the
+# serving replicas (see DatabaseMigrationStartup / docs/DEPLOYMENT.md).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: gymbro
+      POSTGRES_PASSWORD: gymbro
+      POSTGRES_DB: gymbro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gymbro -d gymbro"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__Database: "Host=postgres;Port=5432;Database=gymbro;Username=gymbro;Password=gymbro"
+      ConnectionStrings__Redis: "redis:6379"
+      # Single-instance convenience: apply both EF migration chains at startup.
+      Database__AutoMigrate: "true"
+      # Demo secret only — override via real secrets management in any real environment.
+      Jwt__Secret: "local-compose-only-signing-secret-change-me-min-32-chars"
+      Jwt__Issuer: "gymbro"
+      Jwt__Audience: "gymbro"
+      Seed__AdminEmail: "admin@gymbro.local"
+      Seed__AdminPassword: "Admin@123456"
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

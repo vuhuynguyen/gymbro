@@ -40,13 +40,13 @@ public sealed class PlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete
         bool disableTraineeEditing,
         string? snapshotJson)
     {
-        if (tenantId == Guid.Empty) throw new ArgumentException("TenantId is required.", nameof(tenantId));
-        if (createdBy == Guid.Empty) throw new ArgumentException("CreatedBy is required.", nameof(createdBy));
-        if (traineeId == Guid.Empty) throw new ArgumentException("TraineeId is required.", nameof(traineeId));
-        if (planId == Guid.Empty) throw new ArgumentException("PlanId is required.", nameof(planId));
-        if (planVersion < 1) throw new ArgumentOutOfRangeException(nameof(planVersion));
+        if (tenantId == Guid.Empty) throw new DomainException("TenantId is required.");
+        if (createdBy == Guid.Empty) throw new DomainException("CreatedBy is required.");
+        if (traineeId == Guid.Empty) throw new DomainException("TraineeId is required.");
+        if (planId == Guid.Empty) throw new DomainException("PlanId is required.");
+        if (planVersion < 1) throw new DomainException("planVersion is out of range.");
         if (frequencyDaysPerWeek < 1 || frequencyDaysPerWeek > 7)
-            throw new ArgumentOutOfRangeException(nameof(frequencyDaysPerWeek));
+            throw new DomainException("frequencyDaysPerWeek is out of range.");
 
         return new PlanAssignment
         {
@@ -76,8 +76,8 @@ public sealed class PlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete
 
     public void ApplyNewVersion(Guid planId, int planVersion, string? snapshotJson)
     {
-        if (planId == Guid.Empty) throw new ArgumentException("PlanId is required.", nameof(planId));
-        if (planVersion < 1) throw new ArgumentOutOfRangeException(nameof(planVersion));
+        if (planId == Guid.Empty) throw new DomainException("PlanId is required.");
+        if (planVersion < 1) throw new DomainException("planVersion is out of range.");
         PlanId = planId;
         PlanVersion = planVersion;
         SnapshotJson = string.IsNullOrWhiteSpace(snapshotJson) ? null : snapshotJson.Trim();
@@ -93,7 +93,7 @@ public sealed class PlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete
         bool disableTraineeEditing)
     {
         if (frequencyDaysPerWeek < 1 || frequencyDaysPerWeek > 7)
-            throw new ArgumentOutOfRangeException(nameof(frequencyDaysPerWeek));
+            throw new DomainException("frequencyDaysPerWeek is out of range.");
 
         if (startDate.HasValue)
             StartDate = startDate.Value;

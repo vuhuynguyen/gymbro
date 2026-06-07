@@ -23,6 +23,7 @@ using Modules.WorkoutPlanModule;
 using Modules.WorkoutSessionModule;
 using Modules.WorkoutSessionModule.Entities;
 using Testcontainers.PostgreSql;
+using WebApi.Composition;
 using Xunit;
 
 namespace Gymbro.Tests.Integration;
@@ -48,6 +49,10 @@ public sealed class PostgresFixture : IAsyncLifetime
 
     /// <summary>Non-null when no database could be reached; tells the facts to skip.</summary>
     public string? SkipReason { get; private set; }
+
+    /// <summary>True on CI runners (GitHub Actions sets CI=true), where skipping integration tests is forbidden.</summary>
+    private static bool IsContinuousIntegration =>
+        string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase);
 
     // --- Seeded identifiers (one tenant with two clients + an owner, plus a second tenant) ---
     public Guid TenantId { get; private set; }
@@ -83,6 +88,14 @@ public sealed class PostgresFixture : IAsyncLifetime
             }
             catch (Exception ex)
             {
+                // In CI we must NEVER silently skip integration coverage — that would report green with zero
+                // cross-tenant/isolation tests actually run. Fail loudly so a misconfigured pipeline (no
+                // Postgres service container AND no Docker) is caught. Locally, fall back to a skip.
+                if (IsContinuousIntegration)
+                    throw new InvalidOperationException(
+                        "Integration tests require a database in CI: set GYMBRO_TEST_DB to a reachable Postgres " +
+                        "(e.g. a service container) or provide a Docker daemon. Refusing to skip in CI.", ex);
+
                 SkipReason = $"No GYMBRO_TEST_DB set and Docker is not available: {ex.Message}";
                 return;
             }
@@ -149,13 +162,9 @@ public sealed class PostgresFixture : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(configuration);
         services.AddLogging();
-        services.AddMemoryCache();
+        services.AddGymBroDistributedInfrastructure(configuration, "Test");
+        services.AddGymBroModuleCaches();
         services.AddDataProtection();   // UserManager's default token providers need IDataProtectionProvider.
-
-        // Exercise catalog cache-invalidation signals (singletons, as in Program.cs) — the exercise
-        // handlers depend on them, so they must be registered for any test that dispatches one.
-        services.AddSingleton<ExerciseSearchCacheSignal>();
-        services.AddSingleton<ExerciseDetailCacheSignal>();
 
         // Same MediatR composition as Program.cs (all five module assemblies + pipeline behaviors).
         services.AddMediatR(cfg =>
@@ -181,6 +190,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddIdentity(configuration);          // HTTP-bound CurrentUser — overridden below
         services.AddIdentityModule(configuration);    // UserManager, TokenService, RefreshTokenService, ICrossStoreTransaction
         services.AddSingleton<IPermissionService, PermissionService>();
+        // Per-request role memo — TenantRoleResolver depends on it (registered in Program.cs the same way).
+        services.AddScoped<IRequestRoleCache, RequestRoleCache>();
         services.AddScoped<ITenantRoleResolver, TenantRoleResolver>();
         services.AddScoped<ITenantAuthorizationService, TenantAuthorizationService>();
 

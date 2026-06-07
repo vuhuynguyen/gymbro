@@ -21,11 +21,11 @@ public class Invite : AggregateRoot
     public static Invite Create(string email, Guid tenantId, TenantRole role, DateTimeOffset expiredAt)
     {
         if (string.IsNullOrWhiteSpace(email))
-            throw new ArgumentException("Email is required.", nameof(email));
+            throw new DomainException("Email is required.");
         if (tenantId == Guid.Empty)
-            throw new ArgumentException("TenantId is required.", nameof(tenantId));
+            throw new DomainException("TenantId is required.");
         if (expiredAt <= DateTimeOffset.UtcNow)
-            throw new ArgumentException("ExpiredAt must be in the future.", nameof(expiredAt));
+            throw new DomainException("ExpiredAt must be in the future.");
 
         return new Invite
         {
@@ -44,9 +44,9 @@ public class Invite : AggregateRoot
     public static Invite CreateForTenant(Guid tenantId, DateTimeOffset expiredAt)
     {
         if (tenantId == Guid.Empty)
-            throw new ArgumentException("TenantId is required.", nameof(tenantId));
+            throw new DomainException("TenantId is required.");
         if (expiredAt <= DateTimeOffset.UtcNow)
-            throw new ArgumentException("ExpiredAt must be in the future.", nameof(expiredAt));
+            throw new DomainException("ExpiredAt must be in the future.");
 
         return new Invite
         {

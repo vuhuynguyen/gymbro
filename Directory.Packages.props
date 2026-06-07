@@ -1,0 +1,64 @@
+<Project>
+
+  <!--
+    Central Package Management (CPM). Every PackageReference across the solution resolves its version
+    from the single PackageVersion entries below, so the version can never drift between projects.
+    Add a package here first, then reference it (without a Version attribute) in the consuming csproj.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Application / messaging / validation -->
+    <PackageVersion Include="MediatR" Version="14.1.0" />
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+
+    <!-- EF Core + PostgreSQL -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+
+    <!-- ASP.NET Core / Identity / auth -->
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.17.0" />
+
+    <!-- Extensions: configuration / DI / caching -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
+
+    <!-- Redis / rate limiting -->
+    <PackageVersion Include="StackExchange.Redis" Version="2.11.3" />
+    <PackageVersion Include="RedisRateLimiting.AspNetCore" Version="1.2.1" />
+
+    <!-- API docs -->
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.13.19" />
+
+    <!-- Observability (OpenTelemetry) — 1.12.0 patches the NU1902 advisories flagged in 1.10.x. -->
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
+
+    <!-- Test stack -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="Xunit.SkippableFact" Version="1.5.23" />
+    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.5" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="coverlet.msbuild" Version="6.0.2" />
+  </ItemGroup>
+
+</Project>

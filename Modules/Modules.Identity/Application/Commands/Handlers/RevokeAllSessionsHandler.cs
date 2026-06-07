@@ -4,7 +4,7 @@ using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Modules.IdentityModule.Application.Abstractions;
 using Modules.IdentityModule.Infrastructure.Identity;
 using Modules.IdentityModule.Infrastructure.Services;
 
@@ -14,7 +14,7 @@ public class RevokeAllSessionsHandler(
     UserManager<AppUser> userManager,
     RefreshTokenService refreshTokenService,
     ICurrentUser currentUser,
-    IMemoryCache cache)
+    ISecurityStampCacheService stampCache)
     : IRequestHandler<RevokeAllSessionsCommand, Result>
 {
     public async Task<Result> Handle(RevokeAllSessionsCommand request, CancellationToken cancellationToken)
@@ -30,7 +30,7 @@ public class RevokeAllSessionsHandler(
         // Rotating the SecurityStamp invalidates every live access token for this user; evicting the
         // cached stamp makes the per-request check pick up the new value immediately.
         await userManager.UpdateSecurityStampAsync(user);
-        cache.Remove(SecurityStampCache.KeyFor(user.Id.ToString()));
+        await stampCache.EvictAsync(user.Id.ToString(), cancellationToken);
 
         return Result.Success();
     }

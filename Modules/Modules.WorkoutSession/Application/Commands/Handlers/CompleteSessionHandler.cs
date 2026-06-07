@@ -75,6 +75,12 @@ public sealed class CompleteSessionHandler(
         if (sessionBest.Count == 0)
             return 0;
 
+        // Only the lifts performed in THIS session can earn a PR, so bound the history scan to those
+        // exercise ids. Without this filter the aggregation groups every exercise the trainee has ever
+        // done and discards the irrelevant ones in memory — work that grows with training history and
+        // becomes a read hotspot for long-tenured users. Result is identical.
+        var prExerciseIds = sessionBest.Keys.ToList();
+
         // Prior best e1RM per exercise across sessions started before this one, aggregated in SQL so
         // only one row per exercise is materialized (mirrors GetSessionByIdHandler's priorBest).
         var priorBest = await sessionRepository.Query()
@@ -83,7 +89,8 @@ public sealed class CompleteSessionHandler(
                 && s.StartedAt < session.StartedAt)
             .SelectMany(s => s.Exercises)
             .SelectMany(e => e.Sets.Select(set => new { e.ExerciseId, set.SetType, set.EstimatedOneRepMaxKg }))
-            .Where(x => x.SetType == PerformedSetType.Working && x.EstimatedOneRepMaxKg != null)
+            .Where(x => x.SetType == PerformedSetType.Working && x.EstimatedOneRepMaxKg != null
+                && prExerciseIds.Contains(x.ExerciseId))
             .GroupBy(x => x.ExerciseId)
             .Select(g => new { ExerciseId = g.Key, Best = g.Max(x => x.EstimatedOneRepMaxKg!.Value) })
             .ToDictionaryAsync(x => x.ExerciseId, x => x.Best, cancellationToken);

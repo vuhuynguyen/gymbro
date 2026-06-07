@@ -13,7 +13,7 @@ using Xunit;
 namespace Gymbro.Tests.Commands;
 
 /// <summary>
-/// Cross-store atomicity for registration (Finding 2 hardening). The Identity <c>AppUser</c> (DB3) and
+/// Cross-store atomicity for registration. The Identity <c>AppUser</c> (DB3) and
 /// the domain User/Tenant/Owner-role provisioning (DB1, via <c>UserRegisteredNotification</c>) must land
 /// together inside one <see cref="ICrossStoreTransaction"/>. These verify the handler never commits when
 /// the work before <c>CommitAsync</c> fails, so the scope's disposal rolls the half-created AppUser back

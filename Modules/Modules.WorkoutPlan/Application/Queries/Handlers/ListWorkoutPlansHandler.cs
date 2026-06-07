@@ -1,21 +1,22 @@
+using BuildingBlocks.Application.Authorization;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using BuildingBlocks.Application.Authorization;
 using Modules.WorkoutPlanModule.Application.Abstractions;
 using Modules.WorkoutPlanModule.Application.DTOs;
 using Modules.WorkoutPlanModule.Application.Mapping;
+using Modules.WorkoutPlanModule.Application.Queries;
 using Modules.WorkoutPlanModule.Entities;
 
 namespace Modules.WorkoutPlanModule.Application.Queries.Handlers;
 
 public sealed class ListWorkoutPlansHandler(
-    IWorkoutPlanRepository repository,
-    IPlanAssignmentRepository assignmentRepository,
     ITenantAuthorizationService tenantAuth,
     ITenantContext tenantContext,
-    ICurrentUser currentUser)
+    ICurrentUser currentUser,
+    IWorkoutPlanRepository repository,
+    IPlanAssignmentRepository assignmentRepository)
     : IRequestHandler<ListWorkoutPlansQuery, Result<WorkoutPlanListDto>>
 {
     public async Task<Result<WorkoutPlanListDto>> Handle(
@@ -49,7 +50,6 @@ public sealed class ListWorkoutPlansHandler(
                     p => new { p.TemplateId, p.Version },
                     latest => new { latest.TemplateId, latest.Version },
                     (p, _) => p)
-                // Partition templates by whether their latest version is archived (retired) or active.
                 .Where(p => p.IsArchived == request.Archived);
         }
         else

@@ -33,11 +33,11 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
         int? workoutsPerWeek)
     {
         if (tenantId == Guid.Empty)
-            throw new ArgumentException("TenantId is required.", nameof(tenantId));
+            throw new DomainException("TenantId is required.");
         if (createdBy == Guid.Empty)
-            throw new ArgumentException("CreatedBy is required.", nameof(createdBy));
+            throw new DomainException("CreatedBy is required.");
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required.", nameof(name));
+            throw new DomainException("Name is required.");
 
         return new WorkoutPlan
         {
@@ -93,9 +93,9 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
     {
         ArgumentNullException.ThrowIfNull(current);
         if (createdBy == Guid.Empty)
-            throw new ArgumentException("CreatedBy is required.", nameof(createdBy));
+            throw new DomainException("CreatedBy is required.");
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required.", nameof(name));
+            throw new DomainException("Name is required.");
 
         var next = new WorkoutPlan
         {

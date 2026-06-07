@@ -22,10 +22,10 @@ internal static class AuthorizedControllerRequestDiscovery
         @"\[FromQuery\]\s+(\w+(?:Command|Query))\s+\w+",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-    private static readonly string[] SkippedControllerFiles =
-    [
-        "AuthController.cs",
-    ];
+    // No controllers are skipped: AuthController is now scanned too, so a
+    // tenant-scoped request added to it cannot escape classification. Its anonymous / self-scoped
+    // requests are documented as AuthenticationOnly in TenantAuthorizationExemptions.
+    private static readonly string[] SkippedControllerFiles = [];
 
     public static IReadOnlyList<Type> DiscoverRequestTypes()
     {
@@ -105,7 +105,12 @@ internal static class AuthorizedControllerRequestDiscovery
         typeof(Modules.WorkoutSessionModule.Application.Commands.StartSessionCommand).Assembly,
     ];
 
-    private static string LocateControllersDirectory()
+    /// <summary>Absolute paths of every <c>*Controller.cs</c> source file (for convention tests that
+    /// scan controller bodies, e.g. asserting InternalLookup requests are never dispatched).</summary>
+    internal static IReadOnlyList<string> ControllerFiles() =>
+        Directory.EnumerateFiles(LocateControllersDirectory(), "*Controller.cs").ToList();
+
+    internal static string LocateControllersDirectory()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)

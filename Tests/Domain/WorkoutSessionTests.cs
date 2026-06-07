@@ -34,7 +34,7 @@ public sealed class WorkoutSessionTests
     [Fact]
     public void Start_throws_when_traineeId_is_empty()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<DomainException>(() =>
             WorkoutSession.Start(Guid.Empty, Guid.NewGuid(), SessionSource.Adhoc,
                 null, null, null, null, null, null));
     }
@@ -42,7 +42,7 @@ public sealed class WorkoutSessionTests
     [Fact]
     public void Start_throws_when_tenantId_is_empty()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<DomainException>(() =>
             WorkoutSession.Start(Guid.NewGuid(), Guid.Empty, SessionSource.Adhoc,
                 null, null, null, null, null, null));
     }
@@ -114,7 +114,7 @@ public sealed class WorkoutSessionTests
         var session = CreateInProgress();
         session.Complete(null, null, null, prCount: 0);
 
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<DomainException>(() =>
             session.Complete(null, null, null, prCount: 0));
     }
 
@@ -123,7 +123,7 @@ public sealed class WorkoutSessionTests
     {
         var session = CreateInProgress();
 
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.Throws<DomainException>(() =>
             session.Complete(null, null, null, prCount: -1));
     }
 
@@ -147,7 +147,7 @@ public sealed class WorkoutSessionTests
         var session = CreateInProgress();
         session.Abandon(null);
 
-        Assert.Throws<InvalidOperationException>(() => session.Abandon(null));
+        Assert.Throws<DomainException>(() => session.Abandon(null));
     }
 
     // ── State machine cross-checks ─────────────────────────────────────────
@@ -158,7 +158,7 @@ public sealed class WorkoutSessionTests
         var session = CreateInProgress();
         session.Complete(null, null, null, prCount: 0);
 
-        Assert.Throws<InvalidOperationException>(() => session.Abandon(null));
+        Assert.Throws<DomainException>(() => session.Abandon(null));
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public sealed class WorkoutSessionTests
         var session = CreateInProgress();
         session.Abandon(null);
 
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<DomainException>(() =>
             session.Complete(null, null, null, prCount: 0));
     }
 

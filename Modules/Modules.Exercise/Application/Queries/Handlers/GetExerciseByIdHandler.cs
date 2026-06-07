@@ -1,30 +1,22 @@
+using BuildingBlocks.Application.Authorization;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Modules.ExerciseModule.Application.Abstractions;
 using Modules.ExerciseModule.Application.Caching;
 using Modules.ExerciseModule.Application.DTOs;
-using Modules.ExerciseModule.Application.Mapping;
-using Modules.ExerciseModule.Entities;
-using BuildingBlocks.Application.Authorization;
+using Modules.ExerciseModule.Application.Queries;
 using static BuildingBlocks.Shared.Errors.CommonErrors;
 
 namespace Modules.ExerciseModule.Application.Queries.Handlers;
 
 public class GetExerciseByIdHandler(
-    IExerciseRepository repository,
     ICurrentUser currentUser,
     ITenantContext tenantContext,
     ITenantAuthorizationService tenantAuth,
-    IMemoryCache cache,
-    ExerciseDetailCacheSignal detailCacheSignal)
+    ExerciseCatalogCache catalogCache)
     : IRequestHandler<GetExerciseByIdQuery, Result<ExerciseDetailDto>>
 {
-    private static readonly TimeSpan DetailCacheTtl = TimeSpan.FromMinutes(2);
-
     public async Task<Result<ExerciseDetailDto>> Handle(
         GetExerciseByIdQuery request,
         CancellationToken cancellationToken)
@@ -51,32 +43,11 @@ public class GetExerciseByIdHandler(
             }
         }
 
-        var cacheScope = currentUser.IsAdmin
-            ? "admin"
-            : tenantContext.TenantId!.Value.ToString("N");
-        var cacheKey = ExerciseCatalogCacheKeys.DetailScoped(request.Id, cacheScope);
-        if (cache.TryGetValue(cacheKey, out ExerciseDetailDto? cached) && cached != null)
-            return Result<ExerciseDetailDto>.Success(cached);
+        var envelope = await catalogCache.GetDetailAsync(request.Id, cancellationToken);
 
-        var exercise = await repository.Query()
-            .AsNoTracking()
-            .Where(x => x.Id == request.Id && !x.IsDeleted)
-            .Select(ExerciseMapping.ExerciseDetailProjection)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (exercise == null)
+        if (envelope is null || !envelope.Exists)
             return Result<ExerciseDetailDto>.Failure(Error.NotFound("Exercise not found."));
 
-        var entryOptions = new MemoryCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = DetailCacheTtl
-        };
-        // Link the entry to the shared signal so any catalog mutation evicts it immediately — across
-        // every tenant scope and admin — rather than serving stale detail until the TTL lapses. The
-        // scoped keys can't be enumerated for targeted removal, so this is the only reliable eviction.
-        entryOptions.AddExpirationToken(detailCacheSignal.Token);
-        cache.Set(cacheKey, exercise, entryOptions);
-
-        return Result<ExerciseDetailDto>.Success(exercise);
+        return Result<ExerciseDetailDto>.Success(envelope.Value!);
     }
 }

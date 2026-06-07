@@ -29,9 +29,9 @@ public sealed class PerformedExercise : BaseEntity, ITenantEntity
         int order,
         string? exerciseName)
     {
-        if (sessionId == Guid.Empty) throw new ArgumentException("SessionId is required.", nameof(sessionId));
-        if (tenantId == Guid.Empty) throw new ArgumentException("TenantId is required.", nameof(tenantId));
-        if (exerciseId == Guid.Empty) throw new ArgumentException("ExerciseId is required.", nameof(exerciseId));
+        if (sessionId == Guid.Empty) throw new DomainException("SessionId is required.");
+        if (tenantId == Guid.Empty) throw new DomainException("TenantId is required.");
+        if (exerciseId == Guid.Empty) throw new DomainException("ExerciseId is required.");
 
         return new PerformedExercise
         {

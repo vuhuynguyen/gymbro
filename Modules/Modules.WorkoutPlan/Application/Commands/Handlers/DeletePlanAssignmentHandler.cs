@@ -19,6 +19,7 @@ public sealed class DeletePlanAssignmentHandler(
 
         assignmentRepository.Remove(assignment);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return Result<bool>.Success(true);
     }
 }

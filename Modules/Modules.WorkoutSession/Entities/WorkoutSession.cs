@@ -44,8 +44,8 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
         string? clientTimezone,
         decimal? bodyweightKg)
     {
-        if (traineeId == Guid.Empty) throw new ArgumentException("TraineeId is required.", nameof(traineeId));
-        if (tenantId == Guid.Empty) throw new ArgumentException("TenantId is required.", nameof(tenantId));
+        if (traineeId == Guid.Empty) throw new DomainException("TraineeId is required.");
+        if (tenantId == Guid.Empty) throw new DomainException("TenantId is required.");
 
         return new WorkoutSession
         {
@@ -84,9 +84,9 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
     public void Complete(int? rpeOverall, string? notes, DateTimeOffset? completedAt, int prCount)
     {
         if (Status != SessionStatus.InProgress)
-            throw new InvalidOperationException("Only in-progress sessions can be completed.");
+            throw new DomainException("Only in-progress sessions can be completed.");
         if (prCount < 0)
-            throw new ArgumentOutOfRangeException(nameof(prCount));
+            throw new DomainException("prCount is out of range.");
 
         var now = completedAt ?? DateTimeOffset.UtcNow;
         Status = SessionStatus.Completed;
@@ -102,7 +102,7 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
     public void Abandon(string? notes)
     {
         if (Status != SessionStatus.InProgress)
-            throw new InvalidOperationException("Only in-progress sessions can be abandoned.");
+            throw new DomainException("Only in-progress sessions can be abandoned.");
 
         Status = SessionStatus.Abandoned;
         CompletedAt = DateTimeOffset.UtcNow;

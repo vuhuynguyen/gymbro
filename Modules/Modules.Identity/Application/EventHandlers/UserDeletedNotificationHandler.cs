@@ -1,4 +1,5 @@
 using BuildingBlocks.Application.Messaging;
+using Modules.IdentityModule.Application.Abstractions;
 using Modules.IdentityModule.Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -15,13 +16,16 @@ namespace Modules.IdentityModule.Application.EventHandlers;
 public sealed class UserDeletedNotificationHandler : INotificationHandler<UserDeletedNotification>
 {
     private readonly UserManager<AppUser> _userManager;
+    private readonly ISecurityStampCacheService _stampCache;
     private readonly ILogger<UserDeletedNotificationHandler> _logger;
 
     public UserDeletedNotificationHandler(
         UserManager<AppUser> userManager,
+        ISecurityStampCacheService stampCache,
         ILogger<UserDeletedNotificationHandler> logger)
     {
         _userManager = userManager;
+        _stampCache = stampCache;
         _logger = logger;
     }
 
@@ -39,6 +43,7 @@ public sealed class UserDeletedNotificationHandler : INotificationHandler<UserDe
             return;
         }
 
+        var appUserId = appUser.Id.ToString();
         var result = await _userManager.DeleteAsync(appUser);
         if (!result.Succeeded)
         {
@@ -51,6 +56,9 @@ public sealed class UserDeletedNotificationHandler : INotificationHandler<UserDe
             throw new InvalidOperationException(
                 $"Failed to delete Identity AppUser for domain user {notification.DomainUserId}: {errors}");
         }
+
+        // Drop any cached stamp so a deleted user cannot authenticate until the TTL would have lapsed.
+        await _stampCache.EvictAsync(appUserId, cancellationToken);
 
         _logger.LogInformation(
             "Deleted Identity AppUser for domain user {DomainUserId}", notification.DomainUserId);

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Modules.UserModule.Application.Commands;
 using Modules.UserModule.Application.Queries;
 using WebApi.Requests.User;
@@ -66,8 +67,10 @@ public class InviteController(IMediator mediator) : ControllerBase
 
     /// <summary>
     /// Join a tenant using an invite code. Any authenticated user.
+    /// Rate-limited per caller to throttle invite-code guessing.
     /// </summary>
     [HttpPost("join")]
+    [EnableRateLimiting("tenant-join")]
     public async Task<IActionResult> Join(JoinTenantRequest request)
     {
         var result = await mediator.Send(new JoinTenantCommand(request.Code));

@@ -12,9 +12,9 @@ public class Tenant : AggregateRoot, ISoftDelete
     public static Tenant Create(string name, Guid ownerUserId)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required.", nameof(name));
+            throw new DomainException("Name is required.");
         if (ownerUserId == Guid.Empty)
-            throw new ArgumentException("OwnerUserId is required.", nameof(ownerUserId));
+            throw new DomainException("OwnerUserId is required.");
 
         return new Tenant
         {
@@ -27,7 +27,7 @@ public class Tenant : AggregateRoot, ISoftDelete
     public void Rename(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required.", nameof(name));
+            throw new DomainException("Name is required.");
         Name = name.Trim();
     }
 }

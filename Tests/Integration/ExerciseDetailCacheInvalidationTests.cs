@@ -6,12 +6,11 @@ namespace Gymbro.Tests.Integration;
 
 /// <summary>
 /// Regression test for the exercise-detail cache-invalidation bug. GetExerciseById caches the detail
-/// DTO under a per-tenant scope key — one entry per tenant that has viewed the exercise, plus an
-/// "admin" entry. Update/Delete used to evict only the "admin" entry, so every per-tenant entry kept
-/// serving stale detail until its 2-minute TTL lapsed. Both handlers now trip
-/// <c>ExerciseDetailCacheSignal</c>, which evicts every scoped entry at once (mirroring the search cache).
+/// DTO under the shared <c>global</c> scope key. Update/Delete used to evict only the admin-scoped
+/// entry, so tenant reads kept serving stale detail until TTL lapsed. Both handlers now trip
+/// <c>ExerciseCatalogCache</c>, which invalidates every entry at once (mirroring the search cache).
 ///
-/// Each test reads the exercise as a NON-ADMIN tenant member (populating that tenant's detail entry),
+/// Each test reads the exercise as a NON-ADMIN tenant member (populating the shared detail entry),
 /// mutates it as the platform admin, then re-reads as the same tenant member and asserts the result is
 /// fresh — i.e. the pre-mutation cached value is no longer served. Before the fix these reads returned
 /// the stale snapshot; both assertions would fail.
@@ -36,7 +35,7 @@ public sealed class ExerciseDetailCacheInvalidationTests(PostgresFixture fixture
         var exerciseId = created.Value;
 
         // A non-admin tenant member (Owner role → PlanView) reads the detail, populating the
-        // tenant-scoped cache entry exercise:detail:{id}:{tenantId}.
+        // shared cache entry exercise:detail:{id}:global.
         fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
         var beforeUpdate = await fixture.SendAsync(new GetExerciseByIdQuery(exerciseId));
         Assert.True(beforeUpdate.IsSuccess);
@@ -68,7 +67,7 @@ public sealed class ExerciseDetailCacheInvalidationTests(PostgresFixture fixture
         Assert.True(created.IsSuccess);
         var exerciseId = created.Value;
 
-        // Non-admin tenant member populates the tenant-scoped detail entry.
+        // Non-admin tenant member populates the shared detail entry.
         fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
         var beforeDelete = await fixture.SendAsync(new GetExerciseByIdQuery(exerciseId));
         Assert.True(beforeDelete.IsSuccess);

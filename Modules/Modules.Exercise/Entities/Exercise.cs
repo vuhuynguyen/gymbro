@@ -50,20 +50,20 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
         IReadOnlyCollection<(MuscleGroup muscle, bool isPrimary)> muscles)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required", nameof(name));
+            throw new DomainException("Name is required");
 
         ArgumentNullException.ThrowIfNull(muscles);
         if (muscles.Count == 0)
-            throw new ArgumentException("At least one muscle is required.", nameof(muscles));
+            throw new DomainException("At least one muscle is required.");
         if (!muscles.Any(m => m.isPrimary))
-            throw new ArgumentException("At least one primary muscle is required.", nameof(muscles));
+            throw new DomainException("At least one primary muscle is required.");
         if (muscles.Select(m => m.muscle).Distinct().Count() != muscles.Count)
-            throw new ArgumentException("Each muscle group may appear only once.", nameof(muscles));
+            throw new DomainException("Each muscle group may appear only once.");
 
         if (estimatedCaloriesBurn is < 0)
-            throw new ArgumentOutOfRangeException(nameof(estimatedCaloriesBurn));
+            throw new DomainException("estimatedCaloriesBurn is out of range.");
         if (averageDurationSeconds is < 0)
-            throw new ArgumentOutOfRangeException(nameof(averageDurationSeconds));
+            throw new DomainException("averageDurationSeconds is out of range.");
 
         var exercise = new Exercise
         {
@@ -111,12 +111,12 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
         int? averageDurationSeconds)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required", nameof(name));
+            throw new DomainException("Name is required");
 
         if (estimatedCaloriesBurn is < 0)
-            throw new ArgumentOutOfRangeException(nameof(estimatedCaloriesBurn));
+            throw new DomainException("estimatedCaloriesBurn is out of range.");
         if (averageDurationSeconds is < 0)
-            throw new ArgumentOutOfRangeException(nameof(averageDurationSeconds));
+            throw new DomainException("averageDurationSeconds is out of range.");
 
         DefaultName = name.Trim();
         DefaultDescription = description ?? string.Empty;
@@ -133,11 +133,11 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
     {
         ArgumentNullException.ThrowIfNull(muscles);
         if (muscles.Count == 0)
-            throw new ArgumentException("At least one muscle is required.", nameof(muscles));
+            throw new DomainException("At least one muscle is required.");
         if (!muscles.Any(m => m.isPrimary))
-            throw new ArgumentException("At least one primary muscle is required.", nameof(muscles));
+            throw new DomainException("At least one primary muscle is required.");
         if (muscles.Select(m => m.muscle).Distinct().Count() != muscles.Count)
-            throw new ArgumentException("Each muscle group may appear only once.", nameof(muscles));
+            throw new DomainException("Each muscle group may appear only once.");
 
         _muscles.Clear();
         foreach (var (muscle, isPrimary) in muscles)

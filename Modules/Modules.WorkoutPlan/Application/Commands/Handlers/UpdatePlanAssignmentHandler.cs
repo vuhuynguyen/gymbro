@@ -27,6 +27,7 @@ public sealed class UpdatePlanAssignmentHandler(
             request.DisableTraineeEditing);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return Result<bool>.Success(true);
     }
 }

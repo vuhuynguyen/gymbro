@@ -13,8 +13,7 @@ namespace Modules.ExerciseModule.Application.Commands.Handlers;
 public class UpdateExerciseHandler(
     IExerciseRepository repository,
     IUnitOfWork unitOfWork,
-    ExerciseDetailCacheSignal detailCacheSignal,
-    ExerciseSearchCacheSignal searchCacheSignal)
+    ExerciseCatalogCache catalogCache)
     : IRequestHandler<UpdateExerciseCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
@@ -78,11 +77,11 @@ public class UpdateExerciseHandler(
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Evict every cached detail entry for this exercise — admin AND each per-tenant scope, not just
-        // "admin". The scoped keys can't be enumerated, so trip the shared change-token instead.
-        detailCacheSignal.Invalidate();
+        // Detail is keyed by exercise id, so evict exactly this entry (the global catalog has no per-tenant
+        // cache key). Best-effort — a cache fault won't fail this already-committed write.
+        await catalogCache.InvalidateDetailAsync(request.ExerciseId, cancellationToken);
         // Name/attributes/filters may have changed — every cached search page is now suspect.
-        searchCacheSignal.Invalidate();
+        await catalogCache.InvalidateSearchAsync(cancellationToken);
 
         return Result<Guid>.Success(exercise.Id);
     }

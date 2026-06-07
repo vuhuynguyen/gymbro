@@ -44,7 +44,7 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.13.19" />
 
     <!-- Observability (OpenTelemetry) — 1.12.0 patches the NU1902 advisories flagged in 1.10.x. -->
-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />

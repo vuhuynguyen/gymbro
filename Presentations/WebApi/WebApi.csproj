@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>gymbro-webapi-dev</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FluentValidation" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+        <PackageReference Include="MediatR" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+        <PackageReference Include="RedisRateLimiting.AspNetCore" />
+        <PackageReference Include="StackExchange.Redis" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Scalar.AspNetCore" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\BuildingBlocks\Infrastructure\BuildingBlocks.Infrastructure.Identity\BuildingBlocks.Infrastructure.Identity.csproj" />
+      <ProjectReference Include="..\..\BuildingBlocks\Infrastructure\BuildingBlocks.Infrastructure.Persistence\BuildingBlocks.Infrastructure.Persistence.csproj" />
+      <ProjectReference Include="..\..\Modules\Modules.Exercise\Modules.Exercise.csproj" />
+      <ProjectReference Include="..\..\Modules\Modules.Identity\Modules.Identity.csproj" />
+      <ProjectReference Include="..\..\Modules\Modules.User\Modules.User.csproj" />
+      <ProjectReference Include="..\..\Modules\Modules.WorkoutPlan\Modules.WorkoutPlan.csproj" />
+      <ProjectReference Include="..\..\Modules\Modules.WorkoutSession\Modules.WorkoutSession.csproj" />
+      <ProjectReference Include="..\..\BuildingBlocks\Application\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
+    </ItemGroup>
+
+</Project>

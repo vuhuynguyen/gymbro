@@ -4,17 +4,18 @@ using Modules.IdentityModule.Application.Abstractions;
 namespace Modules.IdentityModule.Infrastructure.Email;
 
 /// <summary>
-/// Development / not-configured fallback <see cref="IEmailSender"/>. Writes the email to the log
-/// instead of sending it, so local flows (e.g. password-reset) can surface the token without an
-/// SMTP server. Used whenever <c>Email:SmtpHost</c> is not configured.
+/// Development-only fallback <see cref="IEmailSender"/>. Records that an email would have been sent
+/// (masked recipient + subject) without an SMTP server. The body is never logged — it can contain
+/// secrets such as a password-reset token — so only non-sensitive metadata is written. Wired up only
+/// in Development when <c>Email:SmtpHost</c> is unset; non-Development hosts get <see cref="NoOpEmailSender"/>.
 /// </summary>
 public sealed class LoggingEmailSender(ILogger<LoggingEmailSender> logger) : IEmailSender
 {
     public Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {
         logger.LogWarning(
-            "[DEV EMAIL] To: {Email}\nSubject: {Subject}\n{Body}",
-            message.ToEmail, message.Subject, message.Body);
+            "[DEV EMAIL] To: {Email} Subject: {Subject} Body: [REDACTED]",
+            EmailMasking.Mask(message.ToEmail), message.Subject);
         return Task.CompletedTask;
     }
 }

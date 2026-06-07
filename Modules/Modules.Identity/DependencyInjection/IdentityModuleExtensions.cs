@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Modules.IdentityModule.Application.Abstractions;
 using Modules.IdentityModule.Infrastructure.Email;
 using Modules.IdentityModule.Infrastructure.Identity;
@@ -47,9 +48,18 @@ public static class IdentityModuleExtensions
         services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         var emailOptions = configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>();
         if (emailOptions?.IsSmtpConfigured == true)
+        {
             services.AddScoped<IEmailSender, SmtpEmailSender>();
+        }
         else
-            services.AddScoped<IEmailSender, LoggingEmailSender>();
+        {
+            // No SMTP: only Development gets the verbose dev logger; any other host gets the no-op
+            // sender so a secret-bearing body (e.g. a reset token) can never reach logs in production.
+            services.AddScoped<IEmailSender>(sp =>
+                sp.GetService<IHostEnvironment>()?.IsDevelopment() == true
+                    ? ActivatorUtilities.CreateInstance<LoggingEmailSender>(sp)
+                    : ActivatorUtilities.CreateInstance<NoOpEmailSender>(sp));
+        }
 
         return services;
     }

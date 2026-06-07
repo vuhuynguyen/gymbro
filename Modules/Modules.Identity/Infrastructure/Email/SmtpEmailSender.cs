@@ -44,8 +44,9 @@ public sealed class SmtpEmailSender(
         catch (Exception ex)
         {
             // Never surface delivery failures to the caller; just record them.
+            // Recipient is masked so full addresses don't land in operational logs.
             logger.LogError(ex, "Failed to send email to {Email} (subject: {Subject}).",
-                message.ToEmail, message.Subject);
+                EmailMasking.Mask(message.ToEmail), message.Subject);
         }
     }
 }

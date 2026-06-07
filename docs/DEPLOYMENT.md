@@ -32,7 +32,7 @@ environment variables or user-secrets (`UserSecretsId` on `WebApi.csproj`). Env-
 | `Cors:AllowedOrigins` (array) | production CORS allow-list (cross-origin SPA). Omit for a same-origin reverse-proxied deploy | optional |
 | `ForwardedHeaders:Enabled` | `true` honours `X-Forwarded-Proto`/`-For` (correct `Secure` cookie + real client IP). Enable **only behind a trusted reverse proxy** | optional (default `false`) |
 | `OpenTelemetry:OtlpEndpoint` (or `OTEL_EXPORTER_OTLP_ENDPOINT`) | OTLP export of traces + metrics; absent → in-process only | optional |
-| `Email:SmtpHost` (+ port/ssl/credentials/from/`ResetPasswordUrl`) | password-reset mail; absent → dev logger | optional |
+| `Email:SmtpHost` (+ port/ssl/credentials/from/`ResetPasswordUrl`) | password-reset mail; absent → Development logs masked recipient + subject only (token never logged), non-Development no-ops | optional |
 | `Seed:AdminEmail` / `Seed:AdminPassword` | seed a platform admin outside Development | optional |
 
 ## Migrations

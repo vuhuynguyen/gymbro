@@ -46,7 +46,7 @@ separate step.
 | `POST /login` | anon | `{token}` | claim-based; no tenant in token; also sets the refresh cookie |
 | `GET /me` | JWT | `{userId, name, email, isPlatformAdmin}` | |
 | `POST /change-password` | JWT | 204 | |
-| `POST /forgot-password` | anon | `{success:true}` | always succeeds (no account enumeration); sends reset mail via `IEmailSender` (real SMTP when configured, else dev logs the token) |
+| `POST /forgot-password` | anon | `{success:true}` | always succeeds (no account enumeration); sends reset mail via `IEmailSender` (real SMTP when configured; without SMTP the dev logger records only masked recipient + subject — the body/token is never logged; non-Development hosts no-op) |
 | `POST /reset-password` | anon | 204 | `{email, token, newPassword}`; ASP.NET Identity validates the token |
 
 Token endpoints (`refresh`, `logout`, `logout-all`) and the access/refresh lifecycle are owned by

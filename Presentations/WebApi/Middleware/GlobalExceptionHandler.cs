@@ -14,6 +14,8 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
         CancellationToken cancellationToken)
     {
         var traceId = Activity.Current?.Id ?? httpContext.TraceIdentifier;
+        // The request path is attacker-controlled; strip CR/LF before logging so it can't forge log lines.
+        var sanitizedPath = SanitizeForLog(httpContext.Request.Path);
 
         // A domain-invariant breach that slipped past validation is a client error, not a server fault:
         // surface it as 400 with the (safe, author-written) invariant message instead of a generic 500.
@@ -23,7 +25,7 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             logger.LogInformation(
                 "Domain invariant violated. TraceId={TraceId} Path={Path} Reason={Reason}",
                 traceId,
-                httpContext.Request.Path,
+                sanitizedPath,
                 domainException.Message);
 
             await WriteProblemAsync(
@@ -40,7 +42,7 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             exception,
             "Unhandled exception. TraceId={TraceId} Path={Path}",
             traceId,
-            httpContext.Request.Path);
+            sanitizedPath);
 
         await WriteProblemAsync(
             httpContext,
@@ -51,6 +53,9 @@ public sealed class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logge
             cancellationToken);
         return true;
     }
+
+    private static string SanitizeForLog(PathString path) =>
+        path.ToString().Replace("\r", string.Empty).Replace("\n", string.Empty);
 
     private static async Task WriteProblemAsync(
         HttpContext httpContext,

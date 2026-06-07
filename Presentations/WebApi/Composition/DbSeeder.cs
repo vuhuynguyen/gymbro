@@ -70,6 +70,6 @@ public static class DbSeeder
             throw new InvalidOperationException(
                 $"Failed to seed admin: {string.Join(", ", result.Errors.Select(e => e.Description))}");
 
-        logger.LogInformation("Seeded platform admin: {Email}", adminEmail);
+        logger.LogInformation("Seeded platform admin account.");
     }
 }

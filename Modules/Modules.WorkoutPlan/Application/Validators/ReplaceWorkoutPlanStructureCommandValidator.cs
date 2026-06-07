@@ -8,6 +8,24 @@ public sealed class ReplaceWorkoutPlanStructureCommandValidator : AbstractValida
     public ReplaceWorkoutPlanStructureCommandValidator()
     {
         RuleFor(x => x.Id).NotEmpty();
+
+        // Metadata travels with the structure now (one save = one version) — mirror UpdateWorkoutPlanCommandValidator.
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .MaximumLength(200);
+
+        RuleFor(x => x.Description)
+            .MaximumLength(2000)
+            .When(x => x.Description != null);
+
+        RuleFor(x => x.DurationWeeks)
+            .InclusiveBetween(2, 4)
+            .When(x => x.DurationWeeks.HasValue);
+
+        RuleFor(x => x.WorkoutsPerWeek)
+            .InclusiveBetween(3, 6)
+            .When(x => x.WorkoutsPerWeek.HasValue);
+
         RuleFor(x => x.Workouts).NotNull();
 
         RuleForEach(x => x.Workouts).ChildRules(w =>

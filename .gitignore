@@ -55,3 +55,12 @@ nunit-*.xml
 
 # Local dev secrets (untracked — see appsettings.Development.json.example for the shape)
 Presentations/WebApi/appsettings.Development.json
+
+# Coverage reports (generated)
+*.cobertura.xml
+
+# IDE / editor / AI tooling (per-developer)
+.idea/
+.cursor/
+.claude/
+*.DotSettings.user

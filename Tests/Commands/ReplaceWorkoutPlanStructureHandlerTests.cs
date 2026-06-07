@@ -43,6 +43,10 @@ public sealed class ReplaceWorkoutPlanStructureHandlerTests
     private static ReplaceWorkoutPlanStructureCommand CreateCommand(Guid planId, Guid exerciseId)
         => new(
             planId,
+            "Strength Block",
+            Description: null,
+            DurationWeeks: null,
+            WorkoutsPerWeek: null,
             new[]
             {
                 new PlanWorkoutStructureInput(
@@ -175,6 +179,9 @@ public sealed class ReplaceWorkoutPlanStructureHandlerTests
         var result = await sut.Handle(CreateCommand(plan.Id, exerciseId), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
+        // The new version's id is returned (not the stale one) so the caller can re-point to the latest.
+        Assert.NotEqual(Guid.Empty, result.Value);
+        Assert.NotEqual(plan.Id, result.Value);
 
         // A brand-new forked version (next.Version == current + 1), same template/author, carrying the new
         // structure, is added through the repository and committed exactly once.

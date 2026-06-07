@@ -21,6 +21,11 @@ public sealed class UpdateWorkoutPlanRequest
 
 public sealed class ReplaceWorkoutPlanStructureRequest
 {
+    // Metadata is sent together with the structure so a plan-builder save lands as ONE new version.
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public int? DurationWeeks { get; set; }
+    public int? WorkoutsPerWeek { get; set; }
     public List<PlanWorkoutStructureRequest> Workouts { get; set; } = new();
 }
 

@@ -44,6 +44,21 @@ public sealed class WorkoutPlanController(IMediator mediator) : ControllerBase
         return Ok(result.Value);
     }
 
+    // Returns the latest version in the template that {id} belongs to. The plan builder loads through this so
+    // a stale (non-latest) version id self-heals to the editable latest version instead of 409-ing on save.
+    [HttpGet("{id:guid}/latest")]
+    public async Task<IActionResult> GetLatestById(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetLatestWorkoutPlanByIdQuery(id), cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return result.ToFailureResult(this);
+        }
+
+        return Ok(result.Value);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateWorkoutPlanRequest request, CancellationToken cancellationToken)
     {
@@ -83,7 +98,8 @@ public sealed class WorkoutPlanController(IMediator mediator) : ControllerBase
             return result.ToFailureResult(this);
         }
 
-        return NoContent();
+        // Editing forks a new version — return its id so the client can re-point to the latest.
+        return Ok(new { id = result.Value });
     }
 
     [HttpPut("{id:guid}/structure")]
@@ -113,14 +129,23 @@ public sealed class WorkoutPlanController(IMediator mediator) : ControllerBase
                     .ToList()))
             .ToList();
 
-        var result = await mediator.Send(new ReplaceWorkoutPlanStructureCommand(id, workouts), cancellationToken);
+        var result = await mediator.Send(
+            new ReplaceWorkoutPlanStructureCommand(
+                id,
+                request.Name,
+                request.Description,
+                request.DurationWeeks,
+                request.WorkoutsPerWeek,
+                workouts),
+            cancellationToken);
 
         if (result.IsFailure)
         {
             return result.ToFailureResult(this);
         }
 
-        return NoContent();
+        // Editing forks a new version — return its id so the client can re-point to the latest.
+        return Ok(new { id = result.Value });
     }
 
     [HttpDelete("{id:guid}")]

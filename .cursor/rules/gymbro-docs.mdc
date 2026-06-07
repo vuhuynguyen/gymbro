@@ -1,7 +1,7 @@
 ---
 description: >-
-  GymBro shared documentation system: read architecture, domain, and API docs
-  before any backend work. Enforces doc-first workflow for all .NET changes.
+  GymBro API documentation system: read the doc that owns your topic
+  before any backend work. Enforces a doc-first workflow for all .NET changes.
 globs:
   - "**/*.cs"
 alwaysApply: true
@@ -9,20 +9,19 @@ alwaysApply: true
 
 # GymBro API — Documentation System
 
-Before any backend task, read the one authoritative doc that owns your topic. **System facts live in the
-root `docs/` SSOT** (routed by [`../../../docs/README.md`](../../../docs/README.md)); backend layout/build/
-patterns live in [`../../docs/BACKEND.md`](../../docs/BACKEND.md); conventions in the repo-root `CLAUDE.md`.
+Before any backend task, read the one doc that owns your topic. Start at [`../../README.md`](../../README.md); the
+deep docs live in [`../../docs/`](../../docs/). Repo conventions: [`../../CLAUDE.md`](../../CLAUDE.md).
 
 | What you need | Read |
 |---|---|
-| Big picture, stack, run, risks | `../../../docs/SYSTEM_OVERVIEW.md` |
-| Module boundaries, endpoints, dependencies | `../../../docs/MODULES.md` |
-| Domain entities, EF filters, tenancy | `../../../docs/DATABASE.md` |
-| Authorization, roles, permission matrix, tenant isolation | `../../../docs/PERMISSIONS.md` |
-| Lifecycle rules (plan/assignment/session/membership) | `../../../docs/BUSINESS_RULES.md` |
-| End-to-end flows (onboarding, invites, sessions) | `../../../docs/USER_FLOWS.md` |
-| Token lifecycle (access/refresh/revocation) | `../../../docs/REFRESH_TOKEN_DESIGN.md` |
-| Solution layout, build/run/migrate, add-a-feature | `../../docs/BACKEND.md` |
+| Architecture, modules, boundaries, conventions | `../../docs/ARCHITECTURE.md` |
+| Domain entities, EF filters, tenancy, migrations | `../../docs/DATABASE.md` |
+| Authorization, roles, permission matrix, tenant isolation | `../../docs/PERMISSIONS.md` |
+| Token lifecycle (access/refresh/revocation) | `../../docs/AUTHENTICATION.md` |
+| Lifecycle rules (plan/assignment/session/membership) | `../../docs/BUSINESS_RULES.md` |
+| End-to-end flows (onboarding, invites, sessions) | `../../docs/USER_FLOWS.md` |
+| Tests | `../../docs/TESTING.md` |
+| Config, migrations, deploy | `../../docs/DEPLOYMENT.md` |
 
 ## Key conventions
 
@@ -33,17 +32,17 @@ patterns live in [`../../docs/BACKEND.md`](../../docs/BACKEND.md); conventions i
 - FluentValidation validators live beside their command files
 - MediatR pipeline (order): `ValidationBehavior` → `AuthorizationBehavior` → `PlatformAdminBehavior`
 - Namespaces: `Modules.<Module>Module.<Layer>.<Subfolder>` (folders are `Modules.X`)
-- DTO mapping: explicit only in `Application/Mapping/<Module>Mapping.cs` (see repo root `CLAUDE.md`)
+- DTO mapping: explicit only in `Application/Mapping/<Module>Mapping.cs`
 
 ## Update rules (MANDATORY)
 
-When behavior changes, update the **one** root `docs/*` file that owns that fact (see `../../../docs/README.md`):
+When behavior changes, update the **one** `docs/*` file that owns that fact:
 
-- New/changed endpoint or module dependency → `MODULES.md`
+- New/changed endpoint, module dependency, or convention → `ARCHITECTURE.md`
 - New entity / field / EF filter → `DATABASE.md`
 - Permission or tenant-isolation change → `PERMISSIONS.md`
+- Token lifecycle change → `AUTHENTICATION.md`
 - Lifecycle rule (plan/assignment/session/membership) → `BUSINESS_RULES.md`
 - Flow change (onboarding, invite, session) → `USER_FLOWS.md`
-- Token lifecycle change → `REFRESH_TOKEN_DESIGN.md`
 
 Do not duplicate a fact across docs; link instead.

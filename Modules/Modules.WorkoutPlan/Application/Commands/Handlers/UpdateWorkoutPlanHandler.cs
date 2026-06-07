@@ -14,28 +14,28 @@ public sealed class UpdateWorkoutPlanHandler(
     IWorkoutPlanRepository repository,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser)
-    : IRequestHandler<UpdateWorkoutPlanCommand, Result>
+    : IRequestHandler<UpdateWorkoutPlanCommand, Result<Guid>>
 {
-    public async Task<Result> Handle(UpdateWorkoutPlanCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(UpdateWorkoutPlanCommand request, CancellationToken cancellationToken)
     {
         var current = await repository.GetForUpdateAsync(request.Id, cancellationToken);
         if (current == null)
-            return Result.Failure(NotFound("NotFound", "Plan not found."));
+            return Result<Guid>.Failure(NotFound("NotFound", "Plan not found."));
 
         if (current.IsArchived)
-            return Result.Failure(Conflict("Conflict", "Unarchive the plan before editing it."));
+            return Result<Guid>.Failure(Conflict("Conflict", "Unarchive the plan before editing it."));
 
         var latest = await repository.GetLatestVersionInTemplateAsync(current.TemplateId, cancellationToken) ?? current;
 
         // Edits must target the latest version; editing an older version would silently fork off the
         // newest one and discard the caller's intent. Make that explicit instead.
         if (current.Id != latest.Id)
-            return Result.Failure(Conflict(
+            return Result<Guid>.Failure(Conflict(
                 "Conflict", "This is not the latest version of the plan. Refresh and edit the latest version."));
 
         var authorCheck = PlanAuthorPolicy.EnsureCanMutate(latest, currentUser);
         if (authorCheck.IsFailure)
-            return authorCheck;
+            return Result<Guid>.Failure(authorCheck.Error);
 
         var next = WorkoutPlan.CreateNewVersion(
             latest,
@@ -54,9 +54,10 @@ public sealed class UpdateWorkoutPlanHandler(
         catch (DbUpdateException)
         {
             // Concurrent edit created the same version; caller should reload and retry.
-            return Result.Failure(Conflict("Conflict", "This plan was modified concurrently. Refresh and try again."));
+            return Result<Guid>.Failure(Conflict("Conflict", "This plan was modified concurrently. Refresh and try again."));
         }
 
-        return Result.Success();
+        // Return the new version's id so the caller can re-point to the latest version for its next edit.
+        return Result<Guid>.Success(next.Id);
     }
 }

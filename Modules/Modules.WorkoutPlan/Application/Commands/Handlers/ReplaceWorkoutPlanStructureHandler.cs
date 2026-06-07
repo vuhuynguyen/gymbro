@@ -16,9 +16,9 @@ public sealed class ReplaceWorkoutPlanStructureHandler(
     IMediator mediator,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser)
-    : IRequestHandler<ReplaceWorkoutPlanStructureCommand, Result>
+    : IRequestHandler<ReplaceWorkoutPlanStructureCommand, Result<Guid>>
 {
-    public async Task<Result> Handle(ReplaceWorkoutPlanStructureCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(ReplaceWorkoutPlanStructureCommand request, CancellationToken cancellationToken)
     {
         var exerciseIds = request.Workouts
             .SelectMany(w => w.Exercises)
@@ -28,7 +28,7 @@ public sealed class ReplaceWorkoutPlanStructureHandler(
 
         var validation = await mediator.Send(new ValidateExerciseIdsQuery(exerciseIds), cancellationToken);
         if (validation.IsFailure)
-            return validation;
+            return Result<Guid>.Failure(validation.Error);
 
         var mapped = request.Workouts
             .Select(w => (
@@ -53,29 +53,30 @@ public sealed class ReplaceWorkoutPlanStructureHandler(
 
         var current = await repository.GetForUpdateAsync(request.Id, cancellationToken);
         if (current == null)
-            return Result.Failure(NotFound("NotFound", "Plan not found."));
+            return Result<Guid>.Failure(NotFound("NotFound", "Plan not found."));
 
         if (current.IsArchived)
-            return Result.Failure(Conflict("Conflict", "Unarchive the plan before editing it."));
+            return Result<Guid>.Failure(Conflict("Conflict", "Unarchive the plan before editing it."));
 
         var latest = await repository.GetLatestVersionInTemplateAsync(current.TemplateId, cancellationToken) ?? current;
 
         // Edits must target the latest version; editing an older one would silently fork off the newest.
         if (current.Id != latest.Id)
-            return Result.Failure(Conflict(
+            return Result<Guid>.Failure(Conflict(
                 "Conflict", "This is not the latest version of the plan. Refresh and edit the latest version."));
 
         var authorCheck = PlanAuthorPolicy.EnsureCanMutate(latest, currentUser);
         if (authorCheck.IsFailure)
-            return authorCheck;
+            return Result<Guid>.Failure(authorCheck.Error);
 
+        // Metadata and structure land together on ONE new version, so a builder save never forks twice.
         var next = WorkoutPlan.CreateNewVersion(
             latest,
             currentUser.UserId,
-            latest.Name,
-            latest.Description,
-            latest.DurationWeeks,
-            latest.WorkoutsPerWeek);
+            request.Name,
+            request.Description,
+            request.DurationWeeks,
+            request.WorkoutsPerWeek);
 
         next.ReplaceStructure(mapped);
         await repository.AddAsync(next, cancellationToken);
@@ -87,9 +88,10 @@ public sealed class ReplaceWorkoutPlanStructureHandler(
         catch (DbUpdateException)
         {
             // Concurrent edit created the same version; caller should reload and retry.
-            return Result.Failure(Conflict("Conflict", "This plan was modified concurrently. Refresh and try again."));
+            return Result<Guid>.Failure(Conflict("Conflict", "This plan was modified concurrently. Refresh and try again."));
         }
 
-        return Result.Success();
+        // Return the new version's id so the caller can re-point to the latest version for its next edit.
+        return Result<Guid>.Success(next.Id);
     }
 }

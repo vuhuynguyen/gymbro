@@ -12,21 +12,20 @@ alwaysApply: false
 
 When editing C# in this repository, follow the Agent Skill **senior-dotnet-angular-fullstack** at `.cursor/skills/senior-dotnet-angular-fullstack/SKILL.md` (Clean Architecture, module boundaries, CQRS/MediatR, FluentValidation, thin controllers, EF Core boundaries, Result pattern).
 
-For Angular UI work, open the **GymBroPortal** workspace and use its `.cursor/rules/angular-frontend.mdc` and **figma-design-system.mdc** together with the same skill.
+For Angular UI work, open the **GymBroPortal** repository and use its `.cursor/rules/angular-frontend.mdc` and **figma-design-system.mdc** together with the same skill.
 
-## Shared documentation (read before any task)
+## Documentation (read before any task)
 
-System facts live in the root `docs/` SSOT (routed by [`../../../docs/README.md`](../../../docs/README.md));
-backend solution layout / build / patterns in [`../../docs/BACKEND.md`](../../docs/BACKEND.md).
+Start at [`../../README.md`](../../README.md); the deep docs live in [`../../docs/`](../../docs/).
 
 | What you need | Read |
 |---|---|
-| Big picture, stack, risks | `../../../docs/SYSTEM_OVERVIEW.md` |
-| Module boundaries, endpoints, dependencies | `../../../docs/MODULES.md` |
-| Domain entities, EF filters, tenancy | `../../../docs/DATABASE.md` |
-| Authorization, roles, permission matrix | `../../../docs/PERMISSIONS.md` |
-| Lifecycle rules (plan/assignment/session/membership) | `../../../docs/BUSINESS_RULES.md` |
-| Flows (onboarding, invites, sessions) | `../../../docs/USER_FLOWS.md` |
-| Solution layout, build/run/migrate | `../../docs/BACKEND.md` |
+| Architecture, modules, boundaries, conventions | `../../docs/ARCHITECTURE.md` |
+| Domain entities, EF filters, tenancy, migrations | `../../docs/DATABASE.md` |
+| Authorization, roles, permission matrix | `../../docs/PERMISSIONS.md` |
+| Token lifecycle (access/refresh/revocation) | `../../docs/AUTHENTICATION.md` |
+| Lifecycle rules (plan/assignment/session/membership) | `../../docs/BUSINESS_RULES.md` |
+| Flows (onboarding, invites, sessions) | `../../docs/USER_FLOWS.md` |
+| Config, migrations, deploy | `../../docs/DEPLOYMENT.md` |
 
-After every change, update the **one** owning doc listed in `../../../docs/README.md`.
+After every change, update the **one** owning doc in [`../../docs/`](../../docs/).

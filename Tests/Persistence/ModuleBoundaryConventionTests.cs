@@ -10,7 +10,7 @@ using Xunit;
 namespace Gymbro.Tests.Persistence;
 
 /// <summary>
-/// Build-breaking guard for the module-boundary contract in docs/MODULES.md. Modules may
+/// Build-breaking guard for the module-boundary contract in docs/ARCHITECTURE.md. Modules may
 /// cross boundaries ONLY via MediatR query/command/notification contracts that live in another module's
 /// <c>*.Application</c> namespace — never its <c>*.Entities</c> (domain) namespace, and feature modules must
 /// never reach into the Identity module at all.
@@ -62,7 +62,7 @@ public sealed class ModuleBoundaryConventionTests
             violations.Count == 0,
             "Module-boundary leak: a module references another module's *.Entities namespace. Cross-module "
             + "communication must go through MediatR contracts in the owning module's *.Application namespace "
-            + "(docs/MODULES.md). Offending references: " + string.Join(", ", violations.Distinct()));
+            + "(docs/ARCHITECTURE.md). Offending references: " + string.Join(", ", violations.Distinct()));
     }
 
     [Fact]

@@ -45,6 +45,7 @@ public sealed class UpdatePlanAssignmentToLatestVersionHandler(
 
         assignment.ApplyNewVersion(latest.Id, latest.Version, snapshotJson);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return Result<bool>.Success(true);
     }
 }

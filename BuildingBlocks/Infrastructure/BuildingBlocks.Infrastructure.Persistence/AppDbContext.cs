@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 using BuildingBlocks.Application.Abstractions;
+using BuildingBlocks.Infrastructure.Persistence.Outbox;
 using BuildingBlocks.Infrastructure.Persistence.Services.Interfaces;
 using BuildingBlocks.Shared.Abstractions;
 using Microsoft.EntityFrameworkCore;
-using MediatR;
 using BuildingBlocks.Shared.DomainPrimitives;
 using Modules.ExerciseModule.Entities;
 using Modules.UserModule.Entities;
@@ -17,7 +17,6 @@ public class AppDbContext(
     IDbContextServices services)
     : DbContext(options), IUnitOfWork
 {
-    private readonly IPublisher _publisher = services.Publisher;
     public ICurrentUser CurrentUser { get; } = services.CurrentUser;
     public ITenantContext TenantContext { get; } = services.TenantContext;
 
@@ -31,6 +30,10 @@ public class AppDbContext(
     public DbSet<WorkoutSession> WorkoutSessions { get; set; } = null!;
     public DbSet<PerformedExercise> PerformedExercises { get; set; } = null!;
     public DbSet<PerformedSet> PerformedSets { get; set; } = null!;
+
+    // Transactional outbox: domain events are persisted here in the SAME transaction as the changes
+    // that raised them (see SaveChangesAsync), then dispatched out-of-band by the OutboxProcessor.
+    public DbSet<OutboxMessage> OutboxMessages { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -59,10 +62,11 @@ public class AppDbContext(
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var utcNow = DateTime.UtcNow;
-        var domainEvents = ChangeTracker
-            .Entries<Entity>()
-            .SelectMany(e => e.Entity.DomainEvents)
-            .ToList();
+
+        // Drain domain events into the outbox BEFORE saving so they commit atomically with the changes
+        // that raised them. The OutboxProcessor then publishes them out-of-band (at-least-once), making
+        // post-commit delivery durable and load-balancer-safe instead of at-most-once fire-and-forget.
+        WriteDomainEventsToOutbox(utcNow);
 
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
@@ -100,17 +104,24 @@ public class AppDbContext(
             }
         }
 
-        var result = await base.SaveChangesAsync(cancellationToken);
+        return await base.SaveChangesAsync(cancellationToken);
+    }
 
-        foreach (var domainEvent in domainEvents)
+    private void WriteDomainEventsToOutbox(DateTime utcNow)
+    {
+        var entitiesWithEvents = ChangeTracker
+            .Entries<Entity>()
+            .Select(e => e.Entity)
+            .Where(e => e.DomainEvents.Count > 0)
+            .ToList();
+
+        foreach (var entity in entitiesWithEvents)
         {
-            await _publisher.Publish(domainEvent, cancellationToken);
+            foreach (var domainEvent in entity.DomainEvents)
+                OutboxMessages.Add(OutboxMessage.Create(domainEvent, utcNow));
+
+            entity.ClearDomainEvents();
         }
-
-        foreach (var entry in ChangeTracker.Entries<Entity>())
-            entry.Entity.ClearDomainEvents();
-
-        return result;
     }
 
     private void ApplyGlobalFilters(ModelBuilder modelBuilder)

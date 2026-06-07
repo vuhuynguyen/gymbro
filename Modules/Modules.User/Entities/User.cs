@@ -11,9 +11,9 @@ public class User : AggregateRoot, ISoftDelete
     public static User Create(Guid domainUserId, string name)
     {
         if (domainUserId == Guid.Empty)
-            throw new ArgumentException("DomainUserId is required.", nameof(domainUserId));
+            throw new DomainException("DomainUserId is required.");
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required.", nameof(name));
+            throw new DomainException("Name is required.");
 
         return new User
         {
@@ -25,7 +25,7 @@ public class User : AggregateRoot, ISoftDelete
     public void UpdateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required.", nameof(name));
+            throw new DomainException("Name is required.");
         Name = name.Trim();
     }
 }

@@ -13,7 +13,7 @@ namespace Modules.ExerciseModule.Application.Commands.Handlers;
 public class CreateExerciseHandler(
     IExerciseRepository repository,
     IUnitOfWork unitOfWork,
-    ExerciseSearchCacheSignal searchCacheSignal)
+    ExerciseCatalogCache catalogCache)
     : IRequestHandler<CreateExerciseCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
@@ -69,7 +69,7 @@ public class CreateExerciseHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         // A new exercise makes every cached search page stale (it may now belong in any of them).
-        searchCacheSignal.Invalidate();
+        await catalogCache.InvalidateSearchAsync(cancellationToken);
 
         return Result<Guid>.Success(exercise.Id);
     }

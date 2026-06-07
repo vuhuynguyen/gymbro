@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using BuildingBlocks.Application.Authorization;
 using Xunit;
 
@@ -46,7 +47,7 @@ public sealed class TenantScopedRequestConventionTests
     }
 
     /// <summary>
-    /// The exemption set is a manually-maintained seam (security Finding 8): each entry must say why
+    /// The exemption set is a manually-maintained seam: each entry must say why
     /// it bypasses declarative gating, so a future addition can't slip in undocumented.
     /// </summary>
     [Fact]
@@ -105,6 +106,38 @@ public sealed class TenantScopedRequestConventionTests
             unguarded.Count == 0,
             "Each ImperativeGuarded exemption's handler must enforce access with one of "
             + $"[{string.Join(", ", authPrimitives)}]. Missing: {string.Join("; ", unguarded)}");
+    }
+
+    /// <summary>
+    /// <see cref="ExemptionKind.InternalLookup"/> requests carry no caller-facing authorization — they are
+    /// safe only because they are reached in-process behind an already-guarded handler, never dispatched
+    /// from a controller. This asserts that contract: if one is ever referenced in a
+    /// controller, it must instead be given its own declarative gate or row-level guard.
+    /// </summary>
+    [Fact]
+    public void InternalLookup_requests_are_never_dispatched_from_a_controller()
+    {
+        var internalOnly = TenantAuthorizationExemptions.All
+            .Where(e => e.Value.Kind == ExemptionKind.InternalLookup)
+            .Select(e => e.Key)
+            .ToList();
+
+        Assert.NotEmpty(internalOnly);
+
+        var leaks = new List<string>();
+        foreach (var file in AuthorizedControllerRequestDiscovery.ControllerFiles())
+        {
+            var source = File.ReadAllText(file);
+            foreach (var name in internalOnly)
+                if (Regex.IsMatch(source, $@"\b{Regex.Escape(name)}\b"))
+                    leaks.Add($"{name} → {Path.GetFileName(file)}");
+        }
+
+        Assert.True(
+            leaks.Count == 0,
+            "InternalLookup exemptions must never be dispatched from a controller (they have no "
+            + "caller-facing authorization). Give them a declarative/row-level guard before exposing: "
+            + string.Join("; ", leaks));
     }
 
     /// <summary>

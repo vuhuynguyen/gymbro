@@ -15,9 +15,9 @@ public class UserTenantRole : AggregateRoot
     public static UserTenantRole Create(Guid userId, Guid tenantId, TenantRole role)
     {
         if (userId == Guid.Empty)
-            throw new ArgumentException("UserId is required.", nameof(userId));
+            throw new DomainException("UserId is required.");
         if (tenantId == Guid.Empty)
-            throw new ArgumentException("TenantId is required.", nameof(tenantId));
+            throw new DomainException("TenantId is required.");
 
         return new UserTenantRole
         {

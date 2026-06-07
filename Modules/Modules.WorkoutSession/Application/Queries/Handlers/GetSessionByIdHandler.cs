@@ -62,14 +62,17 @@ public sealed class GetSessionByIdHandler(
         // Render planned exercises with the names captured in the snapshot at session start.
         var names = SessionMapping.MergeSnapshotNames(namesResult.Value!, snapshotDto);
 
-        // Prior best e1RM per lift for this trainee, from sessions that started before this one.
+        // Prior best e1RM per lift for this trainee, from sessions that started before this one. Bounded to
+        // the exercises in THIS session (the only lifts DetectPrs can flag) so the history aggregation does
+        // not grow with the trainee's full catalog of past exercises. Result is identical.
         var priorBest = await sessionRepository.Query()
             .Where(s => s.TraineeId == session.TraineeId
                 && s.Id != session.Id
                 && s.StartedAt < session.StartedAt)
             .SelectMany(s => s.Exercises)
             .SelectMany(e => e.Sets.Select(set => new { e.ExerciseId, set.SetType, set.EstimatedOneRepMaxKg }))
-            .Where(x => x.SetType == PerformedSetType.Working && x.EstimatedOneRepMaxKg != null)
+            .Where(x => x.SetType == PerformedSetType.Working && x.EstimatedOneRepMaxKg != null
+                && exerciseIds.Contains(x.ExerciseId))
             .GroupBy(x => x.ExerciseId)
             .Select(g => new { ExerciseId = g.Key, Best = g.Max(x => x.EstimatedOneRepMaxKg!.Value) })
             .ToDictionaryAsync(x => x.ExerciseId, x => x.Best, cancellationToken);

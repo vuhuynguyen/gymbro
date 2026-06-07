@@ -1,5 +1,6 @@
 using BuildingBlocks.Shared.DomainPrimitives;
 
+using Modules.WorkoutPlanModule.Application;
 namespace Modules.WorkoutPlanModule.Entities;
 
 public sealed record PlanWorkoutSetData(
@@ -31,13 +32,13 @@ public sealed class PlanWorkoutExercise : BaseEntity, ITenantEntity
         int order)
     {
         if (planWorkoutId == Guid.Empty)
-            throw new ArgumentException("PlanWorkoutId is required.", nameof(planWorkoutId));
+            throw new DomainException("PlanWorkoutId is required.");
         if (tenantId == Guid.Empty)
-            throw new ArgumentException("TenantId is required.", nameof(tenantId));
+            throw new DomainException("TenantId is required.");
         if (exerciseId == Guid.Empty)
-            throw new ArgumentException("ExerciseId is required.", nameof(exerciseId));
+            throw new DomainException("ExerciseId is required.");
         if (order < 1)
-            throw new ArgumentOutOfRangeException(nameof(order));
+            throw new DomainException("order is out of range.");
 
         return new PlanWorkoutExercise
         {

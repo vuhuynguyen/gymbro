@@ -1,4 +1,6 @@
 using Modules.WorkoutPlanModule.Entities;
+using Modules.WorkoutPlanModule.Application;
+using BuildingBlocks.Shared.DomainPrimitives;
 using Xunit;
 
 namespace Gymbro.Tests.Domain;
@@ -31,21 +33,21 @@ public sealed class WorkoutPlanVersioningTests
     [Fact]
     public void Create_throws_when_name_is_empty()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<DomainException>(() =>
             WorkoutPlan.Create(TenantId, CreatedBy, "", null, null, null));
     }
 
     [Fact]
     public void Create_throws_when_tenantId_is_empty()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<DomainException>(() =>
             WorkoutPlan.Create(Guid.Empty, CreatedBy, "Plan", null, null, null));
     }
 
     [Fact]
     public void Create_throws_when_createdBy_is_empty()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<DomainException>(() =>
             WorkoutPlan.Create(TenantId, Guid.Empty, "Plan", null, null, null));
     }
 

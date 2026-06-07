@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    # Real Postgres so the integration suite actually runs (it must NOT silently skip in CI — see
+    # PostgresFixture, which throws rather than skips when CI=true and no database is reachable).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gymbro_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Solution.sln
+
+      # Warnings are build-breaking (Directory.Build.props: TreatWarningsAsErrors).
+      - name: Build
+        run: dotnet build Solution.sln -c Release --no-restore
+
+      # Fail the build on any High/Critical advisory in direct or transitive packages.
+      - name: Check for vulnerable packages
+        run: |
+          dotnet list Solution.sln package --vulnerable --include-transitive 2>&1 | tee vulnerable.txt
+          if grep -E "(Critical|High)" vulnerable.txt; then
+            echo "::error::High/Critical vulnerable packages found"; exit 1
+          fi
+
+      # Coverage gate: line >= 30% (generated migrations excluded). Integration tests run here against the
+      # Postgres service container, so the measured coverage is the full picture.
+      - name: Test with coverage (unit + integration)
+        env:
+          GYMBRO_TEST_DB: "Host=localhost;Port=5432;Database=gymbro_test;Username=postgres;Password=postgres"
+        run: dotnet test Solution.sln -c Release --logger "trx;LogFileName=test-results.trx" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./TestResults/coverage.cobertura.xml /p:ExcludeByFile="**/Migrations/*.cs" /p:Threshold=30 /p:ThresholdType=line /p:ThresholdStat=total
+
+      - name: Upload test results & coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/TestResults/*.trx
+            **/TestResults/*.cobertura.xml
+          if-no-files-found: ignore

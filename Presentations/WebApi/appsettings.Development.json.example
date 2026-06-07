@@ -1,6 +1,7 @@
 {
   "ConnectionStrings": {
-    "Database": "Host=127.0.0.1;Port=5432;Database=GymBroDb;Username=YOUR_DB_USER;Password=YOUR_DB_PASSWORD"
+    "Database": "Host=127.0.0.1;Port=5432;Database=GymBroDb;Username=YOUR_DB_USER;Password=YOUR_DB_PASSWORD",
+    "Redis": "YOUR_REDIS_CLOUD_HOST:PORT,user=default,password=YOUR_REDIS_PASSWORD,abortConnect=False"
   },
   "Jwt": {
     "Issuer": "gymbro",

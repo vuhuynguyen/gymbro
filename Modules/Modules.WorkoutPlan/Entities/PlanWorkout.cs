@@ -19,13 +19,13 @@ public sealed class PlanWorkout : BaseEntity, ITenantEntity
     public static PlanWorkout Create(Guid workoutPlanId, Guid tenantId, string name, int order)
     {
         if (workoutPlanId == Guid.Empty)
-            throw new ArgumentException("WorkoutPlanId is required.", nameof(workoutPlanId));
+            throw new DomainException("WorkoutPlanId is required.");
         if (tenantId == Guid.Empty)
-            throw new ArgumentException("TenantId is required.", nameof(tenantId));
+            throw new DomainException("TenantId is required.");
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Name is required.", nameof(name));
+            throw new DomainException("Name is required.");
         if (order < 1)
-            throw new ArgumentOutOfRangeException(nameof(order));
+            throw new DomainException("order is out of range.");
 
         return new PlanWorkout
         {

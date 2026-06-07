@@ -37,9 +37,9 @@ public sealed class PerformedSet : BaseEntity, ITenantEntity
         bool isCompleted)
     {
         if (performedExerciseId == Guid.Empty)
-            throw new ArgumentException("PerformedExerciseId is required.", nameof(performedExerciseId));
+            throw new DomainException("PerformedExerciseId is required.");
         if (tenantId == Guid.Empty)
-            throw new ArgumentException("TenantId is required.", nameof(tenantId));
+            throw new DomainException("TenantId is required.");
 
         return new PerformedSet
         {

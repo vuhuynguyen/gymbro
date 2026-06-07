@@ -4,7 +4,7 @@ using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Modules.IdentityModule.Application.Abstractions;
 using Modules.IdentityModule.Infrastructure.Identity;
 using Modules.IdentityModule.Infrastructure.Services;
 
@@ -14,7 +14,7 @@ public class ChangePasswordHandler(
     UserManager<AppUser> userManager,
     RefreshTokenService refreshTokenService,
     ICurrentUser currentUser,
-    IMemoryCache cache)
+    ISecurityStampCacheService stampCache)
     : IRequestHandler<ChangePasswordCommand, Result>
 {
     public async Task<Result> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
@@ -35,7 +35,7 @@ public class ChangePasswordHandler(
         // A password change rotates the SecurityStamp (done by Identity above); kill all other sessions
         // too so a stolen refresh token can't outlive the password it was issued under.
         await refreshTokenService.RevokeAllForUserAsync(user.Id, cancellationToken);
-        cache.Remove(SecurityStampCache.KeyFor(user.Id.ToString()));
+        await stampCache.EvictAsync(user.Id.ToString(), cancellationToken);
 
         return Result.Success();
     }

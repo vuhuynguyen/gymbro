@@ -33,7 +33,7 @@ internal sealed record Exemption(ExemptionKind Kind, string Reason);
 /// Allowlist for tenant-related MediatR requests that intentionally do not use declarative
 /// authorization (<c>ITenantAuthorizedRequest</c> / <c>IPlatformAdminRequest</c>). Every entry
 /// records <b>why</b> it's exempt and <b>how</b> it's protected instead — the exemption set is a
-/// manually-maintained seam (see security Finding 8), so the reason lives next to the entry and the
+/// manually-maintained seam, so the reason lives next to the entry and the
 /// convention tests enforce it. Prefer shrinking this set as handlers migrate to declarative gating.
 /// </summary>
 internal static class TenantAuthorizationExemptions
@@ -62,6 +62,15 @@ internal static class TenantAuthorizationExemptions
                 "Caller removes their own membership; self-scoped, no elevated permission required."),
             ["GetMyTenantsQuery"] = new(ExemptionKind.AuthenticationOnly,
                 "Lists only the caller's own memberships; self-scoped by definition."),
+            ["RefreshTokenCommand"] = new(ExemptionKind.AuthenticationOnly,
+                "Exchanges a rotating refresh-cookie secret for a new access token; authorized by the "
+                + "opaque token, not a tenant role, and runs before any tenant is resolved."),
+            ["LogoutCommand"] = new(ExemptionKind.AuthenticationOnly,
+                "Revokes the caller's own refresh token (identified by the cookie); no tenant context "
+                + "and no elevated permission involved."),
+            ["RevokeAllSessionsCommand"] = new(ExemptionKind.AuthenticationOnly,
+                "Acts on the caller's own identity account (rotates their SecurityStamp); self-scoped, "
+                + "not gated by any tenant role."),
 
             // --- ImperativeGuarded: tenant-scoped, handler runs its own permission / row-level check ---
             ["ListSessionsQuery"] = new(ExemptionKind.ImperativeGuarded,

@@ -63,6 +63,7 @@ public sealed class CreatePlanAssignmentHandler(
 
         await assignmentRepository.AddAsync(assignment, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return Result<Guid>.Success(assignment.Id);
     }
 }

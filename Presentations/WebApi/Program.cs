@@ -2,7 +2,6 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
 using BuildingBlocks.Shared.Authorization;
 using BuildingBlocks.Application.Authorization;
 using BuildingBlocks.Application.Behaviors;
@@ -11,15 +10,11 @@ using BuildingBlocks.Infrastructure.Persistence.DependencyInjection;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Caching.Memory;
-using Modules.ExerciseModule.Application.Caching;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
-using Modules.IdentityModule.Infrastructure.Identity;
-using Modules.IdentityModule.Infrastructure.Services;
 using Modules.ExerciseModule;
 using Modules.IdentityModule;
+using Modules.IdentityModule.Application.Abstractions;
 using Modules.IdentityModule.DependencyInjection;
 using Modules.UserModule;
 using Modules.UserModule.Application.Authorization;
@@ -76,6 +71,13 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(Authorization
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PlatformAdminBehavior<,>));
 
 builder.Services.AddPersistence(builder.Configuration);
+// Drains the transactional outbox (domain events committed alongside their state change) out-of-band.
+builder.Services.AddOutboxProcessing(builder.Configuration);
+// Read-only safety net: periodically reports drift between the Identity store (AppUser) and the domain
+// store (User), which are linked only by convention (AppUser.DomainUserId == User.Id) with no cross-store FK.
+builder.Services.AddCrossStoreReconciliation(builder.Configuration);
+// OpenTelemetry traces + metrics (OTLP export opt-in via OpenTelemetry:OtlpEndpoint / OTEL_EXPORTER_OTLP_ENDPOINT).
+builder.Services.AddGymBroObservability(builder.Configuration);
 builder.Services.AddSingleton<IPermissionService, PermissionService>();
 builder.Services.AddScoped<ITenantRoleResolver, TenantRoleResolver>();
 builder.Services.AddScoped<ITenantAuthorizationService, TenantAuthorizationService>();
@@ -83,10 +85,24 @@ builder.Services.AddScoped<ITenantAuthorizationService, TenantAuthorizationServi
 builder.Services.AddScoped<IRequestRoleCache, RequestRoleCache>();
 
 var jwtSecret = builder.Configuration["Jwt:Secret"];
-if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
+// The length check alone is insufficient: the committed placeholders are >= 32
+// chars, so a deploy that forgets to override Jwt:Secret would boot with a PUBLICLY-KNOWN signing key —
+// letting anyone forge an `is_admin=true` token, which bypasses every EF tenant filter and admits all
+// admin endpoints. Reject the shipped sentinels (and any value carrying the "REPLACE" marker) so the
+// placeholder can never reach a running API.
+string[] jwtSecretPlaceholders =
+[
+    "REPLACE_WITH_A_SECURE_SECRET_KEY_MIN_32_CHARS",
+    "REPLACE_VIA_USER_SECRETS_OR_ENV_MIN_32_CHARS",
+];
+var isPlaceholderSecret = !string.IsNullOrWhiteSpace(jwtSecret)
+    && (jwtSecret.StartsWith("REPLACE", StringComparison.OrdinalIgnoreCase)
+        || jwtSecretPlaceholders.Contains(jwtSecret, StringComparer.Ordinal));
+if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32 || isPlaceholderSecret)
     throw new InvalidOperationException(
-        "Jwt:Secret is missing or shorter than 32 characters. Configure a strong secret " +
-        "(>= 32 chars) via user-secrets or environment variables before starting the API.");
+        "Jwt:Secret is missing, shorter than 32 characters, or still set to the committed placeholder. " +
+        "Configure a strong, unique secret (>= 32 chars) via user-secrets or environment variables " +
+        "(e.g. `dotnet user-secrets set \"Jwt:Secret\" \"<random 48+ char value>\"`) before starting the API.");
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -105,9 +121,9 @@ builder.Services
         };
 
         // Tier-2 revocation: every authenticated request re-checks the token's `stamp` claim against
-        // the user's current SecurityStamp. Rotating the stamp (logout-all, password change/reset)
-        // invalidates all live access tokens. The current stamp is cached briefly to avoid a DB hit
-        // per request, so worst-case latency for a still-cached user is SecurityStampCache.Duration.
+        // the user's current SecurityStamp. Rotating the stamp (logout-all, password change/reset,
+        // admin delete) invalidates all live access tokens. The current stamp is cached briefly to
+        // avoid a DB hit per request; worst-case latency for a still-cached user is CachePolicies.SecurityStamp.
         options.Events = new JwtBearerEvents
         {
             OnTokenValidated = async ctx =>
@@ -123,20 +139,15 @@ builder.Services
                     return;
                 }
 
-                var cache = ctx.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
-                var currentStamp = await cache.GetOrCreateAsync(
-                    SecurityStampCache.KeyFor(subjectId),
-                    async entry =>
-                    {
-                        entry.AbsoluteExpirationRelativeToNow = SecurityStampCache.Duration;
-                        var userManager = ctx.HttpContext.RequestServices
-                            .GetRequiredService<UserManager<AppUser>>();
-                        var user = await userManager.FindByIdAsync(subjectId);
-                        return user is null ? null : await userManager.GetSecurityStampAsync(user);
-                    });
-
-                if (currentStamp is null || !string.Equals(currentStamp, tokenStamp, StringComparison.Ordinal))
+                var stampCache = ctx.HttpContext.RequestServices
+                    .GetRequiredService<ISecurityStampCacheService>();
+                if (!await stampCache.IsStampValidAsync(
+                        subjectId,
+                        tokenStamp,
+                        ctx.HttpContext.RequestAborted))
+                {
                     ctx.Fail("Token has been revoked.");
+                }
             }
         };
     });
@@ -150,46 +161,22 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
-builder.Services.AddMemoryCache();
+builder.Services.AddGymBroDistributedInfrastructure(
+    builder.Configuration,
+    builder.Environment.EnvironmentName);
 
 // Health: /health is a dependency-free liveness probe; /health/ready additionally verifies DB
-// connectivity (both EF contexts) via the "ready"-tagged check.
+// connectivity (both EF contexts) and Redis when configured via the "ready"-tagged checks.
 builder.Services.AddHealthChecks()
-    .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" });
+    .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" })
+    .AddCheck<RedisHealthCheck>("redis", tags: new[] { "ready" })
+    .AddCheck<OutboxHealthCheck>("outbox", tags: new[] { "ready" });
 
-// One shared change-token instance evicts all cached exercise-search pages on any catalog mutation.
-builder.Services.AddSingleton<ExerciseSearchCacheSignal>();
-// The detail cache needs the same cross-scope eviction: its per-tenant + admin entries can't be
-// enumerated for targeted removal, so they link to this signal instead.
-builder.Services.AddSingleton<ExerciseDetailCacheSignal>();
+builder.Services.AddGymBroModuleCaches();
 
-// Rate limiting for the unauthenticated/abuse-prone auth surface, partitioned per client IP.
-// "auth" guards brute-force-able endpoints (login, register, password reset); "auth-refresh" is
-// looser because a healthy SPA refreshes its 15-minute access token on a schedule.
-builder.Services.AddRateLimiter(options =>
-{
-    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-    options.AddPolicy("auth", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 10,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0
-            }));
-
-    options.AddPolicy("auth-refresh", httpContext =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 30,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0
-            }));
-});
+// Production CORS is opt-in via config (Cors:AllowedOrigins). A same-origin deploy (SPA reverse-proxied to
+// /api) needs none; a cross-origin SPA must list its origins. Dev keeps the fixed localhost:4200 policy.
+var corsAllowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 
 if (builder.Environment.IsDevelopment())
 {
@@ -207,8 +194,43 @@ if (builder.Environment.IsDevelopment())
             });
     });
 }
+else if (corsAllowedOrigins.Length > 0)
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(
+            "ProductionCors",
+            policy =>
+            {
+                policy
+                    .WithOrigins(corsAllowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+    });
+}
 
 var app = builder.Build();
+
+// Behind a TLS-terminating reverse proxy (nginx / Cloudflare / Caddy) the API receives plain HTTP, so
+// Request.IsHttps would be false (→ the `Secure` refresh cookie is dropped) and Request.RemoteIpAddress
+// would be the proxy's (→ auth rate limits partition everyone into one bucket). Honour X-Forwarded-Proto/-For
+// to recover the real scheme + client IP. Opt-in via ForwardedHeaders:Enabled: turn it on ONLY when the API
+// sits behind a trusted proxy (it is never published directly in the compose / managed-runtime deploys),
+// otherwise a direct client could spoof these headers. Must run before HTTPS redirect, CORS, the rate
+// limiter, auth, and any cookie-writing endpoint. KnownNetworks/KnownProxies are cleared because the proxy's
+// container IP isn't fixed — trust is enforced by the proxy being the only reachable path to the API.
+if (app.Configuration.GetValue("ForwardedHeaders:Enabled", false))
+{
+    var forwardedOptions = new ForwardedHeadersOptions
+    {
+        ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor
+    };
+    forwardedOptions.KnownIPNetworks.Clear();
+    forwardedOptions.KnownProxies.Clear();
+    app.UseForwardedHeaders(forwardedOptions);
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -229,8 +251,16 @@ if (app.Environment.IsDevelopment())
 {
     app.UseCors("GymBroPortal");
 }
+else if (corsAllowedOrigins.Length > 0)
+{
+    app.UseCors("ProductionCors");
+}
 
 app.UseRateLimiter();
+
+// Header/media-type API version negotiation (version is not in the URL). Rejects an explicit unsupported
+// version, defaults to latest otherwise, and echoes the resolved X-Api-Version. See WebApi.Http.ApiVersioning.
+app.UseMiddleware<ApiVersionMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -241,6 +271,15 @@ app.MapControllers();
 // Both are anonymous (no [Authorize]) so orchestrators can probe without a token.
 app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = _ => false });
 app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
+
+// Migrate-and-exit mode for a dedicated pre-deploy step (e.g. a one-off container run / job):
+// `dotnet WebApi.dll --migrate` applies both EF chains and exits, so serving replicas can boot with
+// verify-only (no startup races).
+if (args.Contains("--migrate"))
+{
+    await DatabaseMigrationStartup.ApplyMigrationsAsync(app.Services);
+    return;
+}
 
 await DatabaseMigrationStartup.EnsureMigrationsAppliedAsync(app.Services);
 await DbSeeder.SeedAsync(app.Services);

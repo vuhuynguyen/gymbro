@@ -27,7 +27,7 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
         if (result.IsFailure)
             return result.ToFailureResult(this);
 
-        return CreatedAtAction(nameof(GetById), new { sessionId = result.Value.SessionId }, result.Value);
+        return CreatedAtAction(nameof(GetById), new { sessionId = result.Value!.SessionId }, result.Value);
     }
 
     [HttpGet("active")]

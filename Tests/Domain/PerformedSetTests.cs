@@ -1,4 +1,5 @@
 using Modules.WorkoutSessionModule.Entities;
+using BuildingBlocks.Shared.DomainPrimitives;
 using Xunit;
 
 namespace Gymbro.Tests.Domain;
@@ -70,7 +71,7 @@ public sealed class PerformedSetTests
     [Fact]
     public void Log_throws_when_performedExerciseId_is_empty()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<DomainException>(() =>
             PerformedSet.Log(Guid.Empty, Guid.NewGuid(), null, 1, PerformedSetType.Working,
                 10, 100m, null, null, null, null, true));
     }
@@ -78,7 +79,7 @@ public sealed class PerformedSetTests
     [Fact]
     public void Log_throws_when_tenantId_is_empty()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.Throws<DomainException>(() =>
             PerformedSet.Log(Guid.NewGuid(), Guid.Empty, null, 1, PerformedSetType.Working,
                 10, 100m, null, null, null, null, true));
     }

@@ -41,7 +41,7 @@
     <PackageVersion Include="RedisRateLimiting.AspNetCore" Version="1.2.1" />
 
     <!-- API docs -->
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.13.19" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.14.14" />
 
     <!-- Observability (OpenTelemetry) — 1.12.0 patches the NU1902 advisories flagged in 1.10.x. -->
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />

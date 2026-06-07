@@ -74,6 +74,7 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             cd ~/gymbro-app
             docker compose pull api
-            docker compose up -d api
+            # --no-deps: deploy ONLY this service, independent of the other pipeline.
+            docker compose up -d --no-deps api
             docker image prune -f
             docker logout ghcr.io

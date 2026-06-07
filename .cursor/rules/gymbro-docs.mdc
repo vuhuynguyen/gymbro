@@ -1,0 +1,48 @@
+---
+description: >-
+  GymBro API documentation system: read the doc that owns your topic
+  before any backend work. Enforces a doc-first workflow for all .NET changes.
+globs:
+  - "**/*.cs"
+alwaysApply: true
+---
+
+# GymBro API — Documentation System
+
+Before any backend task, read the one doc that owns your topic. Start at [`../../README.md`](../../README.md); the
+deep docs live in [`../../docs/`](../../docs/). Repo conventions: [`../../CLAUDE.md`](../../CLAUDE.md).
+
+| What you need | Read |
+|---|---|
+| Architecture, modules, boundaries, conventions | `../../docs/ARCHITECTURE.md` |
+| Domain entities, EF filters, tenancy, migrations | `../../docs/DATABASE.md` |
+| Authorization, roles, permission matrix, tenant isolation | `../../docs/PERMISSIONS.md` |
+| Token lifecycle (access/refresh/revocation) | `../../docs/AUTHENTICATION.md` |
+| Lifecycle rules (plan/assignment/session/membership) | `../../docs/BUSINESS_RULES.md` |
+| End-to-end flows (onboarding, invites, sessions) | `../../docs/USER_FLOWS.md` |
+| Tests | `../../docs/TESTING.md` |
+| Config, migrations, deploy | `../../docs/DEPLOYMENT.md` |
+
+## Key conventions
+
+- All handlers return `Result`/`Result<T>` — never throw for business rules
+- Controllers only map `Error.Code` → HTTP status codes (thin controllers)
+- EF global filters: tenant isolation + soft-delete (admin bypasses both)
+- `X-Tenant-Id` required for tenant-scoped calls; read via `ICurrentUser`/`ITenantContext`, never raw
+- FluentValidation validators live beside their command files
+- MediatR pipeline (order): `ValidationBehavior` → `AuthorizationBehavior` → `PlatformAdminBehavior`
+- Namespaces: `Modules.<Module>Module.<Layer>.<Subfolder>` (folders are `Modules.X`)
+- DTO mapping: explicit only in `Application/Mapping/<Module>Mapping.cs`
+
+## Update rules (MANDATORY)
+
+When behavior changes, update the **one** `docs/*` file that owns that fact:
+
+- New/changed endpoint, module dependency, or convention → `ARCHITECTURE.md`
+- New entity / field / EF filter → `DATABASE.md`
+- Permission or tenant-isolation change → `PERMISSIONS.md`
+- Token lifecycle change → `AUTHENTICATION.md`
+- Lifecycle rule (plan/assignment/session/membership) → `BUSINESS_RULES.md`
+- Flow change (onboarding, invite, session) → `USER_FLOWS.md`
+
+Do not duplicate a fact across docs; link instead.

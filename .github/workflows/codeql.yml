@@ -13,6 +13,7 @@ jobs:
     permissions:
       security-events: write
       contents: read
+      actions: read   # CodeQL diff-informed analysis reads the workflow run via the Actions API
     steps:
       - uses: actions/checkout@v4
 

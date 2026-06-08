@@ -111,7 +111,7 @@ sequenceDiagram
 ```
 
 - `source` is `FromAssignment` or `Adhoc`. `planAssignmentId` is required when `source == FromAssignment`; `plannedWorkoutId` drives the snapshot.
-- Single-active-session rule (`GetActiveForTraineeAsync`): a second `POST /api/sessions` returns **409**.
+- Single-active-session rule (`GetActiveForTraineeAsync`): one in-progress session **per user across all gyms** — a second `POST /api/sessions` returns **409** even when it targets a different tenant. `GET /api/sessions/active` is self-scoped (no `X-Tenant-Id` required) and returns that one session wherever it lives.
 
 ## 5. Execution & completion
 
@@ -129,8 +129,27 @@ stateDiagram-v2
 - **Estimated 1RM** is computed per Working set only: `weightKg × (1 + reps/30)`, rounded to 0.1, stored and recomputed on edit.
 - "Cancel" = Abandon (keeps every logged set). `SessionCompletedEvent` is currently logged only. Details: [BUSINESS_RULES.md](BUSINESS_RULES.md).
 
-## 6. Progress tracking (client-side)
+## 6. Progress tracking
 
-- There is **no `/api/reports` and no Reports module**. Progress is computed in the SPA from `GET /api/sessions`.
+- There is **no `/api/reports` and no Reports module**. The trainee's own progress is served by the `api/me`
+  read models (§7) or computed in the SPA from the session list; coach reporting reads `GET /api/sessions`.
 - `GET /api/sessions` returns per-session working-set **volume** (Σ weight×reps), **PR count**, and plan context (program name, week #, frequency). Viewing other trainees' sessions needs `WorkoutLogViewAll`; otherwise the list is scoped to the caller.
 - The logs page and active-session view compute progress %, weekly totals, and grouping entirely with Angular `computed()` signals.
+
+## 7. Unified personal training (`api/me`)
+
+A user can be an Owner (coach) in one gym and a Client (trainee) in another. The `api/me/*` read models give each
+user **one** training history/progress view **across every gym they belong to**, independent of the active
+`X-Tenant-Id`. They are **self-scoped** (always `currentUser.UserId`, never a client-supplied id) and read the
+caller's own data via a deliberate, audited tenant-filter bypass (`QueryOwnAcrossGyms`).
+
+| Endpoint | Returns |
+|---|---|
+| `GET /api/me/sessions` | own workout history across all gyms (paged; same shape as `GET /api/sessions`, with cross-gym program/week/weekly-goal context) |
+| `GET /api/me/sessions/{id}` | own session detail; another user's id → **404** (never a leak). PR flags use lifetime cross-gym prior-bests |
+| `GET /api/me/records` | lifetime PRs — best estimated-1RM per lift across all gyms |
+| `GET /api/me/progress` | weekly volume/frequency analytics across all gyms |
+
+These power the trainee/personal experience in the SPA. The **coach** view of a gym's members stays on the
+tenant-scoped `GET /api/sessions` (`WorkoutLogViewAll`) — no cross-gym visibility. Authorization:
+[PERMISSIONS.md](PERMISSIONS.md).

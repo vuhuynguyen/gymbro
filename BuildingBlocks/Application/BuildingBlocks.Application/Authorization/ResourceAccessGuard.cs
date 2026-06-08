@@ -12,11 +12,13 @@ public static class ResourceAccessGuard
         ITenantAuthorizationService tenantAuth,
         Guid tenantId,
         Guid traineeId,
+        Guid? resourceTenantId = null,
         CancellationToken ct = default) =>
         tenantAuth.CanAccessResourceAsync(
             tenantId,
             Permission.WorkoutLogViewOwn,
             Permission.WorkoutLogViewAll,
             traineeId,
+            resourceTenantId,
             ct);
 }

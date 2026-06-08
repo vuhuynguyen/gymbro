@@ -1,3 +1,4 @@
+using Modules.WorkoutPlanModule.Application;
 using Modules.WorkoutSessionModule.Entities;
 
 namespace Modules.WorkoutSessionModule.Application.DTOs;
@@ -33,7 +34,7 @@ public sealed record PerformedExerciseDto(
 public sealed record SessionSnapshotSetDto(
     Guid PlanSetId,
     int Order,
-    string SetType,
+    PlanSetType SetType,
     int? TargetReps,
     decimal? TargetWeightKg,
     int? TargetRpe,

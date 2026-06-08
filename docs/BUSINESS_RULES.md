@@ -62,7 +62,7 @@ are correct.
 
 **State machine:** `InProgress → Completed` **or** `InProgress → Abandoned`. There is **no Paused state**.
 
-- **Preconditions to start:** `WorkoutLogCreate`; **no other `InProgress` session** for the trainee (else 409); if `Source == FromAssignment`, `assignment.TraineeId == caller`.
+- **Preconditions to start:** `WorkoutLogCreate`; **no other `InProgress` session for the user — across *all* gyms** (else 409), a person performs one workout at a time regardless of tenant; if `Source == FromAssignment`, `assignment.TraineeId == caller`. The existence check (`GetActiveForTraineeAsync`) and the backing unique index are user-scoped (see [DATABASE.md](DATABASE.md)).
 - **Start:** sets `Status=InProgress`, `StartedAt=now`; captures `WorkoutNameSnapshot` + `SnapshotJson` of the planned workout **unless `VisibilityMode == Blind`**, and **seeds the planned exercises** so the trainee sees the workout immediately.
 - **Durable exercise names:** every `PerformedExercise` stores `ExerciseName` captured at log time (seed, ad-hoc add, or substitute). Reads prefer the stored name, so renaming or deleting an `Exercise` later never rewrites history.
 - **Allowed while InProgress only:** add/skip/substitute performed exercises; log/edit/delete sets; complete; abandon.
@@ -72,7 +72,7 @@ are correct.
 - **Abandon ("cancel"):** only from `InProgress`; **keeps logged sets**; raises no event.
 - **Forbidden:** editing/deleting sets after a terminal state; a second active session; completing/abandoning a non-`InProgress` session.
 - **Estimated 1RM (Epley):** on every set log/edit, `EstimatedOneRepMaxKg = round(weight × (1 + reps/30), 1)`, computed only for working sets with positive reps + weight (else null). Backs PRs and progression.
-- **Edge cases:** `GET /api/sessions/active` → 204 when none (single resumable session). "Pause" is a **UI-only stopwatch** — no endpoint, not persisted, lost on refresh. Ad-hoc sessions (no assignment) carry no snapshot.
+- **Edge cases:** `GET /api/sessions/active` → 204 when none; it is **self-scoped** (user-wide, no tenant required), so it returns the user's single resumable session in whichever gym it was started. "Pause" is a **UI-only stopwatch** — no endpoint, not persisted, lost on refresh. Ad-hoc sessions (no assignment) carry no snapshot.
 - **Modalities:** sets support strength (reps/weight), time (`DurationSeconds`), and distance (`DistanceM`). "Notes" is a field on performed-exercise and on session complete/abandon, not a separate feature.
 
 ## Membership lifecycle (tenant + Owner/Client)

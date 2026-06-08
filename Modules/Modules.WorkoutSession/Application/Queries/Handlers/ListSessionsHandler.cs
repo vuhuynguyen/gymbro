@@ -36,8 +36,10 @@ public sealed class ListSessionsHandler(
         // trainee's sessions by supplying request.TraineeId.
         var requestedTraineeId = canViewAll ? (request.TraineeId ?? currentUser.UserId) : currentUser.UserId;
 
+        // The list is tenant-filtered, so the resource tenant is the active tenant: a ViewAll caller is
+        // bounded to their own gym (explicit, no longer implicit via the EF filter alone).
         if (!await ResourceAccessGuard.CanViewTraineeWorkoutLogsAsync(
-                tenantAuth, tenantId, requestedTraineeId, cancellationToken))
+                tenantAuth, tenantId, requestedTraineeId, tenantId, cancellationToken))
             return Result<SessionListDto>.Failure(Unauthorized("Unauthorized", "You cannot view these workout logs."));
 
         var query = sessionRepository.Query();

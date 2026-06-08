@@ -17,7 +17,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Gate: run the full CI suite (build + tests) before anything ships. CD never builds or
+  # deploys a red commit. CI declares `workflow_call`, so this reuses it — no duplicated steps.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
   image:
+    needs: ci
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -73,7 +79,15 @@ jobs:
             set -e
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             cd ~/gymbro-app
-            docker compose pull api
+            # GHCR layer extraction can transiently fail on the VM (half-extracted overlayfs layer),
+            # so retry the pull a few times before giving up.
+            pulled=
+            for attempt in 1 2 3; do
+              if docker compose pull api; then pulled=1; break; fi
+              echo "docker compose pull api failed (attempt $attempt/3); retrying in 5s..."
+              sleep 5
+            done
+            [ -n "$pulled" ] || { echo "docker compose pull api failed after 3 attempts"; exit 1; }
             # --no-deps: deploy ONLY this service, independent of the other pipeline.
             docker compose up -d --no-deps api
             docker image prune -f

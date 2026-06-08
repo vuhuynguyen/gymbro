@@ -76,7 +76,7 @@ public sealed class StartSessionHandler(
                     workoutName = workoutSnapshot.Name;
                     // Store the full snapshot; the trainee's view is redacted on read (filter-on-read).
                     var snapshot = SessionMapping.BuildSnapshot(workoutSnapshot);
-                    snapshotJson = JsonSerializer.Serialize(snapshot);
+                    snapshotJson = SessionMapping.SerializeSnapshot(snapshot);
 
                     // Pre-populate the session with the plan's exercises so the trainee sees the
                     // workout to perform immediately (planned sets are resolved from the snapshot).

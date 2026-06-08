@@ -41,11 +41,15 @@ if (!builder.Environment.IsDevelopment())
     });
 }
 
-builder.Services.AddControllers().AddJsonOptions(options =>
+static void ConfigureJson(JsonSerializerOptions options)
 {
-    options.JsonSerializerOptions.Converters.Add(
+    options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.Converters.Add(
         new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true));
-});
+}
+
+builder.Services.AddControllers().AddJsonOptions(options => ConfigureJson(options.JsonSerializerOptions));
+builder.Services.ConfigureHttpJsonOptions(options => ConfigureJson(options.SerializerOptions));
 builder.Services.AddOpenApi();
 builder.Services.AddIdentity(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration);

@@ -68,7 +68,7 @@ There is no approval workflow in the product.
 
 1. **`[Authorize]`** on controllers → 401 if no JWT. There are no named policies or fallback policy; `[Authorize]` enforces *authentication only*. Unattributed actions are anonymous (register/login/refresh/logout/forgot/reset — these authenticate via the refresh cookie or request body). JWT validation also runs a per-request **SecurityStamp** check so revoked tokens 401 before expiry (see [AUTHENTICATION.md](AUTHENTICATION.md)). The whole `AuthController` is **rate-limited** per client IP (`auth` = 10/min, `auth-refresh` = 30/min) → 429 over limit.
 2. **Tenant permission (static):** a validated tenant (`X-Tenant-Id` → `ITenantContext.TenantId`) + `HasPermissionAsync(tenantId, Permission.X)` → 400 if tenant missing, 403 if false. For requests needing exactly one static permission, this runs in `AuthorizationBehavior`; others call it in the handler.
-3. **Row-level:** compare `ICurrentUser.UserId` to the resource owner/trainee, or use `CanAccessResourceAsync(tenant, ownPerm, allPerm, resourceUserId)` (grants if the role has the *all* permission, or the *own* permission AND `resourceUserId == caller`). Trainee-scoped session/report reads use `ResourceAccessGuard.CanViewTraineeWorkoutLogsAsync`.
+3. **Row-level:** compare `ICurrentUser.UserId` to the resource owner/trainee, or use `CanAccessResourceAsync(tenant, ownPerm, allPerm, resourceUserId, resourceTenantId?)` — grants if the role has the *own* permission AND `resourceUserId == caller`, **or** the *all* permission AND the resource lives in the caller's own gym (`resourceTenantId == tenant`; a `null` resource tenant keeps the legacy behavior where the EF filter does the scoping). Passing the resource's tenant bounds a `WorkoutLogViewAll` coach to **their own gym** instead of relying on the global filter alone. Trainee-scoped session/report reads use `ResourceAccessGuard.CanViewTraineeWorkoutLogsAsync`.
 4. **Platform-admin operations:** requests implement `IPlatformAdminRequest`; `PlatformAdminBehavior` checks `ICurrentUser.IsAdmin` before the handler, on top of the controller-level `PlatformAdmin` policy (defense in depth).
 5. **Frontend:** `adminGuard()` gates `/exercises` and `/admin/*`; `roleGuard(['Owner'])` gates trainer screens. The UI is never the security boundary — all enforcement is server-side.
 
@@ -108,3 +108,13 @@ nothing **and** permission checks fail.
 Isolation is therefore enforced at two layers — membership-validated middleware **and** per-request permission
 checks. Keep both; do not remove handler checks that gate row-level or hybrid access. Cross-tenant read and write
 isolation is covered by the integration suite (see [TESTING.md](TESTING.md)).
+
+**Unified personal reads (`api/me/*`) — the one sanctioned filter bypass.** The unified personal training
+endpoints read a user's own data *across* gyms, so they intentionally bypass the EF tenant filter
+(`IgnoreQueryFilters`) while re-applying soft-delete and scoping **strictly to `currentUser.UserId`** — never a
+client-supplied id (see `QueryOwnAcrossGyms` and `ResolveOwnPlanContextQuery`). Because they are self-scoped, not
+tenant-scoped, they are listed in `TenantAuthorizationExemptions` as **`ImperativeGuarded`**
+(`GetMyWorkoutHistoryQuery`, `GetMyWorkoutSessionByIdQuery`, `GetMyPersonalRecordsQuery`, `GetMyProgressQuery`,
+plus the now self-scoped `GetActiveSessionQuery`). This is the **only** approved tenant-filter bypass: it returns
+exclusively the caller's own rows, and a foreign session id resolves to **404**. Coach/owner views of a gym's
+members remain on the tenant-scoped, filtered endpoints — no cross-gym visibility.

@@ -34,8 +34,10 @@ public sealed class GetSessionByIdHandler(
         if (session == null)
             return Result<SessionDetailDto>.Failure(NotFound("NotFound", "Session not found."));
 
+        // Pass the session's own tenant so a WorkoutLogViewAll (coach) caller is bounded to their gym —
+        // the guard no longer relies solely on the EF tenant filter to scope cross-gym access.
         if (!await ResourceAccessGuard.CanViewTraineeWorkoutLogsAsync(
-                tenantAuth, tenantId, session.TraineeId, cancellationToken))
+                tenantAuth, tenantId, session.TraineeId, session.TenantId, cancellationToken))
             return Result<SessionDetailDto>.Failure(Unauthorized("Unauthorized", "You cannot view this session."));
 
         var snapshotDto = SessionMapping.DeserializeSnapshot(session.SnapshotJson);

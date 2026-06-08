@@ -79,6 +79,21 @@ internal static class TenantAuthorizationExemptions
             ["GetSessionByIdQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Row-level read: ResourceAccessGuard.CanViewTraineeWorkoutLogsAsync checks the loaded "
                 + "session's TraineeId, so a caller without WorkoutLogViewAll can only read their own."),
+            ["GetActiveSessionQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Self-scoped, cross-gym: returns only the caller's own active session via "
+                + "GetActiveForTraineeAsync(currentUser.UserId); a per-user invariant, not a tenant permission."),
+            ["GetMyWorkoutHistoryQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Unified personal history: QueryOwnAcrossGyms(currentUser.UserId) returns only the caller's "
+                + "own sessions across all gyms; never accepts a client-supplied trainee id."),
+            ["GetMyWorkoutSessionByIdQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Self-scoped detail: loads the session only when its TraineeId == currentUser.UserId "
+                + "(via QueryOwnAcrossGyms), so another user's session id resolves to NotFound, never a leak."),
+            ["GetMyPersonalRecordsQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Lifetime PRs computed from QueryOwnAcrossGyms(currentUser.UserId) only; the caller's own "
+                + "estimated-1RM history across all gyms, no tenant-wide permission involved."),
+            ["GetMyProgressQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Personal analytics aggregated from QueryOwnAcrossGyms(currentUser.UserId) only; the caller's "
+                + "own volume/frequency across all gyms, never another trainee's data."),
             ["GetTenantMembersQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Handler gates on Permission.ClientView and filters the member list by the caller's role."),
             ["RemoveMemberCommand"] = new(ExemptionKind.ImperativeGuarded,

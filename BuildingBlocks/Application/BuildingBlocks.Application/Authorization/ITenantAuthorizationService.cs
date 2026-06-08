@@ -13,5 +13,6 @@ public interface ITenantAuthorizationService
         Permission ownPermission,
         Permission allPermission,
         Guid resourceUserId,
+        Guid? resourceTenantId = null,
         CancellationToken ct = default);
 }

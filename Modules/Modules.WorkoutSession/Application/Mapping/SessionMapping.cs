@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Modules.WorkoutPlanModule.Application.DTOs;
 using Modules.WorkoutSessionModule.Application.Commands;
 using Modules.WorkoutSessionModule.Application.DTOs;
@@ -8,8 +9,19 @@ namespace Modules.WorkoutSessionModule.Application.Mapping;
 
 internal static class SessionMapping
 {
+    // Enums serialize as camelCase strings (matching the API wire format) but deserialize
+    // case-insensitively with integer tolerance, so snapshots persisted before this format
+    // (PascalCase `"Working"`) still load correctly.
+    private static readonly JsonSerializerOptions SnapshotJsonOptions = new()
+    {
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true) }
+    };
+
+    public static string SerializeSnapshot(SessionSnapshotDto snapshot) =>
+        JsonSerializer.Serialize(snapshot, SnapshotJsonOptions);
+
     public static SessionSnapshotDto? DeserializeSnapshot(string? json) =>
-        json != null ? JsonSerializer.Deserialize<SessionSnapshotDto>(json) : null;
+        json != null ? JsonSerializer.Deserialize<SessionSnapshotDto>(json, SnapshotJsonOptions) : null;
 
     /// <summary>
     /// Returns a copy of the snapshot with prescribed targets (reps/weight/RPE/duration) removed,
@@ -198,7 +210,7 @@ internal static class SessionMapping
                     .Select(s => new SessionSnapshotSetDto(
                         s.Id,
                         s.Order,
-                        s.SetType.ToString(),
+                        s.SetType,
                         s.TargetReps,
                         s.TargetWeightKg,
                         s.TargetRpe,

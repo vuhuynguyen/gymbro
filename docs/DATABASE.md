@@ -71,6 +71,7 @@ flowchart TB
 - **`ISoftDelete`** → adds `!IsDeleted`.
 - **No markers → no filter** (unfiltered by design: `UserTenantRole`, `Invite`, `Translation`).
 - **Platform admin (`IsAdmin`) short-circuits ALL filters** — sees every tenant + soft-deleted rows.
+- **Unified personal reads bypass the filter on purpose:** `QueryOwnAcrossGyms` / `ResolveOwnPlanContextQuery` use `IgnoreQueryFilters` (re-applying `!IsDeleted`) scoped strictly to `TraineeId == currentUser.UserId`, so the cross-gym `api/me/*` views return the caller's own data only. The *sole* sanctioned bypass — see [PERMISSIONS.md](PERMISSIONS.md).
 
 The tenant value is **not** the raw header: `TenantResolutionMiddleware` validates the caller's membership (admins
 bypass) and only then sets it; `CurrentUser` reads only that validated value. See
@@ -80,6 +81,7 @@ bypass) and only then sets it; `CurrentUser` reads only that validated value. Se
 
 - **Plan versioning:** unique index `(TemplateId, Version)` filtered `IsDeleted=false`. `PlanAssignment` pins `PlanId + PlanVersion`. Both snapshot columns (`PlanAssignment.SnapshotJson`, `WorkoutSession.SnapshotJson`) are `jsonb`. `WorkoutPlan.IsArchived` retires a template.
 - **One live assignment per (trainee, plan):** unique **partial** index `(TenantId, TraineeId, PlanId)` filtered `IsDeleted=false` (re-assignable after revoke). `PlanAssignment.IsActive` (default `true`) is the pause/resume flag.
+- **One active session per user:** unique **partial** index on `WorkoutSession (TraineeId)` filtered `Status = InProgress` — a single in-progress session per user **across all gyms** (replaced the older per-tenant `(TenantId, TraineeId)` index; the migration abandons any pre-existing duplicates before creating it). The start-handler existence check (`GetActiveForTraineeAsync`) bypasses the tenant filter to match.
 - **Durable session history:** `PerformedExercise.ExerciseName` is denormalized (captured at log/substitute time) so renaming/deleting an `Exercise` never rewrites a completed log.
 - **Invite:** `Code` fixed 8 chars; unique partial index on `Code` where `IsUsed=false`; unique partial index on `(Email, TenantId)` where `IsUsed=false AND Email IS NOT NULL`.
 - **Membership:** unique `(UserId, TenantId)` on `UserTenantRole`.

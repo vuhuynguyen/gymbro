@@ -1,4 +1,5 @@
 using BuildingBlocks.Shared.DomainPrimitives;
+using BuildingBlocks.Shared.Tracking;
 
 namespace Modules.ExerciseModule.Entities;
 
@@ -12,6 +13,8 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
     public string DefaultDescription { get; private set; } = null!;
     
     public ExerciseType Type { get; private set; }
+    /// <summary>How this exercise is logged (drives which metrics a set requires/shows). Defaults to Strength.</summary>
+    public ExerciseTrackingType TrackingType { get; private set; } = ExerciseTrackingType.Strength;
     public MovementType MovementType { get; private set; }
     public DifficultyLevel Difficulty { get; private set; }
     public Equipment Equipment { get; private set; }
@@ -47,7 +50,8 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
         Equipment equipment,
         int? estimatedCaloriesBurn,
         int? averageDurationSeconds,
-        IReadOnlyCollection<(MuscleGroup muscle, bool isPrimary)> muscles)
+        IReadOnlyCollection<(MuscleGroup muscle, bool isPrimary)> muscles,
+        ExerciseTrackingType trackingType = ExerciseTrackingType.Strength)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Name is required");
@@ -72,6 +76,7 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
             ImageUrl = imageUrl ?? string.Empty,
             DefaultDescription = description ?? string.Empty,
             Type = type,
+            TrackingType = trackingType,
             MovementType = movementType,
             Difficulty = difficulty,
             Equipment = equipment,
@@ -108,7 +113,8 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
         DifficultyLevel difficulty,
         Equipment equipment,
         int? estimatedCaloriesBurn,
-        int? averageDurationSeconds)
+        int? averageDurationSeconds,
+        ExerciseTrackingType trackingType = ExerciseTrackingType.Strength)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Name is required");
@@ -122,6 +128,7 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
         DefaultDescription = description ?? string.Empty;
         ImageUrl = imageUrl ?? string.Empty;
         Type = type;
+        TrackingType = trackingType;
         MovementType = movementType;
         Difficulty = difficulty;
         Equipment = equipment;

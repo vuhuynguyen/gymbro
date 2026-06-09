@@ -37,9 +37,9 @@ public sealed class PlanWorkout : BaseEntity, ITenantEntity
         };
     }
 
-    internal void AddExercise(Guid tenantId, Guid exerciseId, int order, IReadOnlyList<PlanWorkoutSetData> sets)
+    internal void AddExercise(Guid tenantId, Guid exerciseId, int order, IReadOnlyList<PlanWorkoutSetData> sets, Guid? supersetGroupId = null)
     {
-        var exercise = PlanWorkoutExercise.Create(Id, tenantId, exerciseId, order);
+        var exercise = PlanWorkoutExercise.Create(Id, tenantId, exerciseId, order, supersetGroupId);
         foreach (var set in sets.OrderBy(s => s.Order))
             exercise.AddSet(tenantId, set);
         _exercises.Add(exercise);

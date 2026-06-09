@@ -1,3 +1,4 @@
+using BuildingBlocks.Shared.Tracking;
 using FluentValidation;
 using Modules.ExerciseModule.Application.Commands;
 using Modules.ExerciseModule.Entities;
@@ -35,6 +36,12 @@ public class CreateExerciseCommandValidator
             .NotEmpty()
             .Must(s => Enum.TryParse<Equipment>(s, true, out _))
             .WithMessage("Invalid equipment.");
+
+        // Optional: absent → derived from type/equipment in the handler.
+        RuleFor(x => x.TrackingType)
+            .Must(s => Enum.TryParse<ExerciseTrackingType>(s, true, out _))
+            .WithMessage("Invalid tracking type.")
+            .When(x => !string.IsNullOrWhiteSpace(x.TrackingType));
 
         RuleFor(x => x.EstimatedCaloriesBurn)
             .GreaterThanOrEqualTo(0)

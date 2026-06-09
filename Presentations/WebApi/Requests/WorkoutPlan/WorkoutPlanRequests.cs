@@ -41,6 +41,9 @@ public sealed class PlanWorkoutExerciseRequest
     public Guid ExerciseId { get; set; }
     public int Order { get; set; }
     public List<PlanSetRequest> Sets { get; set; } = new();
+
+    /// <summary>Exercises sharing a non-null group id in a workout are prescribed as a superset.</summary>
+    public Guid? SupersetGroupId { get; set; }
 }
 
 public sealed class PlanSetRequest
@@ -50,6 +53,8 @@ public sealed class PlanSetRequest
     public decimal? TargetWeightKg { get; set; }
     public int? TargetRpe { get; set; }
     public int? TargetDurationSeconds { get; set; }
+    public int? TargetDistanceM { get; set; }
+    public int? TargetRounds { get; set; }
     public int RestSeconds { get; set; }
     public int Order { get; set; }
 }

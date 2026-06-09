@@ -15,7 +15,9 @@ internal static class WorkoutPlanMapping
             set.TargetWeightKg,
             set.TargetRpe,
             set.TargetDurationSeconds,
-            set.RestSeconds);
+            set.RestSeconds,
+            set.TargetDistanceM,
+            set.TargetRounds);
 
     public static PlanWorkoutExerciseDetailDto ToPlanWorkoutExerciseDetailDto(
         PlanWorkoutExercise exercise,
@@ -28,7 +30,8 @@ internal static class WorkoutPlanMapping
             exercise.PrescribedSets
                 .OrderBy(s => s.Order)
                 .Select(ToPlanSetDetailDto)
-                .ToList());
+                .ToList(),
+            exercise.SupersetGroupId);
 
     public static PlanWorkoutDetailDto ToPlanWorkoutDetailDto(
         PlanWorkout workout,
@@ -105,8 +108,11 @@ internal static class WorkoutPlanMapping
                                 assignment.HideSetsReps ? null : s.TargetWeightKg,
                                 assignment.HideSetsReps ? null : s.TargetRpe,
                                 assignment.HideSetsReps ? null : s.TargetDurationSeconds,
-                                s.RestSeconds))
-                            .ToList()))
+                                s.RestSeconds,
+                                assignment.HideSetsReps ? null : s.TargetDistanceM,
+                                assignment.HideSetsReps ? null : s.TargetRounds))
+                            .ToList(),
+                        e.SupersetGroupId))
                     .ToList()))
             .ToList();
 

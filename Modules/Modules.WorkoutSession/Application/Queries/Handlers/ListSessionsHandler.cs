@@ -82,7 +82,8 @@ public sealed class ListSessionsHandler(
         var exerciseCounts = await exerciseRepository.Query()
             .Where(e => sessionIds.Contains(e.SessionId))
             .GroupBy(e => e.SessionId)
-            .Select(g => new { g.Key, Count = g.Count(), Sets = g.Sum(e => e.Sets.Count) })
+            // A drop/rest-pause cluster counts as ONE set: count only lead/standalone rows (ParentSetId == null).
+            .Select(g => new { g.Key, Count = g.Count(), Sets = g.Sum(e => e.Sets.Count(s => s.ParentSetId == null)) })
             .ToListAsync(cancellationToken);
 
         var countMap = exerciseCounts.ToDictionary(x => x.Key);

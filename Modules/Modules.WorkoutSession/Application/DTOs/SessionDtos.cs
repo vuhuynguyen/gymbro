@@ -17,7 +17,11 @@ public sealed record PerformedSetDto(
     bool IsCompleted,
     decimal? EstimatedOneRepMaxKg,
     DateTimeOffset LoggedAt,
-    bool IsPr);
+    bool IsPr,
+    int? Calories = null,
+    int? AvgHeartRate = null,
+    int? Rounds = null,
+    Guid? ParentSetId = null);
 
 public sealed record PerformedExerciseDto(
     Guid Id,
@@ -29,7 +33,9 @@ public sealed record PerformedExerciseDto(
     int Order,
     ExercisePerformStatus Status,
     string? Notes,
-    IReadOnlyList<PerformedSetDto> Sets);
+    IReadOnlyList<PerformedSetDto> Sets,
+    string TrackingType = "Strength",
+    Guid? SupersetGroupId = null);
 
 public sealed record SessionSnapshotSetDto(
     Guid PlanSetId,
@@ -39,14 +45,17 @@ public sealed record SessionSnapshotSetDto(
     decimal? TargetWeightKg,
     int? TargetRpe,
     int? TargetDurationSeconds,
-    int RestSeconds);
+    int RestSeconds,
+    int? TargetDistanceM = null,
+    int? TargetRounds = null);
 
 public sealed record SessionSnapshotExerciseDto(
     Guid PlanWorkoutExerciseId,
     Guid ExerciseId,
     string ExerciseName,
     int Order,
-    IReadOnlyList<SessionSnapshotSetDto> Sets);
+    IReadOnlyList<SessionSnapshotSetDto> Sets,
+    Guid? SupersetGroupId = null);
 
 public sealed record SessionSnapshotDto(
     string WorkoutName,

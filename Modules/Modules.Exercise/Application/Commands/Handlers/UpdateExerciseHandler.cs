@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Tracking;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.ExerciseModule.Application.Abstractions;
@@ -46,6 +47,13 @@ public class UpdateExerciseHandler(
         if (!Enum.TryParse<Equipment>(request.Equipment, ignoreCase: true, out var equipment))
             return Result<Guid>.Failure(Error.Validation($"Invalid equipment: '{request.Equipment}'."));
 
+        // Tracking type is optional on the wire: absent → derive a sensible default from type/equipment.
+        ExerciseTrackingType trackingType;
+        if (string.IsNullOrWhiteSpace(request.TrackingType))
+            trackingType = ExerciseTrackingDefaults.Derive(type, equipment);
+        else if (!Enum.TryParse(request.TrackingType, ignoreCase: true, out trackingType))
+            return Result<Guid>.Failure(Error.Validation($"Invalid tracking type: '{request.TrackingType}'."));
+
         var muscles = new List<(MuscleGroup, bool)>();
         foreach (var m in request.Muscles)
         {
@@ -63,7 +71,8 @@ public class UpdateExerciseHandler(
             difficulty,
             equipment,
             request.EstimatedCaloriesBurn,
-            request.AverageDurationSeconds);
+            request.AverageDurationSeconds,
+            trackingType);
 
         exercise.ReplaceMuscles(muscles);
 

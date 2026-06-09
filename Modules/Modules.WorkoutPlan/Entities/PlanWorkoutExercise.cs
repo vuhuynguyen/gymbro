@@ -10,13 +10,17 @@ public sealed record PlanWorkoutSetData(
     int? TargetRpe,
     int? TargetDurationSeconds,
     int RestSeconds,
-    int Order);
+    int Order,
+    int? TargetDistanceM = null,
+    int? TargetRounds = null);
 
 public sealed class PlanWorkoutExercise : BaseEntity, ITenantEntity
 {
     public Guid PlanWorkoutId { get; private set; }
     public Guid ExerciseId { get; private set; }
     public int Order { get; private set; }
+    /// <summary>Exercises in a workout that share a non-null group id are prescribed as a superset.</summary>
+    public Guid? SupersetGroupId { get; private set; }
 
     private readonly List<PlanWorkoutExerciseSet> _prescribedSets = new();
     public IReadOnlyCollection<PlanWorkoutExerciseSet> PrescribedSets => _prescribedSets;
@@ -29,7 +33,8 @@ public sealed class PlanWorkoutExercise : BaseEntity, ITenantEntity
         Guid planWorkoutId,
         Guid tenantId,
         Guid exerciseId,
-        int order)
+        int order,
+        Guid? supersetGroupId = null)
     {
         if (planWorkoutId == Guid.Empty)
             throw new DomainException("PlanWorkoutId is required.");
@@ -46,7 +51,8 @@ public sealed class PlanWorkoutExercise : BaseEntity, ITenantEntity
             PlanWorkoutId = planWorkoutId,
             TenantId = tenantId,
             ExerciseId = exerciseId,
-            Order = order
+            Order = order,
+            SupersetGroupId = supersetGroupId
         };
     }
 
@@ -61,6 +67,8 @@ public sealed class PlanWorkoutExercise : BaseEntity, ITenantEntity
             set.TargetWeightKg,
             set.TargetRpe,
             set.TargetDurationSeconds,
-            set.RestSeconds));
+            set.RestSeconds,
+            set.TargetDistanceM,
+            set.TargetRounds));
     }
 }

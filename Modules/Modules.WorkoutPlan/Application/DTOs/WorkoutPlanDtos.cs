@@ -28,14 +28,17 @@ public sealed record PlanSetDetailDto(
     decimal? TargetWeightKg,
     int? TargetRpe,
     int? TargetDurationSeconds,
-    int RestSeconds);
+    int RestSeconds,
+    int? TargetDistanceM = null,
+    int? TargetRounds = null);
 
 public sealed record PlanWorkoutExerciseDetailDto(
     Guid Id,
     Guid ExerciseId,
     string? ExerciseName,
     int Order,
-    IReadOnlyList<PlanSetDetailDto> Sets);
+    IReadOnlyList<PlanSetDetailDto> Sets,
+    Guid? SupersetGroupId = null);
 
 public sealed record PlanWorkoutDetailDto(
     Guid Id,

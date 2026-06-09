@@ -17,6 +17,9 @@ public sealed class PerformedExerciseRepository(AppDbContext context) : IPerform
             .Include(e => e.Sets)
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
+    public void Remove(PerformedExercise exercise)
+        => context.Set<PerformedExercise>().Remove(exercise);
+
     public IQueryable<PerformedExercise> Query()
         => context.Set<PerformedExercise>().AsQueryable();
 }

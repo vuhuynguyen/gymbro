@@ -8,15 +8,15 @@ using static BuildingBlocks.Shared.Errors.CommonErrors;
 
 namespace Modules.WorkoutSessionModule.Application.Commands.Handlers;
 
-public sealed class EditSetHandler(
+public sealed class DeletePerformedExerciseHandler(
     IWorkoutSessionRepository sessionRepository,
     IPerformedExerciseRepository exerciseRepository,
-    IPerformedSetRepository setRepository,
     IUnitOfWork unitOfWork,
-    ICurrentUser currentUser)
-    : IRequestHandler<EditSetCommand, Result>
+    ICurrentUser currentUser,
+    IMediator mediator)
+    : IRequestHandler<DeletePerformedExerciseCommand, Result>
 {
-    public async Task<Result> Handle(EditSetCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeletePerformedExerciseCommand request, CancellationToken cancellationToken)
     {
         var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
         if (session == null)
@@ -28,27 +28,19 @@ public sealed class EditSetHandler(
         if (session.Status != SessionStatus.InProgress)
             return Result.Failure(Conflict("Conflict", "Session is not in progress."));
 
+        // DisableTraineeEditing: a locked assignment forbids removing planned exercises (same rule as
+        // skip/substitute). Ad-hoc sessions and deleted assignments impose no restriction.
+        if (await TraineeEditingDisabledGuard.IsDisabledAsync(mediator, session.PlanAssignmentId, cancellationToken))
+            return Result.Failure(
+                Unauthorized("Forbidden", "Editing the planned workout is disabled for this assignment."));
+
         var exercise = await exerciseRepository.GetByIdAsync(request.ExerciseId, cancellationToken);
         if (exercise == null || exercise.SessionId != session.Id)
             return Result.Failure(NotFound("NotFound", "Exercise not found in this session."));
 
-        var set = await setRepository.GetByIdAsync(request.SetId, cancellationToken);
-        if (set == null || set.PerformedExerciseId != exercise.Id)
-            return Result.Failure(NotFound("NotFound", "Set not found in this exercise."));
-
-        set.Edit(
-            request.Reps,
-            request.WeightKg,
-            request.DurationSeconds,
-            request.DistanceM,
-            request.Rpe,
-            request.RestSeconds,
-            request.IsCompleted,
-            request.SetType,
-            request.Calories,
-            request.AvgHeartRate,
-            request.Rounds);
-
+        // The PerformedExercise → Sets FK is ON DELETE CASCADE, so removing the exercise also deletes
+        // its logged sets in the same transaction — no need to walk and delete them first.
+        exerciseRepository.Remove(exercise);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

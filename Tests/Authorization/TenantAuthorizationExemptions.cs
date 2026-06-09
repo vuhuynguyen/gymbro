@@ -114,6 +114,9 @@ internal static class TenantAuthorizationExemptions
             ["ResolveExerciseNamesQuery"] = new(ExemptionKind.InternalLookup,
                 "Internal enrichment: maps exercise ids to display names for handlers that have already "
                 + "authorized the parent read; exposes no tenant-scoped row data of its own."),
+            ["ResolveExerciseTrackingTypesQuery"] = new(ExemptionKind.InternalLookup,
+                "Internal enrichment: maps exercise ids to tracking modes so the session module can denormalize "
+                + "the mode onto a performed exercise; exposes no tenant-scoped row data of its own."),
             ["ValidateExerciseIdsQuery"] = new(ExemptionKind.InternalLookup,
                 "Internal validation: checks that referenced exercise ids exist; returns no row data and is "
                 + "only invoked by already-authorized create/update handlers."),

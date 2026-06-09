@@ -139,6 +139,8 @@ public sealed class WorkoutSessionTests
         Assert.Equal(SessionStatus.Abandoned, session.Status);
         Assert.Equal("Lost motivation", session.Notes);
         Assert.NotNull(session.CompletedAt);
+        // Elapsed time is recorded on abandon too (parity with Complete).
+        Assert.NotNull(session.DurationSeconds);
     }
 
     [Fact]

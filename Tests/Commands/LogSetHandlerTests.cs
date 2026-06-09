@@ -1,5 +1,6 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
+using BuildingBlocks.Shared.Tracking;
 using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Application.Commands;
 using Modules.WorkoutSessionModule.Application.Commands.Handlers;
@@ -194,5 +195,175 @@ public sealed class LogSetHandlerTests
                 s.IsCompleted),
             Arg.Any<CancellationToken>());
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Rest_taken_is_persisted_on_the_logged_set()
+    {
+        var tenantId = Guid.NewGuid();
+        var traineeId = Guid.NewGuid();
+
+        var sessionRepository = Substitute.For<IWorkoutSessionRepository>();
+        var exerciseRepository = Substitute.For<IPerformedExerciseRepository>();
+        var setRepository = Substitute.For<IPerformedSetRepository>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+
+        var session = WorkoutSession.Start(traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
+        sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>()).Returns(session);
+        var exercise = PerformedExercise.Create(session.Id, tenantId, Guid.NewGuid(), null, 0, "Squat");
+        exerciseRepository.GetByIdAsync(exercise.Id, Arg.Any<CancellationToken>()).Returns(exercise);
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = CreateSut(sessionRepository, exerciseRepository, setRepository, unitOfWork, tenantId, traineeId);
+
+        // CreateCommand sets RestSeconds: 120 — assert it reaches the persisted set.
+        var result = await sut.Handle(CreateCommand(session.Id, exercise.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        await setRepository.Received(1).AddAsync(
+            Arg.Is<PerformedSet>(s => s.RestSeconds == 120 && s.ParentSetId == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Drop_stage_with_parent_in_another_exercise_is_not_found()
+    {
+        var tenantId = Guid.NewGuid();
+        var traineeId = Guid.NewGuid();
+
+        var sessionRepository = Substitute.For<IWorkoutSessionRepository>();
+        var exerciseRepository = Substitute.For<IPerformedExerciseRepository>();
+        var setRepository = Substitute.For<IPerformedSetRepository>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+
+        var session = WorkoutSession.Start(traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
+        sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>()).Returns(session);
+        var exercise = PerformedExercise.Create(session.Id, tenantId, Guid.NewGuid(), null, 0, "Squat");
+        exerciseRepository.GetByIdAsync(exercise.Id, Arg.Any<CancellationToken>()).Returns(exercise);
+
+        // The parent set belongs to a DIFFERENT performed exercise → must be rejected.
+        var foreignParent = PerformedSet.Log(Guid.NewGuid(), tenantId, null, 1, PerformedSetType.Working, 6, 100m, null, null, null, null, true);
+        setRepository.GetByIdAsync(foreignParent.Id, Arg.Any<CancellationToken>()).Returns(foreignParent);
+
+        var sut = CreateSut(sessionRepository, exerciseRepository, setRepository, unitOfWork, tenantId, traineeId);
+
+        var command = new LogSetCommand(
+            session.Id, exercise.Id, PlanSetId: null, SetNumber: 2, SetType: PerformedSetType.Drop,
+            Reps: 4, WeightKg: 100m, DurationSeconds: null, DistanceM: null, Rpe: null, RestSeconds: null,
+            IsCompleted: true, ParentSetId: foreignParent.Id);
+
+        var result = await sut.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("NotFound", result.Error.Code);
+        await setRepository.DidNotReceive().AddAsync(Arg.Any<PerformedSet>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Drop_stage_of_a_drop_stage_is_rejected()
+    {
+        var tenantId = Guid.NewGuid();
+        var traineeId = Guid.NewGuid();
+
+        var sessionRepository = Substitute.For<IWorkoutSessionRepository>();
+        var exerciseRepository = Substitute.For<IPerformedExerciseRepository>();
+        var setRepository = Substitute.For<IPerformedSetRepository>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+
+        var session = WorkoutSession.Start(traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
+        sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>()).Returns(session);
+        var exercise = PerformedExercise.Create(session.Id, tenantId, Guid.NewGuid(), null, 0, "Squat");
+        exerciseRepository.GetByIdAsync(exercise.Id, Arg.Any<CancellationToken>()).Returns(exercise);
+
+        // The "parent" is itself a drop stage (has a ParentSetId) → one level only, reject.
+        var lead = PerformedSet.Log(exercise.Id, tenantId, null, 1, PerformedSetType.Working, 6, 100m, null, null, null, null, true);
+        var stage = PerformedSet.Log(exercise.Id, tenantId, null, 2, PerformedSetType.Drop, 4, 100m, null, null, null, null, true, parentSetId: lead.Id);
+        setRepository.GetByIdAsync(stage.Id, Arg.Any<CancellationToken>()).Returns(stage);
+
+        var sut = CreateSut(sessionRepository, exerciseRepository, setRepository, unitOfWork, tenantId, traineeId);
+
+        var command = new LogSetCommand(
+            session.Id, exercise.Id, PlanSetId: null, SetNumber: 3, SetType: PerformedSetType.Drop,
+            Reps: 3, WeightKg: 100m, DurationSeconds: null, DistanceM: null, Rpe: null, RestSeconds: null,
+            IsCompleted: true, ParentSetId: stage.Id);
+
+        var result = await sut.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Validation", result.Error.Code);
+    }
+
+    [Fact]
+    public async Task Cardio_set_with_duration_only_is_logged()
+    {
+        var tenantId = Guid.NewGuid();
+        var traineeId = Guid.NewGuid();
+
+        var sessionRepository = Substitute.For<IWorkoutSessionRepository>();
+        var exerciseRepository = Substitute.For<IPerformedExerciseRepository>();
+        var setRepository = Substitute.For<IPerformedSetRepository>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+
+        var session = WorkoutSession.Start(
+            traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
+        sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>()).Returns(session);
+
+        // A cardio exercise: duration is the primary metric, reps/weight are irrelevant.
+        var exercise = PerformedExercise.Create(
+            session.Id, tenantId, Guid.NewGuid(), null, 0, "Treadmill Run", ExerciseTrackingType.Cardio);
+        exerciseRepository.GetByIdAsync(exercise.Id, Arg.Any<CancellationToken>()).Returns(exercise);
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = CreateSut(
+            sessionRepository, exerciseRepository, setRepository, unitOfWork, tenantId, traineeId);
+
+        var command = new LogSetCommand(
+            session.Id, exercise.Id, PlanSetId: null, SetNumber: 1, SetType: PerformedSetType.Working,
+            Reps: null, WeightKg: null, DurationSeconds: 1200, DistanceM: 3000,
+            Rpe: 7, RestSeconds: null, IsCompleted: true,
+            Calories: 250, AvgHeartRate: 150, Rounds: null);
+
+        var result = await sut.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        await setRepository.Received(1).AddAsync(
+            Arg.Is<PerformedSet>(s => s.DurationSeconds == 1200 && s.DistanceM == 3000 && s.Calories == 250 && s.AvgHeartRate == 150 && s.Reps == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Strength_set_without_reps_is_rejected_as_validation()
+    {
+        var tenantId = Guid.NewGuid();
+        var traineeId = Guid.NewGuid();
+
+        var sessionRepository = Substitute.For<IWorkoutSessionRepository>();
+        var exerciseRepository = Substitute.For<IPerformedExerciseRepository>();
+        var setRepository = Substitute.For<IPerformedSetRepository>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+
+        var session = WorkoutSession.Start(
+            traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
+        sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>()).Returns(session);
+
+        // Strength exercise (default mode): a set with no reps carries no primary metric.
+        var exercise = PerformedExercise.Create(
+            session.Id, tenantId, Guid.NewGuid(), null, 0, "Squat");
+        exerciseRepository.GetByIdAsync(exercise.Id, Arg.Any<CancellationToken>()).Returns(exercise);
+
+        var sut = CreateSut(
+            sessionRepository, exerciseRepository, setRepository, unitOfWork, tenantId, traineeId);
+
+        var command = new LogSetCommand(
+            session.Id, exercise.Id, PlanSetId: null, SetNumber: 1, SetType: PerformedSetType.Working,
+            Reps: null, WeightKg: null, DurationSeconds: null, DistanceM: null,
+            Rpe: null, RestSeconds: null, IsCompleted: true);
+
+        var result = await sut.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Validation", result.Error.Code);
+        await setRepository.DidNotReceive().AddAsync(Arg.Any<PerformedSet>(), Arg.Any<CancellationToken>());
+        await unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

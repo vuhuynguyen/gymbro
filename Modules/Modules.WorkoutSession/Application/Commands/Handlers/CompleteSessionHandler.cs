@@ -46,7 +46,8 @@ public sealed class CompleteSessionHandler(
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var totalSets = exercises.Sum(e => e.Sets.Count);
+        // Drop/rest-pause stages roll up into their lead set — count only parentless rows.
+        var totalSets = exercises.Sum(e => e.Sets.Count(s => s.ParentSetId == null));
         var totalExercises = exercises.Count;
 
         return Result<CompleteSessionResultDto>.Success(

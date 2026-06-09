@@ -62,10 +62,14 @@ Both are anonymous so any platform can probe without a token.
 
 ## CORS & cookies
 
-Dev uses a fixed `localhost:4200` policy. Production CORS is config-driven: set `Cors:AllowedOrigins` (with
+Dev allows any **loopback** origin (`localhost`/`127.0.0.1`, any port) so the Angular portal (`:4200`) and the
+Flutter web dev server (an ephemeral port) both work without re-listing ports. Development also **skips HTTPS
+redirection** so native/dev clients can talk plain HTTP to `http://localhost:5216`; forcing a redirect would
+bounce them to the untrusted dev cert on `:7015`. Both are Development-only — production still redirects to HTTPS
+and restricts origins. Production CORS is config-driven: set `Cors:AllowedOrigins` (with
 credentials so the refresh cookie flows) for a cross-origin SPA; a same-origin deploy (SPA reverse-proxied to
 `/api`) needs none. The `gymbro_refresh` cookie is `HttpOnly`, `SameSite=Strict`, `Path=/api/auth`, `Secure` on
-HTTPS. Behind a TLS-terminating proxy, set `ForwardedHeaders:Enabled=true` (and forward `X-Forwarded-Proto`) or
+HTTPS (so it also rides plain-HTTP `localhost` in dev). Behind a TLS-terminating proxy, set `ForwardedHeaders:Enabled=true` (and forward `X-Forwarded-Proto`) or
 the `Secure` flag won't apply.
 
 ## Operational properties

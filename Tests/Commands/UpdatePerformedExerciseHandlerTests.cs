@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Tracking;
 using MediatR;
 using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
@@ -143,6 +144,10 @@ public sealed class UpdatePerformedExerciseHandlerTests
             new Dictionary<Guid, string> { [substituteExerciseId] = "Dumbbell Press" };
         mediator.Send(Arg.Any<ResolveExerciseNamesQuery>(), Arg.Any<CancellationToken>())
             .Returns(Result<IReadOnlyDictionary<Guid, string>>.Success(names));
+        IReadOnlyDictionary<Guid, ExerciseTrackingType> tracking =
+            new Dictionary<Guid, ExerciseTrackingType> { [substituteExerciseId] = ExerciseTrackingType.Strength };
+        mediator.Send(Arg.Any<ResolveExerciseTrackingTypesQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyDictionary<Guid, ExerciseTrackingType>>.Success(tracking));
 
         var sut = CreateSut(sessionRepository, exerciseRepository, unitOfWork, mediator, traineeId);
 

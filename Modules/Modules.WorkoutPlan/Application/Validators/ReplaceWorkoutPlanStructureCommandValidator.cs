@@ -54,6 +54,12 @@ public sealed class ReplaceWorkoutPlanStructureCommandValidator : AbstractValida
                     s.RuleFor(x => x.TargetDurationSeconds)
                         .GreaterThanOrEqualTo(1)
                         .When(x => x.TargetDurationSeconds.HasValue);
+                    s.RuleFor(x => x.TargetDistanceM)
+                        .GreaterThanOrEqualTo(1)
+                        .When(x => x.TargetDistanceM.HasValue);
+                    s.RuleFor(x => x.TargetRounds)
+                        .GreaterThanOrEqualTo(1)
+                        .When(x => x.TargetRounds.HasValue);
                 });
             });
         });

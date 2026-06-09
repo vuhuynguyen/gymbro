@@ -95,12 +95,12 @@ public sealed class WorkoutPlanVersioningTests
         var v1 = CreatePlan();
         v1.ReplaceStructure(new[]
         {
-            ("Push Day", 1, (IReadOnlyList<(Guid, int, IReadOnlyList<PlanWorkoutSetData>)>)new[]
+            ("Push Day", 1, (IReadOnlyList<(Guid, int, IReadOnlyList<PlanWorkoutSetData>, Guid?)>)new[]
             {
                 (Guid.NewGuid(), 1, (IReadOnlyList<PlanWorkoutSetData>)new[]
                 {
                     new PlanWorkoutSetData(PlanSetType.Working, 8, 100m, null, null, 90, 1)
-                })
+                }, (Guid?)null)
             })
         });
 
@@ -116,7 +116,7 @@ public sealed class WorkoutPlanVersioningTests
         var v1 = CreatePlan();
         v1.ReplaceStructure(new[]
         {
-            ("Push Day", 1, (IReadOnlyList<(Guid, int, IReadOnlyList<PlanWorkoutSetData>)>)Array.Empty<(Guid, int, IReadOnlyList<PlanWorkoutSetData>)>())
+            ("Push Day", 1, (IReadOnlyList<(Guid, int, IReadOnlyList<PlanWorkoutSetData>, Guid?)>)Array.Empty<(Guid, int, IReadOnlyList<PlanWorkoutSetData>, Guid?)>())
         });
 
         var v2 = WorkoutPlan.CreateNewVersion(v1, CreatedBy, "Plan v2", null, null, null);

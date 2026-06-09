@@ -85,7 +85,8 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.ExerciseId,
             request.PlanWorkoutExerciseId,
             request.Order,
-            request.Notes), ct);
+            request.Notes,
+            request.SupersetGroupId), ct);
 
         if (result.IsFailure)
             return result.ToFailureResult(this);
@@ -113,6 +114,20 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
         return Ok(new { updated = true });
     }
 
+    [HttpDelete("{sessionId:guid}/exercises/{exerciseId:guid}")]
+    public async Task<IActionResult> DeleteExercise(
+        Guid sessionId,
+        Guid exerciseId,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new DeletePerformedExerciseCommand(sessionId, exerciseId), ct);
+
+        if (result.IsFailure)
+            return result.ToFailureResult(this);
+
+        return NoContent();
+    }
+
     [HttpPost("{sessionId:guid}/exercises/{exerciseId:guid}/sets")]
     public async Task<IActionResult> LogSet(
         Guid sessionId,
@@ -132,7 +147,11 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.DistanceM,
             request.Rpe,
             request.RestSeconds,
-            request.IsCompleted), ct);
+            request.IsCompleted,
+            request.Calories,
+            request.AvgHeartRate,
+            request.Rounds,
+            request.ParentSetId), ct);
 
         if (result.IsFailure)
             return result.ToFailureResult(this);
@@ -159,7 +178,10 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.Rpe,
             request.RestSeconds,
             request.IsCompleted,
-            request.SetType), ct);
+            request.SetType,
+            request.Calories,
+            request.AvgHeartRate,
+            request.Rounds), ct);
 
         if (result.IsFailure)
             return result.ToFailureResult(this);

@@ -2,8 +2,10 @@ using System.Text.Json;
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Tracking;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutPlanModule.Application;
 using Modules.WorkoutPlanModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
@@ -39,7 +41,7 @@ public sealed class StartSessionHandler(
         // The caller is always the performing trainee; redact the start response when their assignment
         // hides sets/reps so the prescription never reaches them (the stored snapshot stays full).
         var hideSetsRepsForCaller = false;
-        var plannedExercises = new List<(Guid ExerciseId, Guid? PlanWorkoutExerciseId, int Order, string? ExerciseName)>();
+        var plannedExercises = new List<(Guid ExerciseId, Guid? PlanWorkoutExerciseId, int Order, string? ExerciseName, ExerciseTrackingType TrackingType, Guid? SupersetGroupId)>();
 
         if (request.Source == SessionSource.FromAssignment)
         {
@@ -78,10 +80,26 @@ public sealed class StartSessionHandler(
                     var snapshot = SessionMapping.BuildSnapshot(workoutSnapshot);
                     snapshotJson = SessionMapping.SerializeSnapshot(snapshot);
 
+                    // Capture each planned exercise's tracking mode now so the seeded performed rows know
+                    // how they're logged (denormalized, durable). Defaults to Strength when unresolved.
+                    var trackingResult = await mediator.Send(
+                        new ResolveExerciseTrackingTypesQuery(
+                            workoutSnapshot.Exercises.Select(e => e.ExerciseId).Distinct().ToList()),
+                        cancellationToken);
+                    var trackingById = trackingResult.IsSuccess
+                        ? trackingResult.Value!
+                        : new Dictionary<Guid, ExerciseTrackingType>();
+
                     // Pre-populate the session with the plan's exercises so the trainee sees the
                     // workout to perform immediately (planned sets are resolved from the snapshot).
                     plannedExercises = workoutSnapshot.Exercises
-                        .Select(e => (e.ExerciseId, (Guid?)e.Id, e.Order, e.ExerciseName))
+                        .Select(e => (
+                            e.ExerciseId,
+                            (Guid?)e.Id,
+                            e.Order,
+                            e.ExerciseName,
+                            trackingById.GetValueOrDefault(e.ExerciseId, ExerciseTrackingType.Strength),
+                            e.SupersetGroupId))
                         .ToList();
                 }
             }

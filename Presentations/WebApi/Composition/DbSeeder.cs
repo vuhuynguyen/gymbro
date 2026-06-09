@@ -1,4 +1,3 @@
-using BuildingBlocks.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Modules.IdentityModule.Infrastructure.Identity;
 
@@ -19,9 +18,11 @@ public static class DbSeeder
 
         await SeedAdminAsync(userManager, environment, configuration, logger);
 
-        // Exercise catalog seeding runs in every environment.
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await ExerciseCatalogSeeder.SeedGlobalCatalogAsync(db, logger);
+        // Exercise master-data seeding runs in every environment, from the embedded seed files (never hardcoded
+        // C#). Startup uses the non-destructive InsertMissing mode: it adds catalog exercises that don't yet
+        // exist and never touches existing rows (so admin edits and a destructive --reseed-exercises run are
+        // both preserved). A full refresh is the explicit `--reseed-exercises` CLI entrypoint.
+        await ExerciseMasterDataSeeder.RunAsync(services, ExerciseSeedMode.InsertMissing);
     }
 
     private static async Task SeedAdminAsync(

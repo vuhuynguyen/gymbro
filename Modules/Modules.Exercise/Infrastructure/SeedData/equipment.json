@@ -1,0 +1,10 @@
+{
+  "$comment": "Valid equipment codes. 'code' MUST match the Equipment enum (Modules.ExerciseModule.Entities.Equipment). The current schema models 5 codes; finer real-world equipment (cable, kettlebell, cardio machine) maps onto the closest code and is preserved verbatim in the exercise 'equipmentDetail' field (and surfaced as a search tag) until the schema is upgraded. Used by ExerciseSeedDataValidator.",
+  "equipment": [
+    { "code": "Bodyweight", "displayName": "Bodyweight" },
+    { "code": "Barbell", "displayName": "Barbell" },
+    { "code": "Dumbbell", "displayName": "Dumbbell (and other hand-held free weights, e.g. Kettlebell)" },
+    { "code": "Machine", "displayName": "Machine (incl. Cable and Cardio machines)" },
+    { "code": "ResistanceBand", "displayName": "Resistance Band" }
+  ]
+}

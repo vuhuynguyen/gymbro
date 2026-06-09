@@ -1,0 +1,18 @@
+{
+  "$comment": "Library categories — the fine-grained, human-facing grouping for browsing/search. Independent of the coarse MuscleGroup enum (e.g. 'biceps' and 'triceps' both map to the Arms muscle group). The exercise 'category' field MUST be one of these codes. Folded into search tags by the seeder. Used by ExerciseSeedDataValidator.",
+  "categories": [
+    { "code": "chest", "displayName": "Chest" },
+    { "code": "back", "displayName": "Back" },
+    { "code": "shoulders", "displayName": "Shoulders" },
+    { "code": "biceps", "displayName": "Biceps" },
+    { "code": "triceps", "displayName": "Triceps" },
+    { "code": "quadriceps", "displayName": "Quadriceps" },
+    { "code": "hamstrings", "displayName": "Hamstrings" },
+    { "code": "glutes", "displayName": "Glutes" },
+    { "code": "calves", "displayName": "Calves" },
+    { "code": "abs", "displayName": "Abs / Core" },
+    { "code": "full-body", "displayName": "Full Body" },
+    { "code": "cardio", "displayName": "Cardio" },
+    { "code": "mobility", "displayName": "Mobility / Stretching" }
+  ]
+}

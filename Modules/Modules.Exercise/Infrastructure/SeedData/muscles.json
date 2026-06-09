@@ -1,0 +1,11 @@
+{
+  "$comment": "Valid muscle-group codes. 'code' MUST match the MuscleGroup enum (Modules.ExerciseModule.Entities.MuscleGroup). The current schema models 6 coarse groups; finer muscles (biceps/quads/glutes/...) are expressed via the exercise 'category' field until the schema is upgraded. Used by ExerciseSeedDataValidator.",
+  "muscles": [
+    { "code": "Chest", "displayName": "Chest" },
+    { "code": "Back", "displayName": "Back" },
+    { "code": "Shoulders", "displayName": "Shoulders" },
+    { "code": "Arms", "displayName": "Arms (Biceps / Triceps / Forearms)" },
+    { "code": "Legs", "displayName": "Legs (Quads / Hamstrings / Glutes / Calves)" },
+    { "code": "Core", "displayName": "Core / Abs" }
+  ]
+}

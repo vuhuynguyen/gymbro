@@ -230,11 +230,18 @@ var app = builder.Build();
 // otherwise a direct client could spoof these headers. Must run before HTTPS redirect, CORS, the rate
 // limiter, auth, and any cookie-writing endpoint. KnownNetworks/KnownProxies are cleared because the proxy's
 // container IP isn't fixed — trust is enforced by the proxy being the only reachable path to the API.
+//
+// ForwardLimit is the number of proxy hops to walk back through X-Forwarded-For. The production stack puts
+// TWO proxies in front of the API (Caddy terminates TLS → nginx serves the SPA and proxies /api → api:8080),
+// so nginx forwards "X-Forwarded-For: <client>, <caddy>" and we must peel BOTH to reach the real client IP —
+// the default of 1 would stop at Caddy's container IP and still collapse every client into one rate-limit
+// bucket. Override via ForwardedHeaders:ForwardLimit for other topologies (e.g. Cloudflare → 1).
 if (app.Configuration.GetValue("ForwardedHeaders:Enabled", false))
 {
     var forwardedOptions = new ForwardedHeadersOptions
     {
-        ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor
+        ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor,
+        ForwardLimit = app.Configuration.GetValue("ForwardedHeaders:ForwardLimit", 2)
     };
     forwardedOptions.KnownIPNetworks.Clear();
     forwardedOptions.KnownProxies.Clear();
@@ -294,6 +301,20 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check 
 if (args.Contains("--migrate"))
 {
     await DatabaseMigrationStartup.ApplyMigrationsAsync(app.Services);
+    return;
+}
+
+// Seed-and-exit entrypoints for the exercise master data (a one-off CLI run, no serving):
+//   dotnet run --project Presentations/WebApi -- --seed-exercises     (non-destructive insert-missing)
+//   dotnet run --project Presentations/WebApi -- --reseed-exercises   (destructive full refresh: soft-deletes
+//                                                                       obsolete entries, upserts the rest)
+// Both verify migrations first (same policy as normal startup) so the tables exist. See
+// docs/master-data/EXERCISE_SEEDING.md.
+if (args.Contains("--seed-exercises") || args.Contains("--reseed-exercises"))
+{
+    await DatabaseMigrationStartup.EnsureMigrationsAppliedAsync(app.Services);
+    var seedMode = args.Contains("--reseed-exercises") ? ExerciseSeedMode.Reseed : ExerciseSeedMode.InsertMissing;
+    await ExerciseMasterDataSeeder.RunAsync(app.Services, seedMode);
     return;
 }
 

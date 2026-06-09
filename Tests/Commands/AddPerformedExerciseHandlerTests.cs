@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Tracking;
 using MediatR;
 using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
@@ -161,6 +162,12 @@ public sealed class AddPerformedExerciseHandlerTests
         };
         mediator.Send(Arg.Any<ResolveExerciseNamesQuery>(), Arg.Any<CancellationToken>())
             .Returns(Result<IReadOnlyDictionary<Guid, string>>.Success(names));
+        IReadOnlyDictionary<Guid, ExerciseTrackingType> tracking = new Dictionary<Guid, ExerciseTrackingType>
+        {
+            [exerciseId] = ExerciseTrackingType.Strength
+        };
+        mediator.Send(Arg.Any<ResolveExerciseTrackingTypesQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyDictionary<Guid, ExerciseTrackingType>>.Success(tracking));
 
         unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
 

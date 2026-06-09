@@ -191,7 +191,12 @@ if (builder.Environment.IsDevelopment())
             policy =>
             {
                 policy
-                    .WithOrigins("http://localhost:4200", "https://localhost:4200")
+                    // Dev runs several local clients on varying ports — the Angular portal (:4200) and the
+                    // Flutter web dev server (an ephemeral port). Allow any loopback origin so they all work
+                    // without re-listing ports. SetIsOriginAllowed is required because AllowCredentials (the
+                    // refresh-token cookie rides /api/auth calls) cannot be combined with AllowAnyOrigin.
+                    .SetIsOriginAllowed(origin =>
+                        Uri.TryCreate(origin, UriKind.Absolute, out var o) && o.IsLoopback)
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials(); // refresh-token cookie must ride along on /api/auth calls
@@ -247,7 +252,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// In Development the app is hit directly over plain HTTP (e.g. the Flutter client → http://localhost:5216).
+// Forcing an HTTPS redirect bounces those calls to the untrusted dev cert on :7015 and breaks them. Outside
+// Development we still redirect (behind Caddy/nginx TLS termination this is a harmless no-op — no HTTPS port
+// is bound in the container).
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseExceptionHandler();
 

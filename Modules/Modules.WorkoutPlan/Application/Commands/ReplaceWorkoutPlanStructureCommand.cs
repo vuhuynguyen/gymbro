@@ -12,9 +12,11 @@ public sealed record PlanSetInput(
     int? TargetRpe,
     int? TargetDurationSeconds,
     int RestSeconds,
-    int Order);
+    int Order,
+    int? TargetDistanceM = null,
+    int? TargetRounds = null);
 
-public sealed record PlanWorkoutExerciseInput(Guid ExerciseId, int Order, IReadOnlyList<PlanSetInput> Sets);
+public sealed record PlanWorkoutExerciseInput(Guid ExerciseId, int Order, IReadOnlyList<PlanSetInput> Sets, Guid? SupersetGroupId = null);
 
 public sealed record PlanWorkoutStructureInput(string Name, int Order, IReadOnlyList<PlanWorkoutExerciseInput> Exercises);
 

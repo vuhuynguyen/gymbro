@@ -1,3 +1,4 @@
+using BuildingBlocks.Shared.Tracking;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Modules.ExerciseModule.Entities;
@@ -16,6 +17,10 @@ public sealed class PerformedExerciseConfiguration : IEntityTypeConfiguration<Pe
         builder.Property(x => x.SessionId).IsRequired();
         builder.Property(x => x.ExerciseId).IsRequired();
         builder.Property(x => x.ExerciseName).HasMaxLength(200);
+        builder.Property(x => x.TrackingType)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(ExerciseTrackingType.Strength);
         builder.Property(x => x.Order).IsRequired();
         builder.Property(x => x.Status).IsRequired();
         builder.Property(x => x.Notes).HasMaxLength(500);

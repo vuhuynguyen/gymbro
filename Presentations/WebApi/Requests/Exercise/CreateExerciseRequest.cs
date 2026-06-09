@@ -20,6 +20,10 @@ public class CreateExerciseRequest
     public string MovementType { get; set; } = null!;
     public string Difficulty { get; set; } = null!;
     public string Equipment { get; set; } = null!;
+
+    /// <summary>Optional logging mode (Strength/Bodyweight/Cardio/Timed/Hiit/Mobility/Custom). Absent → derived from Type/Equipment.</summary>
+    public string? TrackingType { get; set; }
+
     public int? EstimatedCaloriesBurn { get; set; }
     public int? AverageDurationSeconds { get; set; }
     public string? ImageUrl { get; set; }

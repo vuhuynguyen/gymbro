@@ -45,7 +45,8 @@ internal static class SessionMapping
                     e.ExerciseId,
                     e.ExerciseName,
                     e.Order,
-                    new List<SessionSnapshotSetDto>()))
+                    new List<SessionSnapshotSetDto>(),
+                    e.SupersetGroupId))
                 .ToList());
 
     /// <summary>
@@ -90,7 +91,11 @@ internal static class SessionMapping
             set.IsCompleted,
             set.EstimatedOneRepMaxKg,
             set.LoggedAt,
-            isPr);
+            isPr,
+            set.Calories,
+            set.AvgHeartRate,
+            set.Rounds,
+            set.ParentSetId);
 
     public static PerformedExerciseDto ToPerformedExerciseDto(
         PerformedExercise exercise,
@@ -116,7 +121,9 @@ internal static class SessionMapping
             exercise.Sets
                 .OrderBy(s => s.SetNumber)
                 .Select(s => ToPerformedSetDto(s, prSetIds?.Contains(s.Id) ?? false))
-                .ToList());
+                .ToList(),
+            exercise.TrackingType.ToString(),
+            exercise.SupersetGroupId);
     }
 
     public static IReadOnlyList<PerformedExerciseDto> ToPerformedExerciseDtos(
@@ -215,8 +222,11 @@ internal static class SessionMapping
                         s.TargetWeightKg,
                         s.TargetRpe,
                         s.TargetDurationSeconds,
-                        s.RestSeconds))
-                    .ToList()))
+                        s.RestSeconds,
+                        s.TargetDistanceM,
+                        s.TargetRounds))
+                    .ToList(),
+                e.SupersetGroupId))
             .ToList();
 
         return new SessionSnapshotDto(workout.Name, exercises);

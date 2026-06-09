@@ -56,7 +56,7 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
 
     /// <summary>Replaces all plan workouts and their exercises (plan builder save).</summary>
     public void ReplaceStructure(
-        IReadOnlyList<(string Name, int Order, IReadOnlyList<(Guid ExerciseId, int Order, IReadOnlyList<PlanWorkoutSetData> Sets)> Exercises)> workouts)
+        IReadOnlyList<(string Name, int Order, IReadOnlyList<(Guid ExerciseId, int Order, IReadOnlyList<PlanWorkoutSetData> Sets, Guid? SupersetGroupId)> Exercises)> workouts)
     {
         ArgumentNullException.ThrowIfNull(workouts);
         var tenantId = TenantId ?? throw new InvalidOperationException("TenantId is not set.");
@@ -67,7 +67,7 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
         {
             var planWorkout = PlanWorkout.Create(Id, tenantId, w.Name, w.Order);
             foreach (var ex in w.Exercises.OrderBy(e => e.Order))
-                planWorkout.AddExercise(tenantId, ex.ExerciseId, ex.Order, ex.Sets);
+                planWorkout.AddExercise(tenantId, ex.ExerciseId, ex.Order, ex.Sets, ex.SupersetGroupId);
 
             _workouts.Add(planWorkout);
         }
@@ -116,7 +116,7 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
             .Select(w => (
                 w.Name,
                 w.Order,
-                (IReadOnlyList<(Guid ExerciseId, int Order, IReadOnlyList<PlanWorkoutSetData> Sets)>)w.Exercises
+                (IReadOnlyList<(Guid ExerciseId, int Order, IReadOnlyList<PlanWorkoutSetData> Sets, Guid? SupersetGroupId)>)w.Exercises
                     .OrderBy(e => e.Order)
                     .Select(e => (
                         e.ExerciseId,
@@ -130,8 +130,11 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
                                 s.TargetRpe,
                                 s.TargetDurationSeconds,
                                 s.RestSeconds,
-                                s.Order))
-                            .ToList()))
+                                s.Order,
+                                s.TargetDistanceM,
+                                s.TargetRounds))
+                            .ToList(),
+                        e.SupersetGroupId))
                     .ToList()))
             .ToList();
 

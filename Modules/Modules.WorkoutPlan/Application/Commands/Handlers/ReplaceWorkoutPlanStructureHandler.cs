@@ -34,7 +34,7 @@ public sealed class ReplaceWorkoutPlanStructureHandler(
             .Select(w => (
                 w.Name,
                 w.Order,
-                (IReadOnlyList<(Guid ExerciseId, int Order, IReadOnlyList<PlanWorkoutSetData> Sets)>)w.Exercises
+                (IReadOnlyList<(Guid ExerciseId, int Order, IReadOnlyList<PlanWorkoutSetData> Sets, Guid? SupersetGroupId)>)w.Exercises
                     .Select(e => (
                         e.ExerciseId,
                         e.Order,
@@ -46,8 +46,11 @@ public sealed class ReplaceWorkoutPlanStructureHandler(
                                 s.TargetRpe,
                                 s.TargetDurationSeconds,
                                 s.RestSeconds,
-                                s.Order))
-                            .ToList()))
+                                s.Order,
+                                s.TargetDistanceM,
+                                s.TargetRounds))
+                            .ToList(),
+                        e.SupersetGroupId))
                     .ToList()))
             .ToList();
 

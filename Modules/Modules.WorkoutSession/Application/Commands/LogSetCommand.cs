@@ -18,7 +18,11 @@ public sealed record LogSetCommand(
     int? DistanceM,
     int? Rpe,
     int? RestSeconds,
-    bool IsCompleted) : IRequest<Result<PerformedSetDto>>, ITenantAuthorizedRequest
+    bool IsCompleted,
+    int? Calories = null,
+    int? AvgHeartRate = null,
+    int? Rounds = null,
+    Guid? ParentSetId = null) : IRequest<Result<PerformedSetDto>>, ITenantAuthorizedRequest
 {
     public Permission RequiredPermission => Permission.WorkoutLogCreate;
 }

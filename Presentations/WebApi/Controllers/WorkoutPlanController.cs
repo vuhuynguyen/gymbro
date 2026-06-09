@@ -124,8 +124,11 @@ public sealed class WorkoutPlanController(IMediator mediator) : ControllerBase
                                 s.TargetRpe,
                                 s.TargetDurationSeconds,
                                 s.RestSeconds,
-                                s.Order))
-                            .ToList()))
+                                s.Order,
+                                s.TargetDistanceM,
+                                s.TargetRounds))
+                            .ToList(),
+                        e.SupersetGroupId))
                     .ToList()))
             .ToList();
 

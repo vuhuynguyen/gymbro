@@ -18,6 +18,9 @@ public sealed class AddExerciseRequest
     public Guid? PlanWorkoutExerciseId { get; set; }
     public int Order { get; set; }
     public string? Notes { get; set; }
+
+    /// <summary>Optional: group this ad-hoc exercise into a superset with others sharing the same id.</summary>
+    public Guid? SupersetGroupId { get; set; }
 }
 
 public sealed class UpdateExerciseRequest
@@ -30,12 +33,17 @@ public sealed class UpdateExerciseRequest
 public sealed class LogSetRequest
 {
     public Guid? PlanSetId { get; set; }
+    /// <summary>Set when this is a drop/rest-pause stage of an existing lead set (the cluster counts as one set).</summary>
+    public Guid? ParentSetId { get; set; }
     public int SetNumber { get; set; }
     public PerformedSetType SetType { get; set; } = PerformedSetType.Working;
     public int? Reps { get; set; }
     public decimal? WeightKg { get; set; }
     public int? DurationSeconds { get; set; }
     public int? DistanceM { get; set; }
+    public int? Calories { get; set; }
+    public int? AvgHeartRate { get; set; }
+    public int? Rounds { get; set; }
     public int? Rpe { get; set; }
     public int? RestSeconds { get; set; }
     public bool IsCompleted { get; set; } = true;
@@ -47,6 +55,9 @@ public sealed class EditSetRequest
     public decimal? WeightKg { get; set; }
     public int? DurationSeconds { get; set; }
     public int? DistanceM { get; set; }
+    public int? Calories { get; set; }
+    public int? AvgHeartRate { get; set; }
+    public int? Rounds { get; set; }
     public int? Rpe { get; set; }
     public int? RestSeconds { get; set; }
     public bool? IsCompleted { get; set; }

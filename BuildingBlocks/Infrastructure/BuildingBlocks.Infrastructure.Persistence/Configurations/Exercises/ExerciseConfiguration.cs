@@ -1,3 +1,4 @@
+using BuildingBlocks.Shared.Tracking;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Modules.ExerciseModule.Entities;
@@ -22,6 +23,11 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
         builder.Property(x => x.Type)
             .IsRequired()
             .HasConversion<int>();
+
+        builder.Property(x => x.TrackingType)
+            .IsRequired()
+            .HasConversion<int>()
+            .HasDefaultValue(ExerciseTrackingType.Strength);
 
         builder.Property(x => x.MovementType)
             .IsRequired()

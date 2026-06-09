@@ -19,5 +19,6 @@ public record UpdateExerciseCommand(
     IReadOnlyList<string>? Instructions,
     IReadOnlyList<string>? Tags,
     IReadOnlyList<ExerciseMediaInput>? Media,
-    IReadOnlyList<string>? Warnings
+    IReadOnlyList<string>? Warnings,
+    string? TrackingType = null
 ) : IRequest<Result<Guid>>, IPlatformAdminRequest;

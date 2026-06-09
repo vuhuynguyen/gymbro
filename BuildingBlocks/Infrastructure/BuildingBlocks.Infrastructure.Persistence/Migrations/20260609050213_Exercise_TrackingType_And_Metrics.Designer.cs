@@ -3,6 +3,7 @@ using System;
 using BuildingBlocks.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BuildingBlocks.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609050213_Exercise_TrackingType_And_Metrics")]
+    partial class Exercise_TrackingType_And_Metrics
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -706,9 +709,6 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("PlanWorkoutId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("SupersetGroupId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
@@ -904,9 +904,6 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("SubstitutedFromExerciseId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("SupersetGroupId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
@@ -969,9 +966,6 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTimeOffset?>("ModifiedOnUtc")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("ParentSetId")
-                        .HasColumnType("uuid");
 
                     b.Property<Guid>("PerformedExerciseId")
                         .HasColumnType("uuid");

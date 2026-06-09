@@ -34,7 +34,8 @@ public class ExerciseController(IMediator mediator) : ControllerBase
             request.Instructions,
             request.Tags,
             media,
-            request.Warnings);
+            request.Warnings,
+            request.TrackingType);
 
         var result = await mediator.Send(command);
 
@@ -88,7 +89,8 @@ public class ExerciseController(IMediator mediator) : ControllerBase
             request.Instructions,
             request.Tags,
             media,
-            request.Warnings);
+            request.Warnings,
+            request.TrackingType);
 
         var result = await mediator.Send(command);
 

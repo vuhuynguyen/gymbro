@@ -1,4 +1,5 @@
 using BuildingBlocks.Infrastructure.Persistence;
+using BuildingBlocks.Shared.Tracking;
 using Microsoft.EntityFrameworkCore;
 using Modules.ExerciseModule.Entities;
 
@@ -37,7 +38,9 @@ internal static class ExerciseCatalogSeeder
                 def.Equipment,
                 def.EstimatedCalories,
                 def.AverageDurationSeconds,
-                def.Muscles);
+                def.Muscles,
+                // Explicit mode when the legacy Type/Equipment can't express it (Timed/HIIT/Custom); else derive.
+                def.TrackingType ?? ExerciseTrackingDefaults.Derive(def.Type, def.Equipment));
 
             exercise.ReplaceInstructions(def.Instructions);
             exercise.ReplaceTags(def.Tags);
@@ -64,7 +67,8 @@ internal static class ExerciseCatalogSeeder
         int? AverageDurationSeconds,
         IReadOnlyList<(MuscleGroup muscle, bool isPrimary)> Muscles,
         IReadOnlyList<string> Instructions,
-        IReadOnlyList<string> Tags);
+        IReadOnlyList<string> Tags,
+        ExerciseTrackingType? TrackingType = null);
 
     private static readonly IReadOnlyList<CatalogExercise> Definitions =
     [
@@ -324,7 +328,7 @@ internal static class ExerciseCatalogSeeder
 
         new(
             "Plank",
-            "Anti-extension core brace in a prone straight line.",
+            "Anti-extension core brace in a prone straight line. Logged by how long you hold it.",
             ExerciseType.Strength,
             MovementType.Isolation,
             DifficultyLevel.Beginner,
@@ -333,7 +337,8 @@ internal static class ExerciseCatalogSeeder
             90,
             [(MuscleGroup.Core, true)],
             ["Forearms or hands under shoulders.", "Brace abs; hips level — no sag or pike."],
-            ["core", "anti-extension", "bodyweight"]),
+            ["core", "anti-extension", "bodyweight"],
+            ExerciseTrackingType.Timed),
 
         new(
             "Hanging Knee Raise",
@@ -440,6 +445,68 @@ internal static class ExerciseCatalogSeeder
                 "Heavy dumbbells at sides; shoulders packed down.",
                 "Walk with short controlled steps; breathe behind brace."
             ],
-            ["carry", "grip", "core", "conditioning"])
+            ["carry", "grip", "core", "conditioning"]),
+
+        // ── Tracking-mode test fixtures ──────────────────────────────────────────────
+        // These exercise every non-strength logging mode so the adaptive logger can be tested.
+
+        // Cardio (distance + calories + HR): log duration/distance, no reps/weight.
+        new(
+            "Rowing Machine (Distance)",
+            "Steady or interval erg rowing — log it by distance, duration, calories, or heart rate.",
+            ExerciseType.Cardio,
+            MovementType.Compound,
+            DifficultyLevel.Beginner,
+            Equipment.Machine,
+            220,
+            600,
+            [(MuscleGroup.Back, true), (MuscleGroup.Legs, false), (MuscleGroup.Arms, false)],
+            ["Drive with legs, then hips, then arms; reverse the order on the recovery.", "Keep a steady stroke rate."],
+            ["cardio", "rowing", "distance", "conditioning"]),
+
+        // Timed hold: only a duration matters (no reps, no weight).
+        new(
+            "Wall Sit (Timed Hold)",
+            "Isometric quad hold against a wall — logged purely by how long you hold it.",
+            ExerciseType.Strength,
+            MovementType.Isolation,
+            DifficultyLevel.Beginner,
+            Equipment.Bodyweight,
+            30,
+            60,
+            [(MuscleGroup.Legs, true), (MuscleGroup.Core, false)],
+            ["Slide down a wall until thighs are parallel; knees over ankles.", "Brace and hold for time; breathe steadily."],
+            ["timed", "isometric", "legs", "bodyweight"],
+            ExerciseTrackingType.Timed),
+
+        // HIIT / circuit: log rounds + work duration (+ optional rest/calories/HR).
+        new(
+            "Burpee HIIT Circuit",
+            "High-intensity intervals — log the number of rounds and the work duration per round.",
+            ExerciseType.Cardio,
+            MovementType.Compound,
+            DifficultyLevel.Advanced,
+            Equipment.Bodyweight,
+            180,
+            300,
+            [(MuscleGroup.Legs, true), (MuscleGroup.Chest, false), (MuscleGroup.Core, false)],
+            ["Chest to floor, then explode up into a jump.", "Work the interval, rest, repeat for the prescribed rounds."],
+            ["hiit", "intervals", "conditioning", "bodyweight"],
+            ExerciseTrackingType.Hiit),
+
+        // Custom: any combination of metrics is valid (here: distance + calories + duration).
+        new(
+            "Sled Push",
+            "Loaded sled push — flexible logging: distance, duration, rounds, or load as it suits the session.",
+            ExerciseType.Strength,
+            MovementType.Compound,
+            DifficultyLevel.Intermediate,
+            Equipment.Machine,
+            160,
+            120,
+            [(MuscleGroup.Legs, true), (MuscleGroup.Core, false)],
+            ["Low body angle, arms extended; drive through the balls of your feet.", "Push for the prescribed distance or time."],
+            ["custom", "sled", "conditioning", "legs"],
+            ExerciseTrackingType.Custom)
     ];
 }

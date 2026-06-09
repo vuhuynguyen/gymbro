@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Tracking;
 using MediatR;
 using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
@@ -51,14 +52,20 @@ public sealed class UpdatePerformedExerciseHandler(
             if (request.SubstituteExerciseId == null)
                 return Result.Failure(Validation("SubstituteExerciseId", "SubstituteExerciseId is required for substitution."));
 
-            // Capture the substitute's name now for durable history.
+            // Capture the substitute's name and tracking mode now for durable history.
             var namesResult = await mediator.Send(
                 new ResolveExerciseNamesQuery(new[] { request.SubstituteExerciseId.Value }), cancellationToken);
             var substituteName = namesResult.IsSuccess
                 ? namesResult.Value!.GetValueOrDefault(request.SubstituteExerciseId.Value)
                 : null;
 
-            exercise.Substitute(request.SubstituteExerciseId.Value, substituteName, request.Notes);
+            var trackingResult = await mediator.Send(
+                new ResolveExerciseTrackingTypesQuery(new[] { request.SubstituteExerciseId.Value }), cancellationToken);
+            var substituteTrackingType = trackingResult.IsSuccess
+                ? trackingResult.Value!.GetValueOrDefault(request.SubstituteExerciseId.Value, ExerciseTrackingType.Strength)
+                : ExerciseTrackingType.Strength;
+
+            exercise.Substitute(request.SubstituteExerciseId.Value, substituteName, request.Notes, substituteTrackingType);
         }
 
         await unitOfWork.SaveChangesAsync(cancellationToken);

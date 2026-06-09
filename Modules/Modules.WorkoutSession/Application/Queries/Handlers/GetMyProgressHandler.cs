@@ -27,7 +27,8 @@ public sealed class GetMyProgressHandler(
             {
                 s.StartedAt,
                 s.Status,
-                TotalSets = s.Exercises.SelectMany(e => e.Sets).Count(),
+                // Drop/rest-pause stages roll up into their lead set — count only parentless rows.
+                TotalSets = s.Exercises.SelectMany(e => e.Sets).Count(set => set.ParentSetId == null),
                 Volume = s.Exercises
                     .SelectMany(e => e.Sets)
                     .Where(set => set.SetType == PerformedSetType.Working

@@ -1,4 +1,5 @@
 using BuildingBlocks.Shared.DomainPrimitives;
+using BuildingBlocks.Shared.Tracking;
 
 namespace Modules.WorkoutSessionModule.Entities;
 
@@ -71,14 +72,14 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
     /// resolved from the stored snapshot on read.
     /// </summary>
     public void SeedPlannedExercises(
-        IEnumerable<(Guid ExerciseId, Guid? PlanWorkoutExerciseId, int Order, string? ExerciseName)> planned)
+        IEnumerable<(Guid ExerciseId, Guid? PlanWorkoutExerciseId, int Order, string? ExerciseName, ExerciseTrackingType TrackingType, Guid? SupersetGroupId)> planned)
     {
         ArgumentNullException.ThrowIfNull(planned);
         var tenantId = TenantId ?? throw new InvalidOperationException("TenantId is not set.");
 
         foreach (var p in planned.OrderBy(x => x.Order))
             _exercises.Add(PerformedExercise.Create(
-                Id, tenantId, p.ExerciseId, p.PlanWorkoutExerciseId, p.Order, p.ExerciseName));
+                Id, tenantId, p.ExerciseId, p.PlanWorkoutExerciseId, p.Order, p.ExerciseName, p.TrackingType, p.SupersetGroupId));
     }
 
     public void Complete(int? rpeOverall, string? notes, DateTimeOffset? completedAt, int prCount)
@@ -104,8 +105,12 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
         if (Status != SessionStatus.InProgress)
             throw new DomainException("Only in-progress sessions can be abandoned.");
 
+        var now = DateTimeOffset.UtcNow;
         Status = SessionStatus.Abandoned;
-        CompletedAt = DateTimeOffset.UtcNow;
+        CompletedAt = now;
+        // Record elapsed time even when abandoned (parity with Complete) so the history row / detail
+        // can show how long the session ran before it was given up.
+        DurationSeconds = (int)(now - StartedAt).TotalSeconds;
         Notes = notes;
     }
 }

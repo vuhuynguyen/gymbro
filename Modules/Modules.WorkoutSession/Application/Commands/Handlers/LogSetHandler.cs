@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Tracking;
 using MediatR;
 using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Application.DTOs;
@@ -37,6 +38,30 @@ public sealed class LogSetHandler(
         if (exercise == null || exercise.SessionId != session.Id)
             return Result<PerformedSetDto>.Failure(NotFound("NotFound", "Exercise not found in this session."));
 
+        // A drop/rest-pause stage links to a lead set: it must belong to the same exercise and the lead must
+        // itself be parentless (one level of nesting only).
+        if (request.ParentSetId.HasValue)
+        {
+            var parent = await setRepository.GetByIdAsync(request.ParentSetId.Value, cancellationToken);
+            if (parent == null || parent.PerformedExerciseId != exercise.Id)
+                return Result<PerformedSetDto>.Failure(NotFound("NotFound", "Parent set not found in this exercise."));
+            if (parent.ParentSetId.HasValue)
+                return Result<PerformedSetDto>.Failure(Validation("Validation", "A drop stage cannot itself have drop stages."));
+        }
+
+        // Mode-aware required-metric rule: a strength set needs reps, a cardio set needs duration/distance,
+        // a HIIT set needs rounds/duration, etc. Mobility/Custom accept a metric-less completed set.
+        if (!ExerciseTrackingRules.HasRequiredMetric(
+                exercise.TrackingType,
+                request.Reps,
+                request.WeightKg,
+                request.DurationSeconds,
+                request.DistanceM,
+                request.Rounds,
+                request.IsCompleted))
+            return Result<PerformedSetDto>.Failure(
+                Validation("Validation", ExerciseTrackingRules.RequiredMetricMessage(exercise.TrackingType)));
+
         var set = PerformedSet.Log(
             exercise.Id,
             tenantId,
@@ -49,7 +74,11 @@ public sealed class LogSetHandler(
             request.DistanceM,
             request.Rpe,
             request.RestSeconds,
-            request.IsCompleted);
+            request.IsCompleted,
+            request.Calories,
+            request.AvgHeartRate,
+            request.Rounds,
+            request.ParentSetId);
 
         await setRepository.AddAsync(set, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

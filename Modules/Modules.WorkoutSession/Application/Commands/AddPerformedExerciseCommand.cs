@@ -10,7 +10,8 @@ public sealed record AddPerformedExerciseCommand(
     Guid ExerciseId,
     Guid? PlanWorkoutExerciseId,
     int Order,
-    string? Notes) : IRequest<Result<PerformedExerciseDto>>, ITenantAuthorizedRequest
+    string? Notes,
+    Guid? SupersetGroupId = null) : IRequest<Result<PerformedExerciseDto>>, ITenantAuthorizedRequest
 {
     public Permission RequiredPermission => Permission.WorkoutLogCreate;
 }

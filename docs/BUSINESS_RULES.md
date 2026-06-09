@@ -48,7 +48,7 @@ and the stored snapshot is never redacted.
   - `HideSetsReps` — hides the prescription. The plan preview shows set rows with targets stripped; the session snapshot drops prescribed sets entirely on the trainee's read, so the trainee logs their own sets, guided live. The stored snapshot stays complete for coach/admin.
   - `HideExercises` — strips exercise names/ids **in the plan preview only**. Names are shown during an active session (the trainee needs them to perform the work). This is a preview control, not an in-session lock.
   - `HideFutureWorkouts` — the plan preview shows only the trainee's current program week. A view hint; it does not restrict which workout a trainee may start (use `Blind` for strict gating).
-  - `DisableTraineeEditing` — blocks **structural** changes during a session (add ad-hoc exercise / skip / substitute; `403`). It does **not** block logging, editing, or deleting the trainee's own set results — recording actual performance is always allowed.
+  - `DisableTraineeEditing` — blocks **structural** changes during a session (add ad-hoc exercise / skip / substitute / remove; `403`). It does **not** block logging, editing, or deleting the trainee's own set results — recording actual performance is always allowed.
 - **`Blind`** — suppresses the planned-workout snapshot at session start (no snapshot stored, exercises not seeded).
 
 The UI lets a trainee open `Full` and `Guided` plans; only `Blind` is locked.
@@ -65,15 +65,40 @@ are correct.
 - **Preconditions to start:** `WorkoutLogCreate`; **no other `InProgress` session for the user — across *all* gyms** (else 409), a person performs one workout at a time regardless of tenant; if `Source == FromAssignment`, `assignment.TraineeId == caller`. The existence check (`GetActiveForTraineeAsync`) and the backing unique index are user-scoped (see [DATABASE.md](DATABASE.md)).
 - **Start:** sets `Status=InProgress`, `StartedAt=now`; captures `WorkoutNameSnapshot` + `SnapshotJson` of the planned workout **unless `VisibilityMode == Blind`**, and **seeds the planned exercises** so the trainee sees the workout immediately.
 - **Durable exercise names:** every `PerformedExercise` stores `ExerciseName` captured at log time (seed, ad-hoc add, or substitute). Reads prefer the stored name, so renaming or deleting an `Exercise` later never rewrites history.
-- **Allowed while InProgress only:** add/skip/substitute performed exercises; log/edit/delete sets; complete; abandon.
+- **Allowed while InProgress only:** add/skip/substitute/remove performed exercises; log/edit/delete sets; complete; abandon.
   - **Skip** requires zero logged sets on that exercise (else 409). **Substitute** preserves provenance (`SubstitutedFromExerciseId`).
+  - **Remove** (`DELETE /{id}/exercises/{exerciseId}`) deletes the performed exercise outright — the `PerformedExercise → Sets` FK cascade drops its logged sets too — unlike Skip, which keeps the row as a skipped record. Same `WorkoutLogCreate` + own-session + `InProgress` guards.
 - **Complete:** only from `InProgress` (else 409); marks performed exercises completed, computes `DurationSeconds`, finalizes **`PrCount`**, sets `Completed`, raises `SessionCompletedEvent` (handler currently logs only — no analytics recompute).
 - **PR count (`PrCount`, stored read-model):** number of exercises in the session whose session-best e1RM beats the trainee's prior best for that lift (across all earlier sessions, any status). Computed **once at Complete** and stored, so the session list reads it directly. `0` for in-progress/abandoned sessions. The detail view still computes per-set `IsPr`/`Prs[]` live, but its prior-best is SQL-aggregated and bounded to the session's exercises.
 - **Abandon ("cancel"):** only from `InProgress`; **keeps logged sets**; raises no event.
 - **Forbidden:** editing/deleting sets after a terminal state; a second active session; completing/abandoning a non-`InProgress` session.
 - **Estimated 1RM (Epley):** on every set log/edit, `EstimatedOneRepMaxKg = round(weight × (1 + reps/30), 1)`, computed only for working sets with positive reps + weight (else null). Backs PRs and progression.
 - **Edge cases:** `GET /api/sessions/active` → 204 when none; it is **self-scoped** (user-wide, no tenant required), so it returns the user's single resumable session in whichever gym it was started. "Pause" is a **UI-only stopwatch** — no endpoint, not persisted, lost on refresh. Ad-hoc sessions (no assignment) carry no snapshot.
-- **Modalities:** sets support strength (reps/weight), time (`DurationSeconds`), and distance (`DistanceM`). "Notes" is a field on performed-exercise and on session complete/abandon, not a separate feature.
+- **Tracking modes (`ExerciseTrackingType`):** every `Exercise` declares how it is logged — `Strength`, `Bodyweight`,
+  `Cardio`, `Timed`, `Hiit`, `Mobility`, or `Custom` (default `Strength`). The mode is the single source of truth for
+  which set metrics matter; it is denormalized onto `PerformedExercise` at add/substitute time (durable history) so the
+  loggers and validation never re-resolve it per set. The matrix lives once in `BuildingBlocks.Shared.Tracking`
+  (`ExerciseTrackingRules`) and is mirrored by the Angular/Flutter clients.
+- **Set metrics:** a `PerformedSet` carries `Reps`, `WeightKg`, `DurationSeconds`, `DistanceM`, `Calories`,
+  `AvgHeartRate`, `Rounds`, `Rpe`, `RestSeconds` — all optional. **No metric is unconditionally required.** Instead,
+  `LogSet` enforces a **mode-aware primary-metric rule**: Strength/Bodyweight need reps; Cardio needs duration or
+  distance; Timed needs duration; Hiit needs rounds or a work duration; Mobility/Custom accept a metric-less *completed*
+  set (mark-done). Field validators still range-check each metric when present (weight > 0, reps ≥ 1, HR 1–250, etc.).
+  Plan prescription is mode-aware too: `TargetReps` is **not** required; cardio/HIIT plans prescribe
+  `TargetDurationSeconds` / `TargetDistanceM` / `TargetRounds`. "Notes" is a field on performed-exercise and on session
+  complete/abandon, not a separate feature.
+- **Drop / rest-pause sets (rollup):** a `PerformedSet` may carry `ParentSetId` pointing to a *lead* set in the same
+  performed exercise. The lead plus its stages are **one logical set** — every *set count* (`TotalSets`, progress,
+  history/progress analytics) counts only parentless rows, while **volume and PR detection still include every stage**.
+  `LogSet` validates the parent belongs to the same exercise and is itself parentless (one level — a stage can't have
+  stages). A coach prescribes a drop set in the plan as a `Working` row followed by `Drop`-typed rows.
+- **Supersets:** `PlanWorkoutExercise.SupersetGroupId` (and the denormalized `PerformedExercise.SupersetGroupId`,
+  captured at seed/add time) group exercises that are performed as a superset. Exercises sharing a non-null id in one
+  workout/session rotate (A→B→A→B); the rest timer fires only after a *round* completes. Grouping is a UI/flow concern —
+  it does not change volume, PR, or set-count math.
+- **Logged rest:** `PerformedSet.RestSeconds` records the **actual** rest taken before a set (auto-captured from the
+  in-app rest timer, editable; drop stages carry none). It is distinct from the plan's prescribed/target rest, which
+  seeds the countdown.
 
 ## Membership lifecycle (tenant + Owner/Client)
 
@@ -87,7 +112,7 @@ are correct.
 ## Exercise catalog lifecycle
 
 - **Preconditions:** writes are **platform-admin-only** (`IPlatformAdminRequest` + `PlatformAdminBehavior` — even on the open `/api/exercises` route, which 403s non-admins). Reads need `PlanView` (any member) or admin.
-- **Invariants:** name required; **≥ 1 muscle with ≥ 1 primary**, each `MuscleGroup` unique; calories/duration ≥ 0; tags deduped (case-insensitive); instructions get sequential `StepOrder`. The catalog is **global** (`TenantId` null) and pre-seeded.
+- **Invariants:** name required; **≥ 1 muscle with ≥ 1 primary**, each `MuscleGroup` unique; calories/duration ≥ 0; tags deduped (case-insensitive); instructions get sequential `StepOrder`. The catalog is **global** (`TenantId` null) and pre-seeded. `TrackingType` is **optional on create/update** — when omitted it is derived from `Type`/`Equipment` (`ExerciseTrackingDefaults.Derive`: Cardio→Cardio, Mobility/Stretching→Mobility, bodyweight-equipment strength→Bodyweight, else Strength); the migration backfills existing rows the same way.
 - **Edge cases:** raw `Enum.Parse` on Type/MovementType/Difficulty/Equipment → 500 on a bad string; legacy shims accept a single `MuscleGroup` string and default media type to "Image". Catalog management is platform-admin-only in the UI (`adminGuard()`) — coaches cannot manage it via the portal.
 
 ## Cross-cutting invariants

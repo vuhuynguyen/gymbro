@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Tracking;
 using MediatR;
 using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutPlanModule.Application.Queries;
@@ -43,12 +44,19 @@ public sealed class AddPerformedExerciseHandler(
             return Result<PerformedExerciseDto>.Failure(
                 Unauthorized("Forbidden", "Editing the planned workout is disabled for this assignment."));
 
-        // Capture the exercise name now so the log survives a later rename/delete of the exercise.
+        // Capture the exercise name and tracking mode now so the log survives a later rename/delete of the
+        // exercise and the loggers/per-mode validation know how this exercise is tracked.
         var namesResult = await mediator.Send(
             new ResolveExerciseNamesQuery(new[] { request.ExerciseId }), cancellationToken);
         var exerciseName = namesResult.IsSuccess
             ? namesResult.Value!.GetValueOrDefault(request.ExerciseId)
             : null;
+
+        var trackingResult = await mediator.Send(
+            new ResolveExerciseTrackingTypesQuery(new[] { request.ExerciseId }), cancellationToken);
+        var trackingType = trackingResult.IsSuccess
+            ? trackingResult.Value!.GetValueOrDefault(request.ExerciseId, ExerciseTrackingType.Strength)
+            : ExerciseTrackingType.Strength;
 
         var exercise = PerformedExercise.Create(
             session.Id,
@@ -56,7 +64,9 @@ public sealed class AddPerformedExerciseHandler(
             request.ExerciseId,
             request.PlanWorkoutExerciseId,
             request.Order,
-            exerciseName);
+            exerciseName,
+            trackingType,
+            request.SupersetGroupId);
 
         await exerciseRepository.AddAsync(exercise, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

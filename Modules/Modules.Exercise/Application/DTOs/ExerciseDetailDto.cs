@@ -6,6 +6,7 @@ public class ExerciseDetailDto
     public required string Name { get; set; }
     public required string Description { get; set; }
     public required string Type { get; set; }
+    public required string TrackingType { get; set; }
     public required string MovementType { get; set; }
     public required string Difficulty { get; set; }
     public required string Equipment { get; set; }

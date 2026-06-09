@@ -7,5 +7,6 @@ public interface IPerformedExerciseRepository
     Task AddAsync(PerformedExercise exercise, CancellationToken ct = default);
     Task<PerformedExercise?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<PerformedExercise?> GetByIdWithSetsAsync(Guid id, CancellationToken ct = default);
+    void Remove(PerformedExercise exercise);
     IQueryable<PerformedExercise> Query();
 }

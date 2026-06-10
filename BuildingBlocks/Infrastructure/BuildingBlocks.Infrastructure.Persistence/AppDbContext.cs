@@ -6,6 +6,8 @@ using BuildingBlocks.Shared.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using BuildingBlocks.Shared.DomainPrimitives;
 using Modules.ExerciseModule.Entities;
+using Modules.FoodModule.Entities;
+using Modules.NutritionModule.Entities;
 using Modules.UserModule.Entities;
 using Modules.WorkoutPlanModule.Entities;
 using Modules.WorkoutSessionModule.Entities;
@@ -30,6 +32,15 @@ public class AppDbContext(
     public DbSet<WorkoutSession> WorkoutSessions { get; set; } = null!;
     public DbSet<PerformedExercise> PerformedExercises { get; set; } = null!;
     public DbSet<PerformedSet> PerformedSets { get; set; } = null!;
+
+    // Nutrition (Food catalog + plans + assignments + daily logs).
+    public DbSet<Food> Foods { get; set; } = null!;
+    public DbSet<NutritionPlan> NutritionPlans { get; set; } = null!;
+    public DbSet<PlanMeal> PlanMeals { get; set; } = null!;
+    public DbSet<PlanMealItem> PlanMealItems { get; set; } = null!;
+    public DbSet<NutritionPlanAssignment> NutritionPlanAssignments { get; set; } = null!;
+    public DbSet<DailyNutritionLog> DailyNutritionLogs { get; set; } = null!;
+    public DbSet<LoggedItem> LoggedItems { get; set; } = null!;
 
     // Transactional outbox: domain events are persisted here in the SAME transaction as the changes
     // that raised them (see SaveChangesAsync), then dispatched out-of-band by the OutboxProcessor.

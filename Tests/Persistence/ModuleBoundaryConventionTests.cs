@@ -2,6 +2,8 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Modules.ExerciseModule;
+using Modules.FoodModule;
+using Modules.NutritionModule;
 using Modules.UserModule;
 using Modules.WorkoutPlanModule;
 using Modules.WorkoutSessionModule;
@@ -32,6 +34,8 @@ public sealed class ModuleBoundaryConventionTests
     private static readonly FeatureModule[] Modules =
     [
         new("Exercise", ExerciseModuleAssembly.Assembly, "Modules.ExerciseModule.Entities"),
+        new("Food", FoodModuleAssembly.Assembly, "Modules.FoodModule.Entities"),
+        new("Nutrition", NutritionModuleAssembly.Assembly, "Modules.NutritionModule.Entities"),
         new("User", UserModuleAssembly.Assembly, "Modules.UserModule.Entities"),
         new("WorkoutPlan", WorkoutPlanModuleAssembly.Assembly, "Modules.WorkoutPlanModule.Entities"),
         new("WorkoutSession", WorkoutSessionModuleAssembly.Assembly, "Modules.WorkoutSessionModule.Entities"),

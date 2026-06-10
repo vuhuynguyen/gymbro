@@ -39,7 +39,15 @@ read-only via injected repositories or MediatR queries.
 | `WorkoutPlan`, `PlanWorkout`, `PlanWorkoutExercise`, `PlanWorkoutExerciseSet` | WorkoutPlan | App | WorkoutPlan | `ITenantEntity` == header; + soft-delete |
 | `PlanAssignment` | WorkoutPlan | App | WorkoutPlan | `ITenantEntity`; + soft-delete |
 | `WorkoutSession`, `PerformedExercise`, `PerformedSet` | WorkoutSession | App | WorkoutSession (owner only) | `ITenantEntity`; sessions soft-delete; **children hard-delete** |
+| `Food` | Food | App | Food (admin global; Owner tenant-custom) | `ISharedEntity`: `TenantId null` (global) OR == header; + soft-delete |
+| `NutritionPlan`, `PlanMeal`, `PlanMealItem` | Nutrition | App | Nutrition (Owner) | `ITenantEntity` == header; root soft-delete; **children hard-delete** |
+| `NutritionPlanAssignment` | Nutrition | App | Nutrition (Owner) | `ITenantEntity`; + soft-delete; jsonb plan snapshot |
+| `DailyNutritionLog`, `LoggedItem` | Nutrition | App | Nutrition (trainee = owner) | `ITenantEntity`; log soft-delete + self-scoped cross-gym reads (`QueryOwnAcrossGyms`); **items hard-delete** |
 | `Translation` | BuildingBlocks | App | (i18n) | **none — unfiltered** (global i18n by design) |
+
+Nutrition tables mirror the workout spine (catalog → versioned template → per-day snapshot log). Schema,
+indexes (incl. the unique `(TraineeId, LocalDate)` one-day-per-user and the partial-unique plan/assignment
+indexes), and constraints: [nutrition/DATABASE.md](nutrition/DATABASE.md).
 
 ## Relationships
 

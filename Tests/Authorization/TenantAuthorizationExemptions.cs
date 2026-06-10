@@ -103,9 +103,33 @@ internal static class TenantAuthorizationExemptions
                 + "Permission.PlanView — two distinct rules a single static permission can't express."),
             ["GetExerciseByIdQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Same admin-vs-tenant split as SearchExercisesQuery; handler gates on Permission.PlanView."),
+            ["SearchFoodsQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Admin sees the global catalog; otherwise the handler gates tenant catalog access on "
+                + "Permission.PlanView — the same admin-vs-tenant split as SearchExercisesQuery."),
+            ["GetFoodByIdQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Same admin-vs-tenant split as SearchFoodsQuery; handler gates on Permission.PlanView."),
             ["GetPlanAssignmentByIdQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Row-level ownership: handler allows admins or the assignment's own trainee "
                 + "(assignment.TraineeId == currentUser.UserId), not a tenant-wide permission."),
+
+            // Self-scoped nutrition (api/me/nutrition/*): the caller's own daily log across all gyms,
+            // scoped strictly to currentUser.UserId — a per-user surface, not a tenant permission.
+            ["GetMyNutritionTodayQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Snapshot-on-touch for the caller's own day (currentUser.UserId) across all gyms; never "
+                + "accepts a client-supplied trainee id."),
+            ["GetMyNutritionDayQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Self-scoped day read keyed on currentUser.UserId; a foreign date/user resolves to NotFound."),
+            ["GetMyNutritionHistoryQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Personal nutrition history via QueryOwnAcrossGyms(currentUser.UserId) only; no cross-user surface."),
+            ["SetNutritionItemStatusCommand"] = new(ExemptionKind.ImperativeGuarded,
+                "Completion-first write on the caller's own open day (currentUser.UserId); operates only on "
+                + "an Open day and never another user's log."),
+            ["SubstituteNutritionItemCommand"] = new(ExemptionKind.ImperativeGuarded,
+                "Self-scoped substitute on the caller's own open day (currentUser.UserId)."),
+            ["AddAdhocNutritionItemCommand"] = new(ExemptionKind.ImperativeGuarded,
+                "Self-scoped ad-hoc log on the caller's own open day (currentUser.UserId)."),
+            ["RemoveNutritionItemCommand"] = new(ExemptionKind.ImperativeGuarded,
+                "Self-scoped removal of an ad-hoc item on the caller's own open day (currentUser.UserId)."),
 
             // --- InternalLookup: no caller-facing auth; only reached behind a guarded handler in-process ---
             ["GetWorkoutForSnapshotQuery"] = new(ExemptionKind.InternalLookup,
@@ -120,6 +144,12 @@ internal static class TenantAuthorizationExemptions
             ["ValidateExerciseIdsQuery"] = new(ExemptionKind.InternalLookup,
                 "Internal validation: checks that referenced exercise ids exist; returns no row data and is "
                 + "only invoked by already-authorized create/update handlers."),
+            ["ResolveFoodSummariesQuery"] = new(ExemptionKind.InternalLookup,
+                "Internal enrichment: maps food ids to their snapshot summaries so the Nutrition module can "
+                + "denormalize food data onto plan/log items; exposes no tenant-scoped row data of its own."),
+            ["ValidateFoodIdsQuery"] = new(ExemptionKind.InternalLookup,
+                "Internal validation: checks that referenced food ids exist; returns no row data and is only "
+                + "invoked by already-authorized plan/log handlers."),
         };
 
     public static bool IsExempt(string requestTypeName) => Entries.ContainsKey(requestTypeName);

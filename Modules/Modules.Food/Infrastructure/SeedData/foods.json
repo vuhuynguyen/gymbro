@@ -1,0 +1,51 @@
+{
+  "$schema": "See FoodSeedModels.cs. Fields persisted by the current schema: name, brand, kind (Food/Supplement/Beverage), servingLabel, servingSizeGrams, energyKcal, proteinG, carbsG, fatG, fiberG. Macros are PER the stated serving (not per 100 g). isActive=false skips on seed / soft-deletes on reseed. See docs/nutrition/FOOD_SEEDING.md.",
+  "$source": "Whole-food macro values are drawn from USDA FoodData Central (SR Legacy / Foundation Foods), which is public domain (CC0 1.0). Citation: U.S. Department of Agriculture, Agricultural Research Service. FoodData Central. fdc.nal.usda.gov. Values are rounded representative figures for a generic item and MUST be re-verified against the live FDC database before any production catalog ships. Branded supplements (whey/casein/pre-workout) are product-specific and are seeded as representative placeholders — real products should be added as tenant-custom foods.",
+  "version": 1,
+  "foods": [
+    { "name": "Chicken Breast, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 165, "proteinG": 31, "carbsG": 0, "fatG": 3.6, "fiberG": 0, "isActive": true },
+    { "name": "Salmon, Atlantic, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 206, "proteinG": 22, "carbsG": 0, "fatG": 12, "fiberG": 0, "isActive": true },
+    { "name": "Lean Ground Beef (93/7), Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 172, "proteinG": 26, "carbsG": 0, "fatG": 7, "fiberG": 0, "isActive": true },
+    { "name": "Canned Tuna in Water, Drained", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 116, "proteinG": 26, "carbsG": 0, "fatG": 0.8, "fiberG": 0, "isActive": true },
+    { "name": "Shrimp, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 99, "proteinG": 24, "carbsG": 0.2, "fatG": 0.3, "fiberG": 0, "isActive": true },
+    { "name": "Large Egg, Cooked", "kind": "Food", "servingLabel": "1 large (50 g)", "servingSizeGrams": 50, "energyKcal": 78, "proteinG": 6.3, "carbsG": 0.6, "fatG": 5.3, "fiberG": 0, "isActive": true },
+    { "name": "Greek Yogurt, Plain Nonfat", "kind": "Food", "servingLabel": "1 container (170 g)", "servingSizeGrams": 170, "energyKcal": 100, "proteinG": 17, "carbsG": 6.1, "fatG": 0.7, "fiberG": 0, "isActive": true },
+    { "name": "Cottage Cheese, 2% Lowfat", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 84, "proteinG": 11, "carbsG": 4.3, "fatG": 2.3, "fiberG": 0, "isActive": true },
+    { "name": "Firm Tofu", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 144, "proteinG": 15.8, "carbsG": 4.3, "fatG": 8.7, "fiberG": 1.2, "isActive": true },
+    { "name": "Black Beans, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 132, "proteinG": 8.9, "carbsG": 23.7, "fatG": 0.5, "fiberG": 8.7, "isActive": true },
+    { "name": "Lentils, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 116, "proteinG": 9, "carbsG": 20, "fatG": 0.4, "fiberG": 7.9, "isActive": true },
+
+    { "name": "White Rice, Cooked", "kind": "Food", "servingLabel": "1 cup (158 g)", "servingSizeGrams": 158, "energyKcal": 205, "proteinG": 4.3, "carbsG": 44.5, "fatG": 0.4, "fiberG": 0.6, "isActive": true },
+    { "name": "Brown Rice, Cooked", "kind": "Food", "servingLabel": "1 cup (195 g)", "servingSizeGrams": 195, "energyKcal": 240, "proteinG": 5.3, "carbsG": 50, "fatG": 2, "fiberG": 3.1, "isActive": true },
+    { "name": "Rolled Oats, Dry", "kind": "Food", "servingLabel": "1/2 cup dry (40 g)", "servingSizeGrams": 40, "energyKcal": 156, "proteinG": 6.8, "carbsG": 26.4, "fatG": 2.8, "fiberG": 4.2, "isActive": true },
+    { "name": "Sweet Potato, Baked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 90, "proteinG": 2, "carbsG": 21, "fatG": 0.2, "fiberG": 3.3, "isActive": true },
+    { "name": "Potato, Boiled", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 87, "proteinG": 1.9, "carbsG": 20, "fatG": 0.1, "fiberG": 1.8, "isActive": true },
+    { "name": "Whole Wheat Bread", "kind": "Food", "servingLabel": "1 slice (28 g)", "servingSizeGrams": 28, "energyKcal": 69, "proteinG": 3.6, "carbsG": 11.5, "fatG": 1, "fiberG": 2, "isActive": true },
+    { "name": "Whole Wheat Pasta, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 124, "proteinG": 5.3, "carbsG": 26.5, "fatG": 0.5, "fiberG": 3.9, "isActive": true },
+    { "name": "Quinoa, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 120, "proteinG": 4.4, "carbsG": 21.3, "fatG": 1.9, "fiberG": 2.8, "isActive": true },
+
+    { "name": "Banana", "kind": "Food", "servingLabel": "1 medium (118 g)", "servingSizeGrams": 118, "energyKcal": 105, "proteinG": 1.3, "carbsG": 27, "fatG": 0.4, "fiberG": 3.1, "isActive": true },
+    { "name": "Apple", "kind": "Food", "servingLabel": "1 medium (182 g)", "servingSizeGrams": 182, "energyKcal": 95, "proteinG": 0.5, "carbsG": 25, "fatG": 0.3, "fiberG": 4.4, "isActive": true },
+    { "name": "Blueberries", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 57, "proteinG": 0.7, "carbsG": 14.5, "fatG": 0.3, "fiberG": 2.4, "isActive": true },
+    { "name": "Broccoli, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 35, "proteinG": 2.4, "carbsG": 7.2, "fatG": 0.4, "fiberG": 3.3, "isActive": true },
+    { "name": "Spinach, Raw", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 23, "proteinG": 2.9, "carbsG": 3.6, "fatG": 0.4, "fiberG": 2.2, "isActive": true },
+    { "name": "Mixed Green Salad", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 17, "proteinG": 1.4, "carbsG": 3.3, "fatG": 0.2, "fiberG": 1.8, "isActive": true },
+
+    { "name": "Almonds", "kind": "Food", "servingLabel": "1 oz (28 g)", "servingSizeGrams": 28, "energyKcal": 164, "proteinG": 6, "carbsG": 6.1, "fatG": 14.2, "fiberG": 3.5, "isActive": true },
+    { "name": "Peanut Butter", "kind": "Food", "servingLabel": "2 tbsp (32 g)", "servingSizeGrams": 32, "energyKcal": 188, "proteinG": 8, "carbsG": 6.9, "fatG": 16, "fiberG": 1.9, "isActive": true },
+    { "name": "Olive Oil", "kind": "Food", "servingLabel": "1 tbsp (14 g)", "servingSizeGrams": 14, "energyKcal": 119, "proteinG": 0, "carbsG": 0, "fatG": 13.5, "fiberG": 0, "isActive": true },
+    { "name": "Avocado", "kind": "Food", "servingLabel": "1/2 medium (68 g)", "servingSizeGrams": 68, "energyKcal": 109, "proteinG": 1.4, "carbsG": 5.8, "fatG": 10, "fiberG": 4.6, "isActive": true },
+
+    { "name": "Whole Milk", "kind": "Beverage", "servingLabel": "1 cup (244 g)", "servingSizeGrams": 244, "energyKcal": 149, "proteinG": 7.7, "carbsG": 12, "fatG": 8, "fiberG": 0, "isActive": true },
+    { "name": "Skim Milk", "kind": "Beverage", "servingLabel": "1 cup (245 g)", "servingSizeGrams": 245, "energyKcal": 83, "proteinG": 8.3, "carbsG": 12, "fatG": 0.2, "fiberG": 0, "isActive": true },
+    { "name": "Orange Juice", "kind": "Beverage", "servingLabel": "1 cup (248 g)", "servingSizeGrams": 248, "energyKcal": 112, "proteinG": 1.7, "carbsG": 26, "fatG": 0.5, "fiberG": 0.5, "isActive": true },
+    { "name": "Black Coffee", "kind": "Beverage", "servingLabel": "1 cup (240 g)", "servingSizeGrams": 240, "energyKcal": 2, "proteinG": 0.3, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true },
+    { "name": "Water", "kind": "Beverage", "servingLabel": "500 ml", "servingSizeGrams": 500, "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true },
+
+    { "name": "Whey Protein Isolate", "kind": "Supplement", "servingLabel": "1 scoop (30 g)", "servingSizeGrams": 30, "energyKcal": 110, "proteinG": 25, "carbsG": 1, "fatG": 0.5, "fiberG": 0, "isActive": true },
+    { "name": "Casein Protein", "kind": "Supplement", "servingLabel": "1 scoop (33 g)", "servingSizeGrams": 33, "energyKcal": 120, "proteinG": 24, "carbsG": 3, "fatG": 1, "fiberG": 0, "isActive": true },
+    { "name": "Creatine Monohydrate", "kind": "Supplement", "servingLabel": "1 scoop (5 g)", "servingSizeGrams": 5, "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true },
+    { "name": "Fish Oil (Omega-3)", "kind": "Supplement", "servingLabel": "1 softgel", "energyKcal": 10, "proteinG": 0, "carbsG": 0, "fatG": 1, "fiberG": 0, "isActive": true },
+    { "name": "Multivitamin", "kind": "Supplement", "servingLabel": "1 tablet", "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true }
+  ]
+}

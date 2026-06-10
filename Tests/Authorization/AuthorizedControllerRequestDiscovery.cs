@@ -101,6 +101,8 @@ internal static class AuthorizedControllerRequestDiscovery
         typeof(Modules.UserModule.Application.Commands.CreateTenantCommand).Assembly,
         typeof(Modules.IdentityModule.Application.Commands.LoginCommand).Assembly,
         typeof(Modules.ExerciseModule.Application.Commands.CreateExerciseCommand).Assembly,
+        typeof(Modules.FoodModule.Application.Commands.CreateFoodCommand).Assembly,
+        Modules.NutritionModule.NutritionModuleAssembly.Assembly,
         typeof(Modules.WorkoutPlanModule.Application.Commands.CreateWorkoutPlanCommand).Assembly,
         typeof(Modules.WorkoutSessionModule.Application.Commands.StartSessionCommand).Assembly,
     ];

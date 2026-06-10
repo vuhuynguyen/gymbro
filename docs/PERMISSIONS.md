@@ -27,7 +27,8 @@ tenant data via the EF filter bypass, not the permissioned write paths.
 
 `Permission` enum (`BuildingBlocks.Shared/Authorization/Permission.cs`):
 `PlanCreate, PlanUpdate, PlanDelete, PlanAssign, PlanView, PlanViewAll, ClientView, ClientRemove, InviteCreate,
-WorkoutLogCreate, WorkoutLogViewOwn, WorkoutLogViewAll`.
+WorkoutLogCreate, WorkoutLogViewOwn, WorkoutLogViewAll, NutritionPlanCreate, NutritionPlanUpdate,
+NutritionPlanDelete, NutritionPlanAssign, NutritionLogCreate, NutritionLogViewOwn, NutritionLogViewAll`.
 
 | Permission | Owner | Client |
 |---|:---:|:---:|
@@ -40,6 +41,15 @@ WorkoutLogCreate, WorkoutLogViewOwn, WorkoutLogViewAll`.
 | WorkoutLogCreate | ✓ | ✓ |
 | WorkoutLogViewOwn | ✓ | ✓ |
 | WorkoutLogViewAll | ✓ | — |
+| NutritionPlanCreate / Update / Delete / Assign | ✓ | — |
+| NutritionLogCreate | ✓ | ✓ |
+| NutritionLogViewOwn | ✓ | ✓ |
+| NutritionLogViewAll | ✓ | — |
+
+The Nutrition log permissions mirror the Workout log family (Create/ViewOwn for trainees, ViewAll for
+coaches). Trainee nutrition logging is **self-scoped** on `api/me/nutrition/*` (handler-gated by
+`currentUser.UserId`, classified `ImperativeGuarded`), so a Client's `NutritionLogCreate` is the symmetric
+grant rather than the gate. Detail: [nutrition/API_AND_PERMISSIONS.md](nutrition/API_AND_PERMISSIONS.md).
 
 ## Capability matrix
 

@@ -1,9 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Modules.NutritionModule.Application.Commands;
+using Modules.NutritionModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Queries;
 using Modules.WorkoutSessionModule.Entities;
 using WebApi.Http;
+using WebApi.Requests.Nutrition;
 
 namespace WebApi.Controllers;
 
@@ -49,5 +52,65 @@ public sealed class MeController(IMediator mediator) : ControllerBase
     {
         var result = await mediator.Send(new GetMyProgressQuery(), ct);
         return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
+    // ── Nutrition (self-scoped, cross-gym) ────────────────────────────────
+
+    [HttpGet("nutrition/today")]
+    public async Task<IActionResult> NutritionToday(
+        [FromQuery] DateOnly? date, [FromQuery] string? timezone, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetMyNutritionTodayQuery(date, timezone), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
+    [HttpGet("nutrition/days")]
+    public async Task<IActionResult> NutritionHistory(
+        [FromQuery] DateOnly? from, [FromQuery] DateOnly? to,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 30, CancellationToken ct = default)
+    {
+        var result = await mediator.Send(new GetMyNutritionHistoryQuery(from, to, page, pageSize), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
+    [HttpGet("nutrition/days/{date}")]
+    public async Task<IActionResult> NutritionDay(DateOnly date, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetMyNutritionDayQuery(date), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
+    [HttpPost("nutrition/items/status")]
+    public async Task<IActionResult> SetNutritionItemStatus([FromBody] SetNutritionItemStatusRequest request, CancellationToken ct)
+    {
+        var result = await mediator.Send(
+            new SetNutritionItemStatusCommand(request.Date, request.ItemId, request.Status, request.Note), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(new { updated = true });
+    }
+
+    [HttpPost("nutrition/items/substitute")]
+    public async Task<IActionResult> SubstituteNutritionItem([FromBody] SubstituteNutritionItemRequest request, CancellationToken ct)
+    {
+        var result = await mediator.Send(
+            new SubstituteNutritionItemCommand(request.Date, request.ItemId, request.FoodId, request.Quantity, request.Note), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(new { updated = true });
+    }
+
+    [HttpPost("nutrition/items")]
+    public async Task<IActionResult> AddAdhocNutritionItem([FromBody] AddAdhocNutritionItemRequest request, CancellationToken ct)
+    {
+        var result = await mediator.Send(
+            new AddAdhocNutritionItemCommand(
+                request.Date, request.FoodId, request.Quantity, request.MealName, request.Note,
+                request.CustomName, request.CustomKind, request.ServingLabel,
+                request.EnergyKcal, request.ProteinG, request.CarbsG, request.FatG, request.FiberG), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : StatusCode(201, result.Value);
+    }
+
+    [HttpDelete("nutrition/items/{itemId:guid}")]
+    public async Task<IActionResult> RemoveNutritionItem(Guid itemId, [FromQuery] DateOnly date, CancellationToken ct)
+    {
+        var result = await mediator.Send(new RemoveNutritionItemCommand(date, itemId), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
     }
 }

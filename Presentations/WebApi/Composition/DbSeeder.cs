@@ -23,6 +23,10 @@ public static class DbSeeder
         // exist and never touches existing rows (so admin edits and a destructive --reseed-exercises run are
         // both preserved). A full refresh is the explicit `--reseed-exercises` CLI entrypoint.
         await ExerciseMasterDataSeeder.RunAsync(services, ExerciseSeedMode.InsertMissing);
+
+        // Food/supplement catalog — same non-destructive InsertMissing seeding from the embedded file; a full
+        // refresh is the explicit `--reseed-foods` CLI entrypoint.
+        await FoodMasterDataSeeder.RunAsync(services, FoodSeedMode.InsertMissing);
     }
 
     private static async Task SeedAdminAsync(

@@ -1,9 +1,10 @@
 # Architecture & Modules
 
-How the API is structured: the modular-monolith layout, the five feature modules, their boundaries and
+How the API is structured: the modular-monolith layout, the seven feature modules, their boundaries and
 dependencies, and the request pipeline.
 
-**Related:** [DATABASE.md](DATABASE.md) · [PERMISSIONS.md](PERMISSIONS.md) · [USER_FLOWS.md](USER_FLOWS.md)
+**Related:** [DATABASE.md](DATABASE.md) · [PERMISSIONS.md](PERMISSIONS.md) · [USER_FLOWS.md](USER_FLOWS.md) ·
+nutrition feature: [nutrition/](nutrition/)
 
 ## The shape: a modular monolith
 
@@ -112,6 +113,21 @@ Session lifecycle (start / log / edit / complete / abandon), performed exercises
 `SessionCompletedEvent` through the outbox. Computes read-side metrics (volume, PR count, estimated 1RM).
 - **Public API:** `SessionController` `/api/sessions/*`.
 - Depends on Exercise and WorkoutPlan (contracts only). May not reference `IdentityDbContext`.
+
+### Food (`AppDbContext`)
+The global, platform-shared **food/supplement catalog** (sibling of Exercise). Global reads for any member;
+global writes are platform-admin-only; an Owner may add tenant-custom foods (`ISharedEntity`).
+- **Public API:** `FoodController` `/api/foods/*`.
+- **Cross-module queries:** `ResolveFoodSummariesQuery`, `ValidateFoodIdsQuery`. Depends on BuildingBlocks only.
+
+### Nutrition (`AppDbContext`)
+Nutrition **plan → assignment → daily log** — the dietary mirror of WorkoutPlan + WorkoutSession. Versioned
+`NutritionPlan` templates, `NutritionPlanAssignment` (pins a version + jsonb snapshot), and a per-date
+`DailyNutritionLog` created by snapshot-on-touch with completion-first `LoggedItem`s
+(Planned/Completed/Skipped/Substituted/Missed); raises `DailyLogClosedEvent` through the outbox and computes
+adherence. Trainee logging is self-scoped on `MeController` `/api/me/nutrition/*`.
+- **Public API:** `NutritionController` `/api/nutrition/*` (coach) + `MeController` additions (trainee).
+- Depends on Food (contracts only). Full design + as-built status: [nutrition/](nutrition/).
 
 ### BuildingBlocks (shared kernel)
 - **Shared:** `Result`/`Error`, domain primitives (`Entity`/`AggregateRoot`, markers `ITenantEntity`/`ISharedEntity`/`ISoftDelete`), `ICurrentUser`/`ITenantContext`, `Permission`/`TenantRole` enums.

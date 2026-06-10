@@ -18,5 +18,16 @@ public enum Permission
     // Workout Logs
     WorkoutLogCreate,
     WorkoutLogViewOwn,
-    WorkoutLogViewAll
+    WorkoutLogViewAll,
+
+    // Nutrition Plans (coach authoring + assignment)
+    NutritionPlanCreate,
+    NutritionPlanUpdate,
+    NutritionPlanDelete,
+    NutritionPlanAssign,
+
+    // Nutrition Logs
+    NutritionLogCreate,
+    NutritionLogViewOwn,
+    NutritionLogViewAll
 }

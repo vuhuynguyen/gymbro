@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Modules.ExerciseModule;
+using Modules.FoodModule;
+using Modules.NutritionModule;
 using Modules.IdentityModule;
 using Modules.IdentityModule.Application.Abstractions;
 using Modules.IdentityModule.DependencyInjection;
@@ -58,6 +60,8 @@ builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
     cfg.RegisterServicesFromAssembly(ExerciseModuleAssembly.Assembly);
+    cfg.RegisterServicesFromAssembly(FoodModuleAssembly.Assembly);
+    cfg.RegisterServicesFromAssembly(NutritionModuleAssembly.Assembly);
     cfg.RegisterServicesFromAssembly(IdentityModuleAssembly.Assembly);
     cfg.RegisterServicesFromAssembly(UserModuleAssembly.Assembly);
     cfg.RegisterServicesFromAssembly(WorkoutPlanModuleAssembly.Assembly);
@@ -65,6 +69,8 @@ builder.Services.AddMediatR(cfg =>
 });
 
 builder.Services.AddValidatorsFromAssembly(ExerciseModuleAssembly.Assembly);
+builder.Services.AddValidatorsFromAssembly(FoodModuleAssembly.Assembly);
+builder.Services.AddValidatorsFromAssembly(NutritionModuleAssembly.Assembly);
 builder.Services.AddValidatorsFromAssembly(IdentityModuleAssembly.Assembly);
 builder.Services.AddValidatorsFromAssembly(UserModuleAssembly.Assembly);
 builder.Services.AddValidatorsFromAssembly(WorkoutPlanModuleAssembly.Assembly);
@@ -315,6 +321,19 @@ if (args.Contains("--seed-exercises") || args.Contains("--reseed-exercises"))
     await DatabaseMigrationStartup.EnsureMigrationsAppliedAsync(app.Services);
     var seedMode = args.Contains("--reseed-exercises") ? ExerciseSeedMode.Reseed : ExerciseSeedMode.InsertMissing;
     await ExerciseMasterDataSeeder.RunAsync(app.Services, seedMode);
+    return;
+}
+
+// Seed-and-exit entrypoints for the food/supplement catalog (mirrors the exercise ones):
+//   dotnet run --project Presentations/WebApi -- --seed-foods      (non-destructive insert-missing)
+//   dotnet run --project Presentations/WebApi -- --reseed-foods    (destructive full refresh: soft-deletes
+//                                                                    obsolete entries, upserts the rest)
+// See docs/nutrition/FOOD_SEEDING.md.
+if (args.Contains("--seed-foods") || args.Contains("--reseed-foods"))
+{
+    await DatabaseMigrationStartup.EnsureMigrationsAppliedAsync(app.Services);
+    var seedMode = args.Contains("--reseed-foods") ? FoodSeedMode.Reseed : FoodSeedMode.InsertMissing;
+    await FoodMasterDataSeeder.RunAsync(app.Services, seedMode);
     return;
 }
 

@@ -31,6 +31,8 @@
       <ProjectReference Include="..\..\BuildingBlocks\Infrastructure\BuildingBlocks.Infrastructure.Identity\BuildingBlocks.Infrastructure.Identity.csproj" />
       <ProjectReference Include="..\..\BuildingBlocks\Infrastructure\BuildingBlocks.Infrastructure.Persistence\BuildingBlocks.Infrastructure.Persistence.csproj" />
       <ProjectReference Include="..\..\Modules\Modules.Exercise\Modules.Exercise.csproj" />
+      <ProjectReference Include="..\..\Modules\Modules.Food\Modules.Food.csproj" />
+      <ProjectReference Include="..\..\Modules\Modules.Nutrition\Modules.Nutrition.csproj" />
       <ProjectReference Include="..\..\Modules\Modules.Identity\Modules.Identity.csproj" />
       <ProjectReference Include="..\..\Modules\Modules.User\Modules.User.csproj" />
       <ProjectReference Include="..\..\Modules\Modules.WorkoutPlan\Modules.WorkoutPlan.csproj" />

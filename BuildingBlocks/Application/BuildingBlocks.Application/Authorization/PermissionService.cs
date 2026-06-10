@@ -22,6 +22,13 @@ public class PermissionService : IPermissionService
                 Permission.WorkoutLogCreate  => true,
                 Permission.WorkoutLogViewOwn => true,
                 Permission.WorkoutLogViewAll => true,
+                Permission.NutritionPlanCreate => true,
+                Permission.NutritionPlanUpdate => true,
+                Permission.NutritionPlanDelete => true,
+                Permission.NutritionPlanAssign => true,
+                Permission.NutritionLogCreate  => true,
+                Permission.NutritionLogViewOwn => true,
+                Permission.NutritionLogViewAll => true,
                 _                            => false
             },
 
@@ -31,6 +38,8 @@ public class PermissionService : IPermissionService
                 Permission.ClientView        => true,
                 Permission.WorkoutLogCreate  => true,
                 Permission.WorkoutLogViewOwn => true,
+                Permission.NutritionLogCreate  => true,
+                Permission.NutritionLogViewOwn => true,
                 _                            => false
             },
 

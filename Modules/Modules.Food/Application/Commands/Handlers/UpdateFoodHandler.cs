@@ -1,0 +1,38 @@
+using BuildingBlocks.Application.Abstractions;
+using BuildingBlocks.Shared.Results;
+using MediatR;
+using Modules.FoodModule.Application.Abstractions;
+using Modules.FoodModule.Entities;
+using static BuildingBlocks.Shared.Errors.CommonErrors;
+
+namespace Modules.FoodModule.Application.Commands.Handlers;
+
+public sealed class UpdateFoodHandler(IFoodRepository repository, IUnitOfWork unitOfWork)
+    : IRequestHandler<UpdateFoodCommand, Result>
+{
+    public async Task<Result> Handle(UpdateFoodCommand request, CancellationToken cancellationToken)
+    {
+        if (!Enum.TryParse<FoodKind>(request.Food.Kind, ignoreCase: true, out var kind))
+            return Result.Failure(Validation("Food.Kind", $"Invalid food kind: '{request.Food.Kind}'."));
+
+        // Platform-admin path: admin bypasses the EF filter, so GetByIdAsync finds any food.
+        var food = await repository.GetByIdAsync(request.Id, cancellationToken);
+        if (food == null)
+            return Result.Failure(NotFound("NotFound", "Food not found."));
+
+        food.UpdateDetails(
+            request.Food.Name,
+            kind,
+            request.Food.ServingLabel,
+            request.Food.ServingSizeGrams,
+            request.Food.EnergyKcal,
+            request.Food.ProteinG,
+            request.Food.CarbsG,
+            request.Food.FatG,
+            request.Food.FiberG,
+            request.Food.Brand);
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+}

@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Modules.ExerciseModule;
 using Modules.ExerciseModule.Application.Caching;
+using Modules.FoodModule;
+using Modules.NutritionModule;
 using Modules.IdentityModule;
 using Modules.IdentityModule.DependencyInjection;
 using Modules.IdentityModule.Infrastructure.Identity;
@@ -170,6 +172,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(ExerciseModuleAssembly.Assembly);
+            cfg.RegisterServicesFromAssembly(FoodModuleAssembly.Assembly);
+            cfg.RegisterServicesFromAssembly(NutritionModuleAssembly.Assembly);
             cfg.RegisterServicesFromAssembly(IdentityModuleAssembly.Assembly);
             cfg.RegisterServicesFromAssembly(UserModuleAssembly.Assembly);
             cfg.RegisterServicesFromAssembly(WorkoutPlanModuleAssembly.Assembly);
@@ -177,6 +181,8 @@ public sealed class PostgresFixture : IAsyncLifetime
         });
 
         services.AddValidatorsFromAssembly(ExerciseModuleAssembly.Assembly);
+        services.AddValidatorsFromAssembly(FoodModuleAssembly.Assembly);
+        services.AddValidatorsFromAssembly(NutritionModuleAssembly.Assembly);
         services.AddValidatorsFromAssembly(IdentityModuleAssembly.Assembly);
         services.AddValidatorsFromAssembly(UserModuleAssembly.Assembly);
         services.AddValidatorsFromAssembly(WorkoutPlanModuleAssembly.Assembly);

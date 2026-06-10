@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BuildingBlocks.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260610160703_Nutrition_LoggedItem_Kind_CustomFood")]
+    [Migration("20260610161322_Nutrition_LoggedItem_Kind_CustomFood")]
     partial class Nutrition_LoggedItem_Kind_CustomFood
     {
         /// <inheritdoc />
@@ -547,8 +547,10 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Kind")
-                        .HasColumnType("integer");
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTimeOffset?>("LoggedAtUtc")
                         .HasColumnType("timestamp with time zone");

@@ -19,12 +19,13 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                 oldClrType: typeof(Guid),
                 oldType: "uuid");
 
-            migrationBuilder.AddColumn<int>(
+            migrationBuilder.AddColumn<string>(
                 name: "Kind",
                 table: "LoggedItems",
-                type: "integer",
+                type: "character varying(20)",
+                maxLength: 20,
                 nullable: false,
-                defaultValue: 1); // FoodKind.Food — back-fill existing rows as plain food
+                defaultValue: "Food"); // back-fill existing rows as plain food
         }
 
         /// <inheritdoc />

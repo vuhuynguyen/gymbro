@@ -544,8 +544,10 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Kind")
-                        .HasColumnType("integer");
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTimeOffset?>("LoggedAtUtc")
                         .HasColumnType("timestamp with time zone");

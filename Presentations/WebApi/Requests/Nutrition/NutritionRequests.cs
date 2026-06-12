@@ -65,6 +65,15 @@ public sealed class SubstituteNutritionItemRequest
     public string? Note { get; set; }
 }
 
+/// <summary>Daily check-in metric (weight/sleep/…); <c>LocalDate</c> defaults to UTC today when omitted.</summary>
+public sealed class LogMetricEntryRequest
+{
+    public string Type { get; set; } = string.Empty;
+    public decimal Value { get; set; }
+    public string? Unit { get; set; }
+    public DateOnly? LocalDate { get; set; }
+}
+
 public sealed class AddAdhocNutritionItemRequest
 {
     public DateOnly Date { get; set; }

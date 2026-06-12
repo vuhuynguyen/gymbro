@@ -56,6 +56,36 @@ public sealed class DailyNutritionLog : AggregateRoot, ITenantEntity, ISoftDelet
         };
     }
 
+    /// <summary>
+    /// Opens a plan-less, self-logged day for a self-training user (no active assignment governs the date).
+    /// The day is attributed to the user's own gym (<paramref name="tenantId"/>), carries no assignment and no
+    /// snapshot, and is purely ad-hoc — items added later are off-plan, so adherence is 100% by convention.
+    /// </summary>
+    public static DailyNutritionLog OpenSelfLogged(
+        Guid traineeId,
+        Guid tenantId,
+        DateOnly localDate,
+        string? clientTimezone)
+    {
+        if (traineeId == Guid.Empty) throw new DomainException("TraineeId is required.");
+        if (tenantId == Guid.Empty) throw new DomainException("TenantId is required.");
+
+        return new DailyNutritionLog
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenantId,
+            TraineeId = traineeId,
+            LocalDate = localDate,
+            ClientTimezone = clientTimezone,
+            Source = NutritionSource.Adhoc,
+            NutritionPlanAssignmentId = null,
+            SnapshotJson = null,
+            Status = DailyLogStatus.Open,
+            AdherencePct = 0,
+            IsDeleted = false
+        };
+    }
+
     public bool IsOpen => Status == DailyLogStatus.Open;
 
     public LoggedItem? FindItem(Guid itemId) => _items.FirstOrDefault(i => i.Id == itemId);

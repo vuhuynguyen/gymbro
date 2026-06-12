@@ -1,6 +1,7 @@
 using BuildingBlocks.Infrastructure.Persistence;
 using BuildingBlocks.Shared.DomainPrimitives;
 using Microsoft.EntityFrameworkCore;
+using Modules.FoodModule.Application.Caching;
 using Modules.FoodModule.Entities;
 using Modules.FoodModule.Infrastructure.Seeding;
 using Modules.NutritionModule.Entities;
@@ -50,11 +51,13 @@ public static class FoodMasterDataSeeder
         var sp = scope.ServiceProvider;
         var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(FoodMasterDataSeeder));
         var db = sp.GetRequiredService<AppDbContext>();
-        return await SeedAsync(db, logger, mode, cancellationToken);
+        var cache = sp.GetRequiredService<FoodCatalogCache>();
+        return await SeedAsync(db, cache, logger, mode, cancellationToken);
     }
 
     public static async Task<FoodSeedReport> SeedAsync(
-        AppDbContext db, ILogger logger, FoodSeedMode mode, CancellationToken cancellationToken = default)
+        AppDbContext db, FoodCatalogCache cache, ILogger logger, FoodSeedMode mode,
+        CancellationToken cancellationToken = default)
     {
         // 1. Load + validate. Fail fast — nothing is written if the data is invalid.
         var data = new FoodSeedDataLoader().Load();
@@ -92,6 +95,7 @@ public static class FoodMasterDataSeeder
             .Select(x => x.FoodId!.Value).Distinct().ToListAsync(cancellationToken));
 
         int inserted = 0, updated = 0, reactivated = 0, skippedExisting = 0, pruned = 0, prunedReferenced = 0;
+        var changedIds = new List<Guid>();
         var now = DateTimeOffset.UtcNow;
 
         // 4. Reseed prunes obsolete global foods (soft-delete only).
@@ -106,6 +110,7 @@ public static class FoodMasterDataSeeder
             {
                 if (food is ISoftDelete { IsDeleted: true }) continue;
                 SoftDelete(food, now);
+                changedIds.Add(food.Id);
                 pruned++;
                 if (referencedIds.Contains(food.Id))
                 {
@@ -129,16 +134,31 @@ public static class FoodMasterDataSeeder
                 if (match is ISoftDelete { IsDeleted: true }) { Reactivate(match); reactivated++; }
                 else updated++;
                 FoodSeedFactory.Apply(match, dto);
+                changedIds.Add(match.Id);
             }
             else
             {
-                db.Foods.Add(FoodSeedFactory.Create(dto));
+                var created = FoodSeedFactory.Create(dto);
+                db.Foods.Add(created);
+                changedIds.Add(created.Id);
                 inserted++;
             }
         }
 
         // 6. Persist atomically (EF wraps SaveChanges in a transaction — no partial import).
         await db.SaveChangesAsync(cancellationToken);
+
+        // 7. Invalidate the catalog cache (best-effort — a cache fault must not fail the committed seed).
+        try
+        {
+            await cache.InvalidateSearchAsync(cancellationToken);
+            foreach (var id in changedIds)
+                await cache.InvalidateDetailAsync(id, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Food catalog cache invalidation after seeding failed (non-fatal).");
+        }
 
         var report = new FoodSeedReport(
             inserted, updated, reactivated, skippedExisting, skippedInactive, pruned, prunedReferenced);

@@ -1,4 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Modules.FoodModule.Application.Commands;
+using Modules.NutritionModule.Application.Abstractions;
 using Modules.NutritionModule.Application.Commands;
 using Modules.NutritionModule.Application.Queries;
 using Modules.NutritionModule.Entities;
@@ -90,6 +93,321 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
         Assert.True(coachView.IsSuccess);
         var coachDay = Assert.Single(coachView.Value!.Items, d => d.LocalDate == Day);
         Assert.Equal(100, coachDay.AdherencePct);
+    }
+
+    [SkippableFact]
+    public async Task Assignment_snapshot_and_seeded_day_survive_a_new_plan_version()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var day = new DateOnly(2026, 3, 20);
+
+        // 1. Admin creates two global catalog foods (v1 uses the first, v2 the second).
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId, isAdmin: true);
+        var foodV1 = await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Snapshot Oats", "Food", "1 bowl", 60m, 300m, 10m, 50m, 6m, 8m, Brand: null)));
+        Assert.True(foodV1.IsSuccess);
+        var foodV2 = await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Snapshot Rice", "Food", "1 cup", 150m, 200m, 4m, 45m, 0.5m, 1m, Brand: null)));
+        Assert.True(foodV2.IsSuccess);
+
+        // 2. Coach authors v1 and assigns it to ClientA.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var planResult = await fixture.SendAsync(new CreateNutritionPlanCommand("Snapshot Plan", null));
+        Assert.True(planResult.IsSuccess);
+
+        var v1 = await fixture.SendAsync(new ReplaceNutritionPlanStructureCommand(
+            planResult.Value, "Snapshot Plan", "v1",
+            new[]
+            {
+                new NutritionPlanMealInput("Breakfast", 1, new TimeOnly(8, 0), DayApplicability.EveryDay,
+                    new[] { new NutritionPlanItemInput(foodV1.Value, 1, 1m) })
+            }));
+        Assert.True(v1.IsSuccess);
+
+        var assign = await fixture.SendAsync(new CreateNutritionAssignmentCommand(
+            fixture.ClientAId, v1.Value, day, EndDate: null,
+            NutritionVisibilityMode.Full, HideMacroTargets: false, DisableTraineeEditing: false));
+        Assert.True(assign.IsSuccess);
+
+        // 3. Trainee touches the day → items seeded from the v1 assignment snapshot.
+        fixture.Principal.Become(fixture.ClientAId, fixture.TenantId);
+        var before = await fixture.SendAsync(new GetMyNutritionTodayQuery(day, "UTC"));
+        Assert.True(before.IsSuccess);
+        Assert.Equal("Snapshot Oats", before.Value!.Meals.Single().Items.Single().FoodName);
+
+        // 4. Coach publishes v2 with different meals/items (Dinner + Rice).
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var v2 = await fixture.SendAsync(new ReplaceNutritionPlanStructureCommand(
+            v1.Value, "Snapshot Plan", "v2",
+            new[]
+            {
+                new NutritionPlanMealInput("Dinner", 1, new TimeOnly(19, 0), DayApplicability.EveryDay,
+                    new[] { new NutritionPlanItemInput(foodV2.Value, 1, 2m) })
+            }));
+        Assert.True(v2.IsSuccess);
+        Assert.NotEqual(v1.Value, v2.Value);
+
+        // 5. The trainee's day still reflects v1 — snapshot-on-touch is immutable under re-versioning.
+        fixture.Principal.Become(fixture.ClientAId, fixture.TenantId);
+        var after = await fixture.SendAsync(new GetMyNutritionTodayQuery(day, "UTC"));
+        Assert.True(after.IsSuccess);
+        Assert.Equal(before.Value.Id, after.Value!.Id); // same day row, not re-seeded
+        var meal = Assert.Single(after.Value.Meals);
+        Assert.Equal("Breakfast", meal.Name);
+        var item = Assert.Single(meal.Items);
+        Assert.Equal("Snapshot Oats", item.FoodName);
+        Assert.Equal(foodV1.Value, item.FoodId);
+
+        // 6. The assignment snapshot still points at the v1 plan version.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var assignments = await fixture.SendAsync(
+            new ListNutritionAssignmentsQuery(fixture.ClientAId, ActiveOnly: false, 1, 50));
+        Assert.True(assignments.IsSuccess);
+        var assignment = Assert.Single(assignments.Value!.Items, a => a.Id == assign.Value);
+        Assert.Equal(v1.Value, assignment.PlanId);          // still the v1 version row
+        Assert.Equal("Snapshot Plan", assignment.PlanName);
+    }
+
+    [SkippableFact]
+    public async Task Metric_check_in_round_trip_is_self_scoped_and_newest_first()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var day = new DateOnly(2026, 4, 10);
+
+        // 1. ClientA checks in weight and sleep for the day (self-scoped, no tenant context).
+        fixture.Principal.Become(fixture.ClientAId, fixture.TenantId);
+        Assert.True((await fixture.SendAsync(
+            new LogMetricEntryCommand("weight", 82.5m, "kg", day))).IsSuccess);
+        Assert.True((await fixture.SendAsync(
+            new LogMetricEntryCommand("sleep", 7.5m, "h", day))).IsSuccess);
+        // A later re-log of weight — the client treats the newest entry per type as "latest".
+        Assert.True((await fixture.SendAsync(
+            new LogMetricEntryCommand("weight", 82.1m, "kg", day))).IsSuccess);
+
+        // 2. Read back for the date: all three entries, newest first.
+        var mine = await fixture.SendAsync(new GetMyNutritionMetricsQuery(day));
+        Assert.True(mine.IsSuccess);
+        Assert.Equal(3, mine.Value!.Items.Count);
+        Assert.True(mine.Value.Items.Zip(mine.Value.Items.Skip(1))
+            .All(p => p.First.LoggedAtUtc >= p.Second.LoggedAtUtc));
+        Assert.Equal(82.1m, mine.Value.Items.First(i => i.Type == "weight").Value); // latest weight wins
+        Assert.Equal(7.5m, Assert.Single(mine.Value.Items, i => i.Type == "sleep").Value);
+        Assert.All(mine.Value.Items, i => Assert.Equal(day, i.LocalDate));
+
+        // 3. Another user reading the same date sees none of ClientA's entries.
+        fixture.Principal.Become(fixture.ClientBId, fixture.TenantId);
+        var theirs = await fixture.SendAsync(new GetMyNutritionMetricsQuery(day));
+        Assert.True(theirs.IsSuccess);
+        Assert.Empty(theirs.Value!.Items);
+    }
+
+    [SkippableFact]
+    public async Task Visibility_modes_do_not_redact_trainee_or_coach_reads_as_built()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+
+        // AS-BUILT: NutritionVisibilityMode and HideMacroTargets are STORED on the assignment for
+        // forward-compatibility, but NO read-time redaction exists yet (see NutritionVisibilityMode's
+        // xml-doc: "read-time redaction is a later phase ... the trainee currently sees Full").
+        // This test pins that behavior: every mode currently returns full macro data to the trainee,
+        // and the coach read is (and must stay) unfiltered. If redaction is implemented, the trainee
+        // assertions for Guided/Blind below are the ones to flip.
+        var modes = new (NutritionVisibilityMode Mode, bool HideMacros, DateOnly Day)[]
+        {
+            (NutritionVisibilityMode.Full, false, new DateOnly(2026, 5, 1)),
+            (NutritionVisibilityMode.Guided, true, new DateOnly(2026, 5, 2)),
+            (NutritionVisibilityMode.Blind, false, new DateOnly(2026, 5, 3)),
+        };
+
+        // Seed one catalog food.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId, isAdmin: true);
+        var food = await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Visibility Oats", "Food", "1 bowl", 60m, 300m, 10m, 50m, 6m, 8m, Brand: null)));
+        Assert.True(food.IsSuccess);
+
+        foreach (var (mode, hideMacros, day) in modes)
+        {
+            // One plan + bounded one-day assignment per mode (same trainee, non-overlapping windows).
+            fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+            var plan = await fixture.SendAsync(new CreateNutritionPlanCommand($"Vis {mode}", null));
+            Assert.True(plan.IsSuccess);
+            var version = await fixture.SendAsync(new ReplaceNutritionPlanStructureCommand(
+                plan.Value, $"Vis {mode}", null,
+                new[]
+                {
+                    new NutritionPlanMealInput("Breakfast", 1, new TimeOnly(8, 0), DayApplicability.EveryDay,
+                        new[] { new NutritionPlanItemInput(food.Value, 1, 1m) })
+                }));
+            Assert.True(version.IsSuccess);
+            var assigned = await fixture.SendAsync(new CreateNutritionAssignmentCommand(
+                fixture.ClientBId, version.Value, day, EndDate: day,
+                mode, hideMacros, DisableTraineeEditing: false));
+            Assert.True(assigned.IsSuccess);
+
+            // Trainee day read: macros are present in EVERY mode today (no redaction as-built).
+            fixture.Principal.Become(fixture.ClientBId, fixture.TenantId);
+            var traineeDay = await fixture.SendAsync(new GetMyNutritionTodayQuery(day, "UTC"));
+            Assert.True(traineeDay.IsSuccess);
+            var traineeItem = Assert.Single(Assert.Single(traineeDay.Value!.Meals).Items);
+            Assert.Equal(300m, traineeItem.EnergyKcal); // would be redacted under Guided+HideMacroTargets/Blind
+            Assert.Equal(10m, traineeItem.ProteinG);
+            Assert.Equal("Visibility Oats", traineeItem.FoodName);
+
+            // Coach day read is never filtered, in any mode.
+            fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+            var coachDay = await fixture.SendAsync(new GetTraineeNutritionDayQuery(fixture.ClientBId, day));
+            Assert.True(coachDay.IsSuccess);
+            var coachItem = Assert.Single(Assert.Single(coachDay.Value!.Meals).Items);
+            Assert.Equal(300m, coachItem.EnergyKcal);
+            Assert.Equal(10m, coachItem.ProteinG);
+
+            // The mode + flags are faithfully stored on the assignment (the forward-compat contract).
+            var list = await fixture.SendAsync(
+                new ListNutritionAssignmentsQuery(fixture.ClientBId, ActiveOnly: false, 1, 50));
+            Assert.True(list.IsSuccess);
+            var dto = Assert.Single(list.Value!.Items, a => a.Id == assigned.Value);
+            Assert.Equal(mode, dto.VisibilityMode);
+            Assert.Equal(hideMacros, dto.HideMacroTargets);
+        }
+    }
+
+    [SkippableFact]
+    public async Task Self_train_owner_logs_off_plan_food_without_an_assignment()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var day = new DateOnly(2026, 7, 4);
+
+        // 1. Admin seeds a global catalog food.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId, isAdmin: true);
+        var food = await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Self Banana", "Food", "1 medium", 120m, 105m, 1.3m, 27m, 0.4m, 3m, Brand: null)));
+        Assert.True(food.IsSuccess);
+
+        // 2. The gym OWNER (self-train, no nutrition assignment) logs an off-plan catalog food on the
+        //    tenant-scoped write surface (api/nutrition/log). Become(OwnerId, TenantId) sets the active gym, so
+        //    the NutritionLogCreate-gated command (Owner holds it) provisions a plan-less day stamped with that
+        //    gym, not a 404.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var add = await fixture.SendAsync(new AddAdhocNutritionItemCommand(day, food.Value, 1m, "Snack", "tasty"));
+        Assert.True(add.IsSuccess);
+
+        // 3. The day reads back on the self surface, with the ad-hoc item completed.
+        var today = await fixture.SendAsync(new GetMyNutritionTodayQuery(day, "UTC"));
+        Assert.True(today.IsSuccess);
+        Assert.False(today.Value!.HasPlan); // no plan governs it
+        Assert.Equal("Adhoc", today.Value.Source);
+        var item = Assert.Single(Assert.Single(today.Value.Meals).Items);
+        Assert.Equal("Self Banana", item.FoodName);
+        Assert.Equal(LoggedItemStatus.Completed, item.Status);
+
+        // 4. It persisted, stamped with the ACTIVE gym (from the X-Tenant-Id header), Source=Adhoc, no assignment.
+        await fixture.InScopeAsync(async sp =>
+        {
+            var repo = sp.GetRequiredService<IDailyNutritionLogRepository>();
+            var stored = await repo.GetOwnByDateAsync(fixture.OwnerId, day, CancellationToken.None);
+            Assert.NotNull(stored);
+            Assert.Equal(NutritionSource.Adhoc, stored!.Source);
+            Assert.Equal(fixture.TenantId, stored.TenantId);
+            Assert.Null(stored.NutritionPlanAssignmentId);
+            Assert.Single(stored.Items);
+        });
+
+        // 5. Marking the ad-hoc item works, and so does removing it.
+        var itemId = item.Id;
+        var status = await fixture.SendAsync(
+            new SetNutritionItemStatusCommand(day, itemId, LoggedItemStatus.Skipped, null));
+        Assert.True(status.IsSuccess);
+        var remove = await fixture.SendAsync(new RemoveNutritionItemCommand(day, itemId));
+        Assert.True(remove.IsSuccess);
+
+        // 6. A coach in a DIFFERENT gym cannot see the self-train owner's day (tenant filter bounds it).
+        fixture.Principal.Become(fixture.OtherOwnerId, fixture.OtherTenantId);
+        var rivalView = await fixture.SendAsync(
+            new ListTraineeNutritionDaysQuery(fixture.OwnerId, null, null, 1, 30));
+        Assert.True(rivalView.IsSuccess);
+        Assert.DoesNotContain(rivalView.Value!.Items, d => d.LocalDate == day);
+    }
+
+    [SkippableFact]
+    public async Task Two_adhoc_adds_to_the_same_day_in_separate_scopes_both_succeed()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var day = new DateOnly(2026, 7, 9);
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+
+        // First add: creates the (owner, day) self-logged day and inserts one item (separate scope).
+        var first = await fixture.SendAsync(new AddAdhocNutritionItemCommand(
+            day, null, 1m, "Snack", null, CustomName: "Almonds", EnergyKcal: 160m));
+        Assert.True(first.IsSuccess, $"first add failed: {(first.IsFailure ? first.Error.Code : "")}");
+
+        // Second add: loads the EXISTING day in a fresh scope/DbContext and inserts a second child item.
+        // This is the load-then-add path the duplicate-day race-retry does NOT cover.
+        var second = await fixture.SendAsync(new AddAdhocNutritionItemCommand(
+            day, null, 1m, "Snack", null, CustomName: "Walnuts", EnergyKcal: 180m));
+        Assert.True(second.IsSuccess, $"second add failed: {(second.IsFailure ? second.Error.Code : "")}");
+
+        // One day row, two items.
+        await fixture.InScopeAsync(async sp =>
+        {
+            var repo = sp.GetRequiredService<IDailyNutritionLogRepository>();
+            var stored = await repo.GetOwnByDateAsync(fixture.OwnerId, day, CancellationToken.None);
+            Assert.NotNull(stored);
+            Assert.Equal(2, stored!.Items.Count);
+        });
+    }
+
+    [SkippableFact]
+    public async Task Adhoc_add_for_a_non_member_of_the_active_gym_is_rejected_by_authorization()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var day = new DateOnly(2026, 7, 5);
+
+        // The write surface is now tenant-scoped (ITenantAuthorizedRequest, NutritionLogCreate). A user who is
+        // NOT a member of the active gym (no UserTenantRole in TenantId) has no role there, so
+        // AuthorizationBehavior denies the command — a clean Result failure, not an exception/500.
+        var orphanId = Guid.NewGuid();
+        fixture.Principal.Become(orphanId, fixture.TenantId);
+
+        var result = await fixture.SendAsync(
+            new AddAdhocNutritionItemCommand(day, null, 1m, "Snack", null, CustomName: "Mystery bar"));
+
+        Assert.True(result.IsFailure); // a clean Result failure (Unauthorized), not an exception/500
+        Assert.Equal("Unauthorized", result.Error.Code);
+    }
+
+    [SkippableFact]
+    public async Task Self_logged_day_is_one_row_stamped_with_the_active_gym_invisible_cross_gym()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var day = new DateOnly(2026, 7, 6);
+
+        // The owner logs an off-plan custom food on the tenant-scoped write surface under their own gym (gym A).
+        // A nutrition day is unique per (trainee, date) globally, so it is a single row stamped with the gym
+        // that was active when it was first created.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var add = await fixture.SendAsync(new AddAdhocNutritionItemCommand(
+            day, null, 1m, "Snack", null, CustomName: "Almonds", EnergyKcal: 160m));
+        Assert.True(add.IsSuccess);
+
+        // Exactly one (trainee, date) day, stamped with gym A.
+        await fixture.InScopeAsync(async sp =>
+        {
+            var repo = sp.GetRequiredService<IDailyNutritionLogRepository>();
+            var all = await repo.QueryOwnAcrossGyms(fixture.OwnerId)
+                .Where(l => l.LocalDate == day)
+                .ToListAsync();
+            var stored = Assert.Single(all);
+            Assert.Equal(fixture.TenantId, stored.TenantId); // stamped with the active gym (gym A)
+            Assert.Equal(NutritionSource.Adhoc, stored.Source);
+        });
+
+        // A rival-gym owner cannot see that day — the tenant filter bounds the coach read to gym A.
+        fixture.Principal.Become(fixture.OtherOwnerId, fixture.OtherTenantId);
+        var rivalView = await fixture.SendAsync(
+            new ListTraineeNutritionDaysQuery(fixture.OwnerId, null, null, 1, 30));
+        Assert.True(rivalView.IsSuccess);
+        Assert.DoesNotContain(rivalView.Value!.Items, d => d.LocalDate == day);
     }
 
     [SkippableFact]

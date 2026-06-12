@@ -82,7 +82,9 @@ public sealed class NutritionController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new CreateNutritionAssignmentCommand(
             request.TraineeId, request.PlanId, request.StartDate, request.EndDate,
             request.VisibilityMode, request.HideMacroTargets, request.DisableTraineeEditing), ct);
-        return result.IsFailure ? result.ToFailureResult(this) : StatusCode(201, result.Value);
+        return result.IsFailure
+            ? result.ToFailureResult(this)
+            : CreatedAtAction(nameof(ListAssignments), new { id = result.Value }, new { id = result.Value });
     }
 
     // ── Coach client-log reads (adherence) ────────────────────────────────

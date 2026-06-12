@@ -8,10 +8,15 @@ security/data-ownership posture. Everything here extends existing mechanisms —
 
 > **As-built (Phase 2–3).** The shipped surface is: **coach** `NutritionController` `/api/nutrition/*` —
 > `plans` (list/get/create/`{id}/structure`/delete), `assignments` (list/create), `logs` (`?traineeId=` list,
-> `/{date}` get); **trainee** `MeController` `/api/me/nutrition/*` — `today`, `days`, `days/{date}`,
-> `items/status`, `items/substitute`, `items` (add ad-hoc). The **idempotent-write / `clientItemId` /
-> `/sync` batch** design in §4 and the metrics endpoints are part of the **offline phase and are NOT built** —
-> writes are ordinary (non-idempotent) for MVP. See the [as-built status](README.md).
+> `/{date}` get); **tenant-scoped trainee writes** `NutritionLogController` `/api/nutrition/log/*` —
+> `items` (add ad-hoc), `items/status`, `items/substitute`, `items/{itemId}` (delete); **trainee reads + metrics**
+> `MeController` `/api/me/nutrition/*` — `today`, `days`, `days/{date}`, and `metrics` (GET/POST — the check-in
+> slice, **built**). Trainee logging is **tenant-scoped** (requires `X-Tenant-Id`, `NutritionLogCreate`), mirroring
+> workout sessions on `api/sessions`; reads and the personal metric series stay self-scoped.
+> Off-plan `items` writes **no longer require an active assignment** — with none, a plan-less self-logged day is
+> provisioned and stamped with the **active gym** (the `X-Tenant-Id` header) (§3, [DOMAIN_MODEL §3](DOMAIN_MODEL.md)). The
+> **idempotent-write / `clientItemId` / `/sync` batch** design in §4 remains part of the **offline phase and is
+> NOT built** — writes are ordinary (non-idempotent) for MVP. See the [as-built status](README.md).
 
 ## 1. Controllers & routes (clean, header-versioned)
 
@@ -37,21 +42,36 @@ Three controllers, all thin (bind → one MediatR command/query → `Result.ToFa
 | PUT | `/api/nutrition/assignments/{id}` (config, pause, resume, apply-latest) | `NutritionPlanAssign` | assignment lifecycle |
 | GET | `/api/nutrition/logs?traineeId=&from=&to=` | `NutritionLogViewAll` | **coach** monitoring of a gym's clients |
 | GET | `/api/nutrition/logs/{date}?traineeId=` | `NutritionLogViewAll` | coach drill-in to a client's day |
-| GET | `/api/nutrition/adherence?traineeId=&from=&to=` | `NutritionLogViewAll` | coach adherence dashboard |
+| GET | `/api/nutrition/adherence?traineeId=&from=&to=` | `NutritionLogViewAll` | **NOT BUILT** — coach adherence dashboard (designed; see [ANALYTICS_AND_COACHING.md](ANALYTICS_AND_COACHING.md)) |
 
-### `MeController` += `/api/me/nutrition/*` (self-scoped, **cross-gym** — the trainee surface)
+### `NutritionLogController` — `/api/nutrition/log/*` (tenant-scoped trainee **writes** — mirrors `api/sessions`)
+
+Trainee daily-log writes are **tenant-scoped**, exactly like workout sessions (`StartSessionCommand` on
+`api/sessions`): each requires `X-Tenant-Id` (membership-validated by `TenantResolutionMiddleware`) and
+`Permission.NutritionLogCreate` (held by **Owner AND Client**), gated declaratively by `AuthorizationBehavior`.
+Handlers still scope every mutation to the caller's own day (`currentUser.UserId`); a nutrition day is unique
+per `(trainee, date)` globally, so its tenant is simply the gym active when the day was first created.
+
+| Method | Route | Auth (permission) | Returns |
+|---|---|---|---|
+| POST | `/api/nutrition/log/items` | `NutritionLogCreate` | add an off-plan item; with no active assignment a plan-less self-logged day is provisioned, **stamped with the active gym** (the `X-Tenant-Id` header). `201` with the new item id. A non-member of the active gym → `401 Unauthorized` (declarative gate); no tenant in context → clean `400` |
+| POST | `/api/nutrition/log/items/status` | `NutritionLogCreate` | complete/skip a planned item on own day |
+| POST | `/api/nutrition/log/items/substitute` | `NutritionLogCreate` | swap a food (records provenance) |
+| DELETE | `/api/nutrition/log/items/{itemId}?date=` | `NutritionLogCreate` | remove an ad-hoc item — `204` |
+
+### `MeController` += `/api/me/nutrition/*` (self-scoped, **cross-gym** — trainee reads + personal metrics)
+
+Reads and the personal metric series stay **self-scoped** (no `X-Tenant-Id`), aggregating across all gyms.
 
 | Method | Route | Returns |
 |---|---|---|
 | GET | `/api/me/nutrition/today` | today's `DailyNutritionLog` (lazily created if absent), across gyms |
 | GET | `/api/me/nutrition/days/{date}` | a specific day's log + items |
 | GET | `/api/me/nutrition/days?from=&to=` | the trainee's nutrition timeline (paged) |
-| POST | `/api/me/nutrition/items` | log/complete/skip/add an item (idempotent — see §4) |
-| PUT/DELETE | `/api/me/nutrition/items/{clientItemId}` | edit/remove an item |
-| POST | `/api/me/nutrition/items/{clientItemId}/substitute` | swap a food (records provenance) |
-| GET/POST | `/api/me/nutrition/metrics` | read/append `MetricEntry` (weight, water, sleep, mood, photo, …) |
-| GET | `/api/me/nutrition/summary?from=&to=` | adherence/streak/macro trend (the personal analytics read model) |
-| POST | `/api/me/nutrition/sync` | **batch** apply a queue of offline mutations (see [REMINDERS_AND_OFFLINE §3](REMINDERS_AND_OFFLINE.md)) |
+| GET | `/api/me/nutrition/metrics?date=` | **BUILT** — the caller's own `MetricEntry` check-in entries for the date (default UTC today), `{items:[{type,value,unit,localDate,loggedAtUtc}]}` **newest first** (the client takes the first entry per type as "latest") |
+| POST | `/api/me/nutrition/metrics` | **BUILT** — append `{type, value, unit?, localDate?}` to the caller's own series (`localDate` defaults to UTC today); `MetricEntry` is intentionally NOT tenant-bound (personal body data); photos/wearables still deferred |
+| GET | `/api/me/nutrition/summary?from=&to=` | **NOT BUILT** — adherence/streak/macro trend (the personal analytics read model) |
+| POST | `/api/me/nutrition/sync` | **NOT BUILT** — **batch** apply a queue of offline mutations (see [REMINDERS_AND_OFFLINE §3](REMINDERS_AND_OFFLINE.md)) |
 
 ## 2. Wire format (reused verbatim)
 
@@ -73,19 +93,27 @@ feature already ships and documents ([USER_FLOWS.md](../USER_FLOWS.md) "Unified 
 
 | Surface | Header | Scope | Bypass | Used by |
 |---|---|---|---|---|
-| `/api/me/nutrition/*` | **no** `X-Tenant-Id` | self, cross-gym | `QueryOwnAcrossGyms` (`IgnoreQueryFilters` + `TraineeId == currentUser.UserId`, re-apply `!IsDeleted`) | trainee logging, today, history, metrics, summary, offline sync |
+| `/api/me/nutrition/*` (reads + metrics) | **no** `X-Tenant-Id` | self, cross-gym | `QueryOwnAcrossGyms` (`IgnoreQueryFilters` + `TraineeId == currentUser.UserId`, re-apply `!IsDeleted`) | today, history, day read, metrics, summary |
+| `/api/nutrition/log/*` (trainee writes) | `X-Tenant-Id` **required** | one gym (active) | none — declaratively gated (`NutritionLogCreate`) | trainee item status/substitute/ad-hoc/remove |
 | `/api/nutrition/*` | `X-Tenant-Id` **required** | one gym | none (tenant filter applies) | coach plan authoring, client monitoring, adherence |
 
-- **Why:** without the self-scoped surface, a trainee in two gyms would either see fragmented per-gym nutrition or
+- **Why reads stay self-scoped:** without it, a trainee in two gyms would either see fragmented per-gym nutrition or
   need a tenant header for their own breakfast — both wrong. The audited bypass is built for exactly this.
-- **How it aligns:** these `/api/me/nutrition/*` queries are added to `TenantAuthorizationExemptions` as
-  **`ImperativeGuarded`** (the same classification as `GetMyWorkoutHistoryQuery` et al.), each scoped strictly to
-  `currentUser.UserId`; a foreign id resolves to 404, never a leak. The `TenantScopedRequestConventionTests` keep
-  this honest at build time.
+- **Why writes are tenant-scoped:** trainee logging mirrors workout sessions — the write happens *in the context of a
+  gym* (the active `X-Tenant-Id`), so the four log-write commands are `ITenantAuthorizedRequest`
+  (`NutritionLogCreate`, held by Owner AND Client), declaratively gated by `AuthorizationBehavior` +
+  membership-validated `TenantResolutionMiddleware`, exactly like `StartSessionCommand`. They are **not**
+  exemptions. The handlers still scope to `currentUser.UserId` (defense in depth); a foreign id resolves to 404.
+- **How the reads align:** the `/api/me/nutrition/*` queries + the personal metric write stay in
+  `TenantAuthorizationExemptions` as **`ImperativeGuarded`** (same classification as `GetMyWorkoutHistoryQuery`),
+  each scoped strictly to `currentUser.UserId`. The `TenantScopedRequestConventionTests` keep this honest at build time.
 - **Alternative considered:** make the trainee always pass their coach's tenant. Rejected — breaks multi-gym, and
   contradicts the platform's own decision for sessions.
 
-## 4. Idempotent writes (enables offline + safe retries)
+## 4. Idempotent writes (enables offline + safe retries) — *designed, deferred to Phase 4*
+
+> **Not built.** Everything in this section — `clientItemId`, the idempotency key, the `/sync` batch — is part
+> of the deferred offline phase. Shipped writes are ordinary (non-idempotent).
 
 Trainee log writes accept a **client-generated `clientItemId` (GUID)** and an **idempotency key**. The server
 upserts: a re-sent create with a known `clientItemId` returns the existing item (200) rather than creating a
@@ -143,7 +171,7 @@ The permission **matrix is server-only** — the frontends keep no mirror to syn
 - **Photos** (meal/progress) are media → follow the [master-data MEDIA_STRATEGY](../master-data/MEDIA_STRATEGY.md):
   **never served from the app server**, object storage (R2/S3) behind a CDN, **signed URLs** for private user
   photos (stricter than public exercise media — these are private by default). `PhotoRef` stores the storage key,
-  not a public URL.
+  not a public URL. *(Not built — `PhotoRef`/photo capture is part of the deferred `MetricEntry` phase.)*
 - **Push device tokens** (deferred phase) are credentials → store hashed/opaque, scoped per user, revocable on
   logout-all (reuse the SecurityStamp/refresh-revocation instincts).
 - **Audit:** every write is `CreatedBy`/`ModifiedBy`-stamped automatically. Coach reads of client data are

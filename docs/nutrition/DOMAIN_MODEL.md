@@ -100,6 +100,18 @@ snapshotting the applicable planned meals into `SnapshotJson` and seeding one `L
 **closed**: any still-`Planned` items become `Missed`, `AdherencePct` is finalized, and `DailyLogClosedEvent` is
 raised through the outbox.
 
+**`Source` and the self-logged day (as built).** The root carries a `NutritionSource`: a day seeded from an
+active assignment is `FromAssignment` (opened via `DailyNutritionLog.Open(..., NutritionPlanAssignmentId,
+SnapshotJson)`). When a trainee logs off-plan food on a date **no assignment governs**, the
+`NutritionDayProvisioner` instead opens a plan-less **self-logged** day via
+`DailyNutritionLog.OpenSelfLogged(traineeId, tenantId, date, tz)` with `Source = NutritionSource.Adhoc` (the
+previously-unused enum value, now in use): no assignment, no snapshot, `AdherencePct = 0`. The day is still
+stamped with a gym — the **active gym** from `ITenantContext.TenantId` (the trainee write surface
+`/api/nutrition/log/*` is tenant-scoped, so the header tenant is present). A nutrition day is unique per
+`(trainee, date)` globally, so its `TenantId` is simply the gym active when the day was first created;
+`TenantId` stays non-null and the EF tenant filter keeps the day invisible to coaches in other gyms. Only
+**writes** create this row; a READ with no assignment and no existing day returns a non-persisted empty day instead.
+
 ```mermaid
 stateDiagram-v2
   [*] --> Planned: snapshot from plan (seed)
@@ -240,6 +252,15 @@ the [master-data DATA_SOURCE_COMPARISON](../master-data/DATA_SOURCE_COMPARISON.m
 > This proposal models the *approach*; it imports no data.
 
 ## 8. The extensibility spine — `MetricEntry` (Decision 6, detailed)
+
+> **Status: MVP slice built.** `MetricEntry` now exists as an entity + table (migration
+> `Nutrition_MetricEntry`) with the GET/POST `/api/me/nutrition/metrics` endpoints the Flutter check-in UI
+> calls — check-in data IS persisted server-side. The built slice is deliberately simpler than the full
+> design below: `Type` is a free-form string (no `MetricType` lookup table yet), the value is a single
+> numeric (`value` + optional `unit`), the row carries **no TenantId** (purely personal, self-scoped — see
+> [DATABASE.md](DATABASE.md)), and the series is append-only newest-first ("latest" = first entry per type).
+> **Still deferred:** the `MetricType` lookup/`ValueKind` typing, photos (`PhotoRef`), wearable/AI sources,
+> and per-type uniqueness rules.
 
 The brief's "think beyond logging" list — body weight, body fat, measurements, water, fiber, micronutrients,
 recovery, sleep, energy, digestion, mood, custom notes, photos, wearables, AI — is **long, heterogeneous, and

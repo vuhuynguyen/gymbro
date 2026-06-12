@@ -2,19 +2,17 @@ using BuildingBlocks.Application.Authorization;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Modules.FoodModule.Application.Abstractions;
+using Modules.FoodModule.Application.Caching;
 using Modules.FoodModule.Application.DTOs;
-using Modules.FoodModule.Application.Mapping;
 using static BuildingBlocks.Shared.Errors.CommonErrors;
 
 namespace Modules.FoodModule.Application.Queries.Handlers;
 
 public sealed class GetFoodByIdHandler(
-    IFoodRepository repository,
     ICurrentUser currentUser,
     ITenantContext tenantContext,
-    ITenantAuthorizationService tenantAuth)
+    ITenantAuthorizationService tenantAuth,
+    FoodCatalogCache catalogCache)
     : IRequestHandler<GetFoodByIdQuery, Result<FoodDto>>
 {
     public async Task<Result<FoodDto>> Handle(GetFoodByIdQuery request, CancellationToken cancellationToken)
@@ -32,13 +30,10 @@ public sealed class GetFoodByIdHandler(
                     Unauthorized("Food.Get.Unauthorized", "You do not have permission to view the food catalog."));
         }
 
-        var food = await repository.Query()
-            .Where(f => f.Id == request.Id)
-            .Select(FoodMapping.FoodDtoProjection)
-            .FirstOrDefaultAsync(cancellationToken);
+        var envelope = await catalogCache.GetDetailAsync(request.Id, cancellationToken);
 
-        return food == null
+        return envelope is null || !envelope.Exists
             ? Result<FoodDto>.Failure(NotFound("NotFound", "Food not found."))
-            : Result<FoodDto>.Success(food);
+            : Result<FoodDto>.Success(envelope.Value!);
     }
 }

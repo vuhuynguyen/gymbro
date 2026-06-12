@@ -1,5 +1,8 @@
 # Nutrition — Reminders, Notifications & Offline Sync
 
+> **Status: everything in this document is deferred — none of it is implemented** (no reminders, no push, no
+> `DeviceToken`, no offline queue or `/sync` endpoint).
+
 The three capabilities GymBro has never had. Each is **net-new**, so each gets a careful design with phasing that
 keeps the MVP shippable before the hard parts land. **Grounding fact from discovery:** there is *no* local-DB,
 local-notification, push, service-worker, or background-task code in **any** repo today — the API's only async/

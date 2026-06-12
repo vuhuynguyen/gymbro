@@ -41,6 +41,7 @@ public class AppDbContext(
     public DbSet<NutritionPlanAssignment> NutritionPlanAssignments { get; set; } = null!;
     public DbSet<DailyNutritionLog> DailyNutritionLogs { get; set; } = null!;
     public DbSet<LoggedItem> LoggedItems { get; set; } = null!;
+    public DbSet<MetricEntry> MetricEntries { get; set; } = null!;
 
     // Transactional outbox: domain events are persisted here in the SAME transaction as the changes
     // that raised them (see SaveChangesAsync), then dispatched out-of-band by the OutboxProcessor.

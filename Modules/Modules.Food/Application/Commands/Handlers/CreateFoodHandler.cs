@@ -3,12 +3,16 @@ using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.FoodModule.Application.Abstractions;
+using Modules.FoodModule.Application.Caching;
 using Modules.FoodModule.Entities;
 using static BuildingBlocks.Shared.Errors.CommonErrors;
 
 namespace Modules.FoodModule.Application.Commands.Handlers;
 
-public sealed class CreateFoodHandler(IFoodRepository repository, IUnitOfWork unitOfWork)
+public sealed class CreateFoodHandler(
+    IFoodRepository repository,
+    IUnitOfWork unitOfWork,
+    FoodCatalogCache catalogCache)
     : IRequestHandler<CreateFoodCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(CreateFoodCommand request, CancellationToken cancellationToken)
@@ -37,6 +41,9 @@ public sealed class CreateFoodHandler(IFoodRepository repository, IUnitOfWork un
 
         await repository.AddAsync(food, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // A new food changes search results everywhere (it is global) — bump the search generation.
+        await catalogCache.InvalidateSearchAsync(cancellationToken);
 
         return Result<Guid>.Success(food.Id);
     }

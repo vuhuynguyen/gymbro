@@ -7,6 +7,11 @@ nutrition's rich-by-design data pays off.
 **Related:** [DOMAIN_MODEL.md](DOMAIN_MODEL.md) (the durable data) · [API_AND_PERMISSIONS.md](API_AND_PERMISSIONS.md)
 (read surfaces) · [USER_FLOWS.md](../USER_FLOWS.md) (the workout analogue).
 
+> **Status.** The **snapshot capture on logs is built** — every `LoggedItem` denormalizes name + macros at log
+> time, so the historical data described here is accruing today. The **`summary`/`adherence` endpoints and the
+> aggregation handlers are designed, not built** — no `/api/me/nutrition/summary` or `/api/nutrition/adherence`
+> exists yet.
+
 ## 1. Reporting strategy — reuse the "no Reports module" model
 
 GymBro deliberately has **no `/api/reports` and no Reports module** ([USER_FLOWS.md](../USER_FLOWS.md) §6):

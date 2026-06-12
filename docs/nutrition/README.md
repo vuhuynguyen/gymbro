@@ -1,8 +1,11 @@
 # GymBro Nutrition Tracking — Discovery & Architecture Proposal
 
-> **Status:** Architecture proposal + **Phase 1–3 implementation in progress.** These documents define the
-> full forward-looking design; the **as-built status** below records what is actually implemented today (a
-> subset). This mirrors the [`master-data/`](../master-data/) precedent — design first, then build.
+> **Status:** Architecture proposal + **Phases 1–3 complete** (backend `Modules.Food`/`Modules.Nutrition` +
+> the Flutter logging surface) + the **metrics/check-in MVP slice** (`MetricEntry` +
+> `/api/me/nutrition/metrics`); **Phases 4–7 otherwise deferred** (offline sync, reminders/push, analytics
+> endpoints, Angular portal surfaces). These documents define the full forward-looking
+> design; the **as-built status** below records what is actually implemented today (a subset). This mirrors
+> the [`master-data/`](../master-data/) precedent — design first, then build.
 
 > **Implementation status (Phase 1–3, as built).** The backend **domain model + persistence** are
 > implemented to the existing GymBro conventions and the full test/convention suite is green:
@@ -20,16 +23,32 @@
 >   (Planned/Completed/Skipped/Substituted/Missed, denormalized snapshot), `Close()` → `DailyLogClosedEvent`
 >   via the outbox, and basic adherence. **Domain + EF persistence + migration AND the full application/API
 >   layer are built**: coach plan CRUD + structure-replace (immutable versioning) + assignment create/list on
->   tenant-scoped `/api/nutrition/*`; the trainee daily-log surface on self-scoped `/api/me/nutrition/*`
->   (snapshot-on-touch `today` with lazy day-close, completion-first set-status / substitute / add-ad-hoc,
->   history); and the coach client-adherence read. The plan snapshot is serialized to `jsonb` at assign time
->   and the daily log seeds from it — the same snapshot+denormalize integrity as workout sessions.
->   **MVP boundary:** a daily log is anchored to a gym via the active assignment, so logging requires an
->   active nutrition assignment; assignment-less self-logging is a later enhancement.
-> - **Deferred to later phases (unchanged from the proposal):** `MetricEntry`, offline sync, reminders, push,
+>   tenant-scoped `/api/nutrition/*`; the trainee daily-log **writes** on tenant-scoped `/api/nutrition/log/*`
+>   (completion-first set-status / substitute / add-ad-hoc / remove — `NutritionLogCreate`, mirroring workout
+>   sessions on `api/sessions`); the trainee **reads + metrics** on self-scoped `/api/me/nutrition/*`
+>   (snapshot-on-touch `today` with lazy day-close, history); and the coach client-adherence read. The plan
+>   snapshot is serialized to `jsonb` at assign time and the daily log seeds from it — the same
+>   snapshot+denormalize integrity as workout sessions.
+>   **Self-train off-plan logging (as built):** off-plan food logging no longer requires an active assignment.
+>   With no assignment governing the date, `NutritionDayProvisioner` provisions a plan-less **self-logged**
+>   `DailyNutritionLog` (`NutritionSource.Adhoc`) stamped with the **active gym** (`ITenantContext.TenantId` — the
+>   write surface is tenant-scoped, so a nutrition day's `TenantId` is just the gym active when it was first
+>   created). The day's `TenantId` stays non-null (no migration). A non-member of the active gym is rejected by
+>   the declarative authorization gate; no tenant in context yields a clean validation failure, not a 500. READS
+>   still return a non-persisted empty day when there is no assignment and no existing day — only WRITES create
+>   the self-logged row.
+> - **Flutter client (shipped):** the trainee logging surface is built in `gymbroapp` — Today checklist (on
+>   the Log tab), day detail, history, ad-hoc logging via the food picker / custom-food form, device-local
+>   "My foods", and the coach client-nutrition panel. The daily check-in now persists server-side: the
+>   backend `MetricEntry` MVP slice (entity + table + GET/POST `/api/me/nutrition/metrics`) is **built** —
+>   see [DOMAIN_MODEL.md](DOMAIN_MODEL.md) §8 for what the slice includes vs. defers.
+> - **Deferred to later phases (unchanged from the proposal):** the full `MetricEntry` design
+>   (`MetricType` lookup, photos, wearable/AI sources) and `DeviceToken` (**design only — no entity, table,
+>   migration, or endpoint exists**), offline sync, reminders, push,
 >   advanced analytics/AI, plan archive/pause-resume/apply-latest, visibility redaction (the mode + flags are
->   stored but not yet redacted on read), DayApplicability training/rest-day filtering, and both **clients**
->   (Flutter/Angular).
+>   stored but not yet redacted on read), DayApplicability training/rest-day filtering, and the **Angular
+>   portal client** (zero nutrition UI built — all portal surfaces in [CLIENT_UX.md](CLIENT_UX.md) §3 are
+>   design-only).
 
 This folder is the deliverable for **Meal, Supplement & Daily Nutrition Tracking** — the next major GymBro
 feature. The brief: *not just another food-logging module*, but a foundation that makes daily logging
@@ -99,7 +118,9 @@ that was captured but never demanded of the user.
 4. **A flexible measurement spine for "think beyond logging."** A single additive `MetricEntry` series
    (`MetricType` lookup → value/unit/note/photo) absorbs body weight, body fat, water, fiber, sleep, energy,
    digestion, mood, custom notes, photos, and future wearable/AI signals **without schema churn** — the same
-   "additive over destructive" principle the master-data architecture is built on. *(DOMAIN_MODEL §8.)*
+   "additive over destructive" principle the master-data architecture is built on. *(DOMAIN_MODEL §8 — the
+   MVP slice (`MetricEntry` + `/api/me/nutrition/metrics`) is **built**; `MetricType` lookup, photos, and
+   wearable/AI sources remain deferred.)*
 
 5. **Offline-first for logging — a deliberate, justified divergence from the workout module.** Workout logging is
    online-only because it is real-time, coach-monitored, and one-session-at-a-time. Nutrition logging is

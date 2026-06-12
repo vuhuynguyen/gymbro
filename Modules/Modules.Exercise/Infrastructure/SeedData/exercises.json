@@ -1721,6 +1721,7 @@
       "description": "Static hip external-rotation stretch for the glutes and hip capsule.",
       "category": "mobility",
       "type": "Stretching",
+      "trackingType": "Timed",
       "primaryMuscle": "Legs",
       "secondaryMuscles": ["Core"],
       "equipment": "Bodyweight",
@@ -1752,6 +1753,7 @@
       "description": "Half-kneeling or standing lunge stretch for the hip flexors, useful after long sitting.",
       "category": "mobility",
       "type": "Stretching",
+      "trackingType": "Timed",
       "primaryMuscle": "Legs",
       "secondaryMuscles": ["Core"],
       "equipment": "Bodyweight",
@@ -1775,6 +1777,1039 @@
       ],
       "aliases": ["hip flexor stretch", "kneeling hip flexor stretch"],
       "tags": ["stretching", "hips", "recovery", "posture"],
+      "isActive": true
+    },
+    {
+      "slug": "incline-smith-press",
+      "name": "Incline Smith Press",
+      "description": "Incline pressing on a Smith machine; the fixed bar path biases the upper chest while reducing stabiliser demand.",
+      "category": "chest",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Chest",
+      "secondaryMuscles": [
+        "Shoulders",
+        "Arms"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Smith Machine",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Incline Push",
+      "forceType": "Push",
+      "estimatedCalories": 80,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Set an incline bench under the Smith bar; unrack and lower the bar to the upper chest.",
+        "Press up and slightly back along the fixed path, stopping short of a hard lockout."
+      ],
+      "safetyNotes": [
+        "Keep the shoulder blades retracted; the fixed path punishes poor bench positioning."
+      ],
+      "aliases": [
+        "incline smith machine press"
+      ],
+      "tags": [
+        "push",
+        "upper",
+        "chest"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "machine-chest-press",
+      "name": "Machine Chest Press",
+      "description": "Seated horizontal press on a selectorised or plate-loaded chest-press machine.",
+      "category": "chest",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Chest",
+      "secondaryMuscles": [
+        "Shoulders",
+        "Arms"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Chest Press Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Push",
+      "forceType": "Push",
+      "estimatedCalories": 75,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Set the seat so the handles align with mid-chest; press out without locking the elbows hard.",
+        "Control the return until a light stretch is felt across the chest."
+      ],
+      "safetyNotes": [
+        "Avoid shrugging the shoulders up toward the ears during the press."
+      ],
+      "aliases": [
+        "seated machine press",
+        "chest press machine"
+      ],
+      "tags": [
+        "push",
+        "upper",
+        "chest"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "shoulder-press-machine",
+      "name": "Shoulder Press Machine",
+      "description": "Seated vertical press on a shoulder-press machine targeting the front and side delts.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Shoulder Press Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Vertical Push",
+      "forceType": "Push",
+      "estimatedCalories": 75,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Set the seat so the handles sit at shoulder height; press overhead without locking out hard.",
+        "Lower under control until the elbows are level with the shoulders."
+      ],
+      "safetyNotes": [
+        "Keep the lower back against the pad; do not arch to push heavier loads."
+      ],
+      "aliases": [
+        "machine shoulder press"
+      ],
+      "tags": [
+        "push",
+        "shoulders"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "lying-cuff-lateral",
+      "name": "Lying Cuff Lateral",
+      "description": "Side-lying dumbbell external rotation that targets the rotator cuff (infraspinatus / teres minor).",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "External Rotation",
+      "forceType": "Pull",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Lie on your side with the working arm on top, elbow pinned to the ribs at 90 degrees.",
+        "Rotate the forearm up toward the ceiling, then lower under control."
+      ],
+      "safetyNotes": [
+        "Use a light weight; the cuff fatigues quickly and is easy to strain."
+      ],
+      "aliases": [
+        "side lying external rotation",
+        "cuff lateral"
+      ],
+      "tags": [
+        "shoulders",
+        "rotator-cuff",
+        "prehab"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "cuff-pushdown",
+      "name": "Cuff Pushdown",
+      "description": "Cable rotator-cuff pushdown / external-rotation strengthener for the posterior shoulder.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "External Rotation",
+      "forceType": "Pull",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Set a cable to mid height; keep the elbow tucked and rotate the forearm down and out.",
+        "Return slowly, resisting the cable through the full range."
+      ],
+      "safetyNotes": [
+        "Keep the movement strict and light; avoid recruiting the lats or triceps."
+      ],
+      "aliases": [
+        "cable external rotation",
+        "cuff press down"
+      ],
+      "tags": [
+        "shoulders",
+        "rotator-cuff",
+        "prehab"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "shoulder-stretch",
+      "name": "Shoulder Stretch",
+      "description": "Static cross-body and overhead shoulder stretch for the deltoids and capsule.",
+      "category": "mobility",
+      "type": "Stretching",
+      "trackingType": "Timed",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Bodyweight",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Isolation",
+      "forceType": "Static",
+      "estimatedCalories": 12,
+      "averageDurationSeconds": 90,
+      "instructions": [
+        "Draw one arm across the body and gently press it with the opposite hand; hold.",
+        "Switch sides and repeat, breathing steadily throughout."
+      ],
+      "safetyNotes": [
+        "Ease into the stretch; never force a painful end range."
+      ],
+      "aliases": [
+        "cross body shoulder stretch"
+      ],
+      "tags": [
+        "stretching",
+        "shoulders",
+        "recovery"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "triceps-stretch",
+      "name": "Triceps Stretch",
+      "description": "Static overhead triceps stretch.",
+      "category": "mobility",
+      "type": "Stretching",
+      "trackingType": "Timed",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Bodyweight",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Isolation",
+      "forceType": "Static",
+      "estimatedCalories": 12,
+      "averageDurationSeconds": 90,
+      "instructions": [
+        "Raise one arm overhead and bend the elbow so the hand drops behind the neck.",
+        "Gently press the elbow back with the other hand; hold, then switch."
+      ],
+      "safetyNotes": [
+        "Keep the neck neutral; do not push the head forward."
+      ],
+      "aliases": [
+        "overhead triceps stretch"
+      ],
+      "tags": [
+        "stretching",
+        "arms",
+        "recovery"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "upper-back-row",
+      "name": "Upper Back Row",
+      "description": "Machine/cable row angled to bias the upper back, rhomboids and rear delts.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 80,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Set a high-to-mid pull line; row the handles toward the upper chest, squeezing the shoulder blades.",
+        "Return under control without letting the shoulders round forward."
+      ],
+      "safetyNotes": [
+        "Drive with the back, not by leaning the torso back excessively."
+      ],
+      "aliases": [
+        "machine upper back row",
+        "high row"
+      ],
+      "tags": [
+        "pull",
+        "upper",
+        "back"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "barbell-shrug",
+      "name": "Barbell Shrug",
+      "description": "Barbell shrug targeting the upper trapezius.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [],
+      "equipment": "Barbell",
+      "equipmentDetail": "Barbell",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Shrug",
+      "forceType": "Pull",
+      "estimatedCalories": 40,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Hold a barbell at arm's length; elevate the shoulders straight up toward the ears.",
+        "Pause briefly at the top, then lower under control."
+      ],
+      "safetyNotes": [
+        "Avoid rolling the shoulders; shrug straight up and down."
+      ],
+      "aliases": [
+        "barbell shrugs"
+      ],
+      "tags": [
+        "back",
+        "traps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "incline-cable-curl",
+      "name": "Incline Cable Curl",
+      "description": "Cable biceps curl performed from an incline bench for a stretched starting position.",
+      "category": "biceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Intermediate",
+      "mechanics": "Isolation",
+      "movementPattern": "Elbow Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Sit on an incline bench with a low cable; let the arm hang and curl with the elbow fixed.",
+        "Squeeze at the top, then lower until the biceps is fully stretched."
+      ],
+      "safetyNotes": [
+        "Keep the upper arm still; do not let the elbow drift forward."
+      ],
+      "aliases": [
+        "incline cable bicep curl"
+      ],
+      "tags": [
+        "pull",
+        "arms",
+        "biceps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "standing-hamstring-curl",
+      "name": "Standing Hamstring Curl",
+      "description": "Single-leg standing leg-curl machine isolating the hamstrings.",
+      "category": "hamstrings",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Leg Curl Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Knee Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 35,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Brace against the pad and curl the heel toward the glute one leg at a time.",
+        "Lower under control to a full stretch before the next rep."
+      ],
+      "safetyNotes": [
+        "Keep the hips pressed to the pad; avoid swinging the torso."
+      ],
+      "aliases": [
+        "standing leg curl"
+      ],
+      "tags": [
+        "legs",
+        "hamstrings"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "dumbbell-romanian-deadlift",
+      "name": "Dumbbell Romanian Deadlift",
+      "description": "Hip-hinge with dumbbells emphasising the hamstrings and glutes.",
+      "category": "hamstrings",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Back"
+      ],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Hip Hinge",
+      "forceType": "Pull",
+      "estimatedCalories": 70,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Hold dumbbells in front of the thighs; hinge at the hips pushing them back, knees soft.",
+        "Lower until a hamstring stretch is felt, then drive the hips forward to stand."
+      ],
+      "safetyNotes": [
+        "Keep the back flat and the dumbbells close to the legs throughout."
+      ],
+      "aliases": [
+        "dumbbell rdl",
+        "db romanian deadlift"
+      ],
+      "tags": [
+        "legs",
+        "hamstrings",
+        "glutes",
+        "hinge"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "back-extension",
+      "name": "Back Extension",
+      "description": "Hyperextension-bench back raise for the glutes, hamstrings and spinal erectors.",
+      "category": "glutes",
+      "type": "Strength",
+      "trackingType": "Bodyweight",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Back"
+      ],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Hyperextension Bench",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Hip Hinge",
+      "forceType": "Pull",
+      "estimatedCalories": 40,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Anchor the thighs on the pad; hinge at the hips to lower the torso, then raise to a straight line.",
+        "Avoid hyperextending past neutral at the top."
+      ],
+      "safetyNotes": [
+        "Do not round or over-arch the lower back at the top of the rep."
+      ],
+      "aliases": [
+        "hyperextension",
+        "45 degree back extension"
+      ],
+      "tags": [
+        "glutes",
+        "hamstrings",
+        "lower-back"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "frog-pump",
+      "name": "Frog Pump",
+      "description": "Glute-focused bridge with the soles of the feet together and knees splayed.",
+      "category": "glutes",
+      "type": "Strength",
+      "trackingType": "Bodyweight",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Bodyweight",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Hip Extension",
+      "forceType": "Push",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Lie on your back, press the soles of the feet together with knees out.",
+        "Drive the hips up by squeezing the glutes, then lower under control."
+      ],
+      "safetyNotes": [
+        "Keep the rib cage down; extend through the hips, not the lower back."
+      ],
+      "aliases": [
+        "frog pumps",
+        "frog glute bridge"
+      ],
+      "tags": [
+        "glutes",
+        "hips"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "assisted-chin-up",
+      "name": "Assisted Chin-Up",
+      "description": "Counter-weighted assisted chin-up machine for the lats and biceps.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Bodyweight",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Assisted Pull-Up Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Vertical Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 70,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Kneel on the assist pad with a supinated grip; pull the chest toward the bar.",
+        "Lower under control to a full hang each rep."
+      ],
+      "safetyNotes": [
+        "Set enough assistance to keep the reps strict and controlled."
+      ],
+      "aliases": [
+        "chin up machine",
+        "assisted pull up"
+      ],
+      "tags": [
+        "pull",
+        "back",
+        "biceps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "lat-stretch",
+      "name": "Lat Stretch",
+      "description": "Static overhead/side lat stretch.",
+      "category": "mobility",
+      "type": "Stretching",
+      "trackingType": "Timed",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Bodyweight",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Isolation",
+      "forceType": "Static",
+      "estimatedCalories": 12,
+      "averageDurationSeconds": 90,
+      "instructions": [
+        "Grip a rack at chest height, hinge back and sink the hips to lengthen one side.",
+        "Hold, breathe into the stretch, then switch sides."
+      ],
+      "safetyNotes": [
+        "Keep a light grip and avoid yanking the shoulder."
+      ],
+      "aliases": [
+        "lat stretch"
+      ],
+      "tags": [
+        "stretching",
+        "back",
+        "recovery"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "decline-machine-press",
+      "name": "Decline Machine Press",
+      "description": "Plate-loaded / hammer-style decline press biasing the lower chest.",
+      "category": "chest",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Chest",
+      "secondaryMuscles": [
+        "Arms",
+        "Shoulders"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Plate-Loaded Machine",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Decline Push",
+      "forceType": "Push",
+      "estimatedCalories": 80,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Set the seat so the handles align with the lower chest; press out and slightly down.",
+        "Return under control to a comfortable stretch."
+      ],
+      "safetyNotes": [
+        "Keep the wrists stacked over the elbows through the press."
+      ],
+      "aliases": [
+        "decline hammer press",
+        "hammer strength decline press"
+      ],
+      "tags": [
+        "push",
+        "chest"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "machine-dip",
+      "name": "Machine Dip",
+      "description": "Seated assisted/loaded dip machine for the triceps and lower chest.",
+      "category": "triceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [
+        "Chest",
+        "Shoulders"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Dip Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Vertical Push",
+      "forceType": "Push",
+      "estimatedCalories": 60,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Grip the handles and press down until the arms are nearly straight.",
+        "Return under control until the elbows reach about 90 degrees."
+      ],
+      "safetyNotes": [
+        "Keep the shoulders down and back; avoid collapsing forward."
+      ],
+      "aliases": [
+        "seated dip machine"
+      ],
+      "tags": [
+        "push",
+        "triceps",
+        "chest"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "chest-stretch",
+      "name": "Chest Stretch",
+      "description": "Static doorway/wall pec stretch.",
+      "category": "mobility",
+      "type": "Stretching",
+      "trackingType": "Timed",
+      "primaryMuscle": "Chest",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Bodyweight",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Isolation",
+      "forceType": "Static",
+      "estimatedCalories": 12,
+      "averageDurationSeconds": 90,
+      "instructions": [
+        "Place the forearm on a doorframe or wall at shoulder height; rotate the torso away.",
+        "Hold the stretch across the chest, then switch sides."
+      ],
+      "safetyNotes": [
+        "Avoid forcing the shoulder into an end range that pinches."
+      ],
+      "aliases": [
+        "pec stretch",
+        "doorway chest stretch"
+      ],
+      "tags": [
+        "stretching",
+        "chest",
+        "recovery"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "incline-triceps-extension",
+      "name": "Incline Triceps Extension",
+      "description": "Dumbbell triceps extension on an incline bench for a stretched long head.",
+      "category": "triceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Intermediate",
+      "mechanics": "Isolation",
+      "movementPattern": "Elbow Extension",
+      "forceType": "Push",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Lie back on an incline bench; lower the dumbbells beside the head, elbows fixed.",
+        "Extend the elbows to lockout, keeping the upper arms still."
+      ],
+      "safetyNotes": [
+        "Keep the elbows from flaring wide to protect the joint."
+      ],
+      "aliases": [
+        "incline dumbbell triceps extension",
+        "incline skullcrusher"
+      ],
+      "tags": [
+        "push",
+        "arms",
+        "triceps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "crunch",
+      "name": "Crunch",
+      "description": "Floor abdominal crunch flexing the upper spine.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Bodyweight",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Bodyweight",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Spinal Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 20,
+      "averageDurationSeconds": 120,
+      "instructions": [
+        "Lie on your back, knees bent; curl the rib cage toward the pelvis.",
+        "Lower under control without fully relaxing the abs."
+      ],
+      "safetyNotes": [
+        "Avoid yanking on the neck; lead with the rib cage."
+      ],
+      "aliases": [
+        "ab crunch",
+        "upper ab crunch"
+      ],
+      "tags": [
+        "core",
+        "abs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "hanging-leg-raise",
+      "name": "Hanging Leg Raise",
+      "description": "Hanging raise from a bar targeting the lower abs and hip flexors.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Bodyweight",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Pull-Up Bar",
+      "difficulty": "Intermediate",
+      "mechanics": "Isolation",
+      "movementPattern": "Hip Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 120,
+      "instructions": [
+        "Hang from a bar; raise the legs in front of you, curling the pelvis up.",
+        "Lower under control without swinging."
+      ],
+      "safetyNotes": [
+        "Control the descent to avoid swinging and lower-back strain."
+      ],
+      "aliases": [
+        "hanging leg raises",
+        "bar leg raise"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "lower-abs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "captains-chair-leg-raise",
+      "name": "Captain's Chair Leg Raise",
+      "description": "Lower-ab leg/knee raise performed on a captain's-chair / dip station.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Bodyweight",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Captain's Chair",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Hip Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 120,
+      "instructions": [
+        "Support yourself on the forearm pads; raise the knees or legs toward the chest.",
+        "Lower under control without arching the lower back."
+      ],
+      "safetyNotes": [
+        "Keep the back against the pad and avoid swinging."
+      ],
+      "aliases": [
+        "captains chair knee raise",
+        "dip station leg raise"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "lower-abs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "v-bar-lat-pulldown",
+      "name": "V-Bar Lat Pulldown",
+      "description": "Close neutral-grip (V-bar) lat pulldown emphasising the mid-back and lats.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Vertical Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 80,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Attach a V-bar to the pulldown; pull it to the upper chest, driving the elbows down.",
+        "Return under control to a full stretch overhead."
+      ],
+      "safetyNotes": [
+        "Avoid leaning back excessively or using momentum."
+      ],
+      "aliases": [
+        "v bar pulldown",
+        "close grip pulldown"
+      ],
+      "tags": [
+        "pull",
+        "back",
+        "lats"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "dumbbell-neutral-grip-chest-press",
+      "name": "Dumbbell Neutral-Grip Chest Press",
+      "description": "Flat dumbbell press with palms facing each other to reduce shoulder stress.",
+      "category": "chest",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Chest",
+      "secondaryMuscles": [
+        "Arms",
+        "Shoulders"
+      ],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Push",
+      "forceType": "Push",
+      "estimatedCalories": 80,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Lie flat holding dumbbells with a neutral (palms-in) grip over the chest.",
+        "Lower to the sides of the chest, then press back up."
+      ],
+      "safetyNotes": [
+        "Keep the wrists stacked and lower the dumbbells under control."
+      ],
+      "aliases": [
+        "neutral grip dumbbell press",
+        "hammer grip db press"
+      ],
+      "tags": [
+        "push",
+        "chest"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "dips",
+      "name": "Dips",
+      "description": "Bodyweight parallel-bar dips for the triceps and lower chest.",
+      "category": "triceps",
+      "type": "Strength",
+      "trackingType": "Bodyweight",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [
+        "Chest",
+        "Shoulders"
+      ],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Parallel Bars",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Vertical Push",
+      "forceType": "Push",
+      "estimatedCalories": 60,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Support yourself on parallel bars; lower until the elbows reach about 90 degrees.",
+        "Press back up to a stable lockout."
+      ],
+      "safetyNotes": [
+        "Avoid descending too deep if it strains the shoulders."
+      ],
+      "aliases": [
+        "parallel bar dips",
+        "tricep dips"
+      ],
+      "tags": [
+        "push",
+        "triceps",
+        "chest",
+        "bodyweight"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "dumbbell-pullover",
+      "name": "Dumbbell Pullover",
+      "description": "Single-dumbbell pullover working the chest and lats through a large arc.",
+      "category": "chest",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Chest",
+      "secondaryMuscles": [
+        "Back"
+      ],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Intermediate",
+      "mechanics": "Isolation",
+      "movementPattern": "Pullover",
+      "forceType": "Pull",
+      "estimatedCalories": 40,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Lie across or along a bench holding one dumbbell over the chest.",
+        "Lower it behind the head in an arc, then pull it back over the chest."
+      ],
+      "safetyNotes": [
+        "Keep a slight elbow bend and avoid over-stretching the shoulders."
+      ],
+      "aliases": [
+        "db pullover",
+        "dumbbell pull over"
+      ],
+      "tags": [
+        "chest",
+        "lats",
+        "back"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "incline-dumbbell-fly",
+      "name": "Incline Dumbbell Fly",
+      "description": "Incline-bench dumbbell fly isolating the upper chest.",
+      "category": "chest",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Chest",
+      "secondaryMuscles": [
+        "Shoulders"
+      ],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Intermediate",
+      "mechanics": "Isolation",
+      "movementPattern": "Horizontal Adduction",
+      "forceType": "Push",
+      "estimatedCalories": 40,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "On an incline bench, open the arms in a wide arc with a soft elbow bend.",
+        "Bring the dumbbells together over the chest, squeezing the pecs."
+      ],
+      "safetyNotes": [
+        "Do not let the dumbbells drop too low and strain the shoulders."
+      ],
+      "aliases": [
+        "incline db fly",
+        "incline chest fly"
+      ],
+      "tags": [
+        "chest",
+        "upper-chest"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "hip-abductor-machine",
+      "name": "Hip Abductor (Machine)",
+      "description": "Seated hip-abductor machine targeting the gluteus medius and minimus.",
+      "category": "glutes",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Hip Abductor Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Hip Abduction",
+      "forceType": "Push",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Sit with the pads against the outer thighs; press the knees apart.",
+        "Return under control, resisting the stack."
+      ],
+      "safetyNotes": [
+        "Keep the torso still; let the hips do the work."
+      ],
+      "aliases": [
+        "abductor machine",
+        "seated hip abduction"
+      ],
+      "tags": [
+        "legs",
+        "glutes"
+      ],
       "isActive": true
     }
   ]

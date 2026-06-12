@@ -17,6 +17,7 @@ public sealed class NutritionPlanConfiguration : IEntityTypeConfiguration<Nutrit
         builder.Property(x => x.Version).IsRequired().HasDefaultValue(1);
         builder.Property(x => x.TenantId).IsRequired();
         builder.Property(x => x.IsDeleted).HasDefaultValue(false);
+        builder.Property(x => x.IsArchived).HasDefaultValue(false);
 
         builder.HasIndex(x => new { x.TenantId, x.Name });
         builder.HasIndex(x => new { x.TemplateId, x.Version })

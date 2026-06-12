@@ -73,6 +73,10 @@ public sealed class AddAdhocNutritionItemHandler(
         }
 
         var item = log.AddAdhocItem(data, request.Note);
+        // Register the new item explicitly. When the day already existed it is tracked Unchanged, and a child
+        // reached only through its navigation collection is mis-tracked Modified (a 0-row UPDATE) rather than
+        // Added — so a second write to an existing day must force the child Added to insert cleanly.
+        logRepository.AddItem(item);
         try
         {
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -93,6 +97,7 @@ public sealed class AddAdhocNutritionItemHandler(
                 return Result<Guid>.Failure(Conflict("DailyLog.Closed", "This day is closed and can no longer be edited."));
 
             var retryItem = raced.AddAdhocItem(data, request.Note);
+            logRepository.AddItem(retryItem); // raced is loaded (Unchanged) — force the child Added, as above
             await unitOfWork.SaveChangesAsync(cancellationToken);
             return Result<Guid>.Success(retryItem.Id);
         }

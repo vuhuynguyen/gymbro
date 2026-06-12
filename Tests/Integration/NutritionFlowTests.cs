@@ -329,6 +329,35 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
     }
 
     [SkippableFact]
+    public async Task Two_adhoc_adds_to_the_same_day_in_separate_scopes_both_succeed()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var day = new DateOnly(2026, 7, 9);
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+
+        // First add: creates the (owner, day) self-logged day and inserts one item (separate scope).
+        var first = await fixture.SendAsync(new AddAdhocNutritionItemCommand(
+            day, null, 1m, "Snack", null, CustomName: "Almonds", EnergyKcal: 160m));
+        Assert.True(first.IsSuccess, $"first add failed: {(first.IsFailure ? first.Error.Code : "")}");
+
+        // Second add: loads the EXISTING day in a fresh scope/DbContext and inserts a second child item.
+        // This is the load-then-add path the duplicate-day race-retry does NOT cover.
+        var second = await fixture.SendAsync(new AddAdhocNutritionItemCommand(
+            day, null, 1m, "Snack", null, CustomName: "Walnuts", EnergyKcal: 180m));
+        Assert.True(second.IsSuccess, $"second add failed: {(second.IsFailure ? second.Error.Code : "")}");
+
+        // One day row, two items.
+        await fixture.InScopeAsync(async sp =>
+        {
+            var repo = sp.GetRequiredService<IDailyNutritionLogRepository>();
+            var stored = await repo.GetOwnByDateAsync(fixture.OwnerId, day, CancellationToken.None);
+            Assert.NotNull(stored);
+            Assert.Equal(2, stored!.Items.Count);
+        });
+    }
+
+    [SkippableFact]
     public async Task Adhoc_add_for_a_non_member_of_the_active_gym_is_rejected_by_authorization()
     {
         Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);

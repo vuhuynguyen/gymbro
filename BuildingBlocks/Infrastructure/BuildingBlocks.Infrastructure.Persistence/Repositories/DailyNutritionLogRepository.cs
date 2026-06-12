@@ -9,6 +9,12 @@ public sealed class DailyNutritionLogRepository(AppDbContext context) : IDailyNu
     public async Task AddAsync(DailyNutritionLog log, CancellationToken cancellationToken = default)
         => await context.Set<DailyNutritionLog>().AddAsync(log, cancellationToken);
 
+    // Force the new child into the Added state. Adding it only via the parent's _items collection suffices
+    // when the parent is itself Added (its whole graph inserts), but NOT when the parent was loaded
+    // (Unchanged): EF then infers the app-assigned Guid key as an existing row and emits a 0-row UPDATE.
+    public void AddItem(LoggedItem item)
+        => context.Set<LoggedItem>().Add(item);
+
     // Self-scoped, cross-gym, TRACKED (load-then-mutate). Bypasses the tenant filter and re-applies
     // soft-delete; only ever called with the caller's own id.
     public async Task<DailyNutritionLog?> GetOwnByDateAsync(

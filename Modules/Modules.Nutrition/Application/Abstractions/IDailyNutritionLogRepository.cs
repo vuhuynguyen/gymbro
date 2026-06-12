@@ -8,6 +8,15 @@ public interface IDailyNutritionLogRepository
     Task AddAsync(DailyNutritionLog log, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Explicitly tracks a NEW child item as <c>Added</c>. Required when adding an item to a day that was
+    /// <em>loaded</em> (tracked <c>Unchanged</c>) rather than created in this scope: a child reached only
+    /// through the parent's navigation collection has its app-assigned (<c>ValueGeneratedOnAdd</c>) Guid key
+    /// mis-read by EF as an existing row, so SaveChanges emits a 0-row <c>UPDATE</c> instead of an
+    /// <c>INSERT</c>. Mirrors how the WorkoutSession child repos register performed exercises/sets.
+    /// </summary>
+    void AddItem(LoggedItem item);
+
+    /// <summary>
     /// The caller's own log for a date, tracked, with items — used to create-or-mutate a day. Bypasses the
     /// tenant filter (self-scoped, cross-gym) and re-applies soft-delete; only ever called with the caller's
     /// own id. Mirrors the session active-lookup bypass.

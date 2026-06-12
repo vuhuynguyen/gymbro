@@ -26,7 +26,10 @@ public sealed class ListNutritionPlansHandler(INutritionPlanRepository repositor
             .Join(latestPerTemplate,
                 p => new { p.TemplateId, p.Version },
                 latest => new { latest.TemplateId, latest.Version },
-                (p, _) => p);
+                (p, _) => p)
+            // Archived plans drop out of the default list; pass Archived=true to view the retired ones
+            // (mirrors ListWorkoutPlansQuery's default behavior).
+            .Where(p => p.IsArchived == request.Archived);
 
         if (!string.IsNullOrWhiteSpace(search))
         {

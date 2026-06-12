@@ -46,6 +46,16 @@ public sealed class CreateNutritionAssignmentRequest
     public bool DisableTraineeEditing { get; set; }
 }
 
+/// <summary>Edits an existing nutrition assignment. Mirrors UpdatePlanAssignmentRequest.</summary>
+public sealed class UpdateNutritionAssignmentRequest
+{
+    public DateOnly? StartDate { get; set; }
+    public DateOnly? EndDate { get; set; }
+    public NutritionVisibilityMode VisibilityMode { get; set; } = NutritionVisibilityMode.Full;
+    public bool HideMacroTargets { get; set; }
+    public bool DisableTraineeEditing { get; set; }
+}
+
 // ── Trainee daily-log writes (/api/me/nutrition) ──────────────────────────
 
 public sealed class SetNutritionItemStatusRequest

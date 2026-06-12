@@ -14,6 +14,9 @@ public sealed class NutritionPlan : AggregateRoot, ITenantEntity, ISoftDelete
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
 
+    /// <summary>Retired template: hidden from the active plan list, not editable, not assignable. Reversible.</summary>
+    public bool IsArchived { get; private set; }
+
     private readonly List<PlanMeal> _meals = new();
     public IReadOnlyCollection<PlanMeal> Meals => _meals;
 
@@ -57,6 +60,8 @@ public sealed class NutritionPlan : AggregateRoot, ITenantEntity, ISoftDelete
     }
 
     public void MarkDeleted() => IsDeleted = true;
+
+    public void SetArchived(bool archived) => IsArchived = archived;
 
     /// <summary>Deep-copies the current version into a new row (same TemplateId, Version + 1).</summary>
     public static NutritionPlan CreateNewVersion(

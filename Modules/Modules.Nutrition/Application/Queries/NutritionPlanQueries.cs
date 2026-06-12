@@ -10,7 +10,8 @@ namespace Modules.NutritionModule.Application.Queries;
 /// nutrition plans are coach-authored, and (unlike workout plans) trainees consume them through their daily
 /// log, not by reading the raw template — so plan reads are an Owner-only authoring capability in MVP.
 /// </summary>
-public sealed record ListNutritionPlansQuery(string? Search = null, int Page = 1, int PageSize = 10)
+public sealed record ListNutritionPlansQuery(
+    string? Search = null, int Page = 1, int PageSize = 10, bool Archived = false)
     : IRequest<Result<NutritionPlanListDto>>, ITenantAuthorizedRequest
 {
     public Permission RequiredPermission => Permission.NutritionPlanCreate;

@@ -70,7 +70,7 @@ internal static class NutritionMapping
     /// <summary>List projection — counts meals via a SQL subquery instead of loading the meal rows.</summary>
     public static Expression<Func<NutritionPlan, NutritionPlanSummaryDto>> PlanSummaryProjection =>
         p => new NutritionPlanSummaryDto(
-            p.Id, p.TemplateId, p.Version, p.Name, p.Description, p.CreatedOnUtc, p.Meals.Count);
+            p.Id, p.TemplateId, p.Version, p.Name, p.Description, p.CreatedOnUtc, p.Meals.Count, p.IsArchived);
 
     public static NutritionPlanDetailDto ToDetailDto(NutritionPlan plan) =>
         new(

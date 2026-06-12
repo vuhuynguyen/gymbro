@@ -22,9 +22,10 @@ public sealed class NutritionController(IMediator mediator) : ControllerBase
 
     [HttpGet("plans")]
     public async Task<IActionResult> ListPlans(
-        [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken ct = default)
+        [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10,
+        [FromQuery] bool archived = false, CancellationToken ct = default)
     {
-        var result = await mediator.Send(new ListNutritionPlansQuery(search, page, pageSize), ct);
+        var result = await mediator.Send(new ListNutritionPlansQuery(search, page, pageSize, archived), ct);
         return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
     }
 
@@ -65,6 +66,20 @@ public sealed class NutritionController(IMediator mediator) : ControllerBase
         return result.IsFailure ? result.ToFailureResult(this) : NoContent();
     }
 
+    [HttpPut("plans/{id:guid}/archive")]
+    public async Task<IActionResult> ArchivePlan(Guid id, CancellationToken ct)
+    {
+        var result = await mediator.Send(new SetNutritionPlanArchivedCommand(id, true), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
+    }
+
+    [HttpPut("plans/{id:guid}/unarchive")]
+    public async Task<IActionResult> UnarchivePlan(Guid id, CancellationToken ct)
+    {
+        var result = await mediator.Send(new SetNutritionPlanArchivedCommand(id, false), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
+    }
+
     // ── Assignments ───────────────────────────────────────────────────────
 
     [HttpGet("assignments")]
@@ -85,6 +100,37 @@ public sealed class NutritionController(IMediator mediator) : ControllerBase
         return result.IsFailure
             ? result.ToFailureResult(this)
             : CreatedAtAction(nameof(ListAssignments), new { id = result.Value }, new { id = result.Value });
+    }
+
+    [HttpPut("assignments/{assignmentId:guid}")]
+    public async Task<IActionResult> UpdateAssignment(
+        Guid assignmentId, [FromBody] UpdateNutritionAssignmentRequest request, CancellationToken ct)
+    {
+        var result = await mediator.Send(new UpdateNutritionAssignmentCommand(
+            assignmentId, request.StartDate, request.EndDate,
+            request.VisibilityMode, request.HideMacroTargets, request.DisableTraineeEditing), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
+    }
+
+    [HttpDelete("assignments/{assignmentId:guid}")]
+    public async Task<IActionResult> DeleteAssignment(Guid assignmentId, CancellationToken ct)
+    {
+        var result = await mediator.Send(new DeleteNutritionAssignmentCommand(assignmentId), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
+    }
+
+    [HttpPut("assignments/{assignmentId:guid}/pause")]
+    public async Task<IActionResult> PauseAssignment(Guid assignmentId, CancellationToken ct)
+    {
+        var result = await mediator.Send(new SetNutritionAssignmentActiveCommand(assignmentId, false), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
+    }
+
+    [HttpPut("assignments/{assignmentId:guid}/resume")]
+    public async Task<IActionResult> ResumeAssignment(Guid assignmentId, CancellationToken ct)
+    {
+        var result = await mediator.Send(new SetNutritionAssignmentActiveCommand(assignmentId, true), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
     }
 
     // ── Coach client-log reads (adherence) ────────────────────────────────

@@ -67,4 +67,32 @@ public sealed class NutritionPlanAssignment : AggregateRoot, ITenantEntity, ISof
     /// <summary>True when this assignment governs the given date (active, within [StartDate, EndDate]).</summary>
     public bool AppliesOn(DateOnly date) =>
         IsActive && date >= StartDate && (EndDate is null || date <= EndDate.Value);
+
+    /// <summary>Pause (deactivate) or resume (reactivate) the assignment. Mirrors <c>PlanAssignment.SetActive</c>.</summary>
+    public void SetActive(bool active) => IsActive = active;
+
+    /// <summary>
+    /// Edits the assignment's configuration in place, keeping the pinned plan version + snapshot. A null
+    /// <paramref name="startDate"/> leaves the existing start date unchanged. Mirrors
+    /// <c>PlanAssignment.UpdateConfiguration</c>, adapted to nutrition's fields (end date + macro hiding).
+    /// </summary>
+    public void UpdateConfiguration(
+        DateOnly? startDate,
+        DateOnly? endDate,
+        NutritionVisibilityMode visibilityMode,
+        bool hideMacroTargets,
+        bool disableTraineeEditing)
+    {
+        var effectiveStart = startDate ?? StartDate;
+        if (endDate.HasValue && endDate.Value < effectiveStart)
+            throw new DomainException("endDate cannot precede startDate.");
+
+        if (startDate.HasValue)
+            StartDate = startDate.Value;
+
+        EndDate = endDate;
+        VisibilityMode = visibilityMode;
+        HideMacroTargets = hideMacroTargets;
+        DisableTraineeEditing = disableTraineeEditing;
+    }
 }

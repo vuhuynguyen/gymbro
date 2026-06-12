@@ -9,7 +9,8 @@ public sealed record NutritionPlanSummaryDto(
     string Name,
     string? Description,
     DateTimeOffset CreatedOnUtc,
-    int MealCount);
+    int MealCount,
+    bool IsArchived);
 
 public sealed record NutritionPlanListDto(
     IReadOnlyList<NutritionPlanSummaryDto> Items,

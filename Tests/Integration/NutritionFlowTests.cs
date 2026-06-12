@@ -411,6 +411,100 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
     }
 
     [SkippableFact]
+    public async Task Assignment_lifecycle_and_plan_archive_round_trip()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var startDate = new DateOnly(2026, 9, 1);
+
+        // 1. Admin seeds a catalog food; coach authors + versions a plan.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId, isAdmin: true);
+        var food = await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Lifecycle Oats", "Food", "1 bowl", 60m, 300m, 10m, 50m, 6m, 8m, Brand: null)));
+        Assert.True(food.IsSuccess);
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var plan = await fixture.SendAsync(new CreateNutritionPlanCommand("Lifecycle Plan", null));
+        Assert.True(plan.IsSuccess);
+        var version = await fixture.SendAsync(new ReplaceNutritionPlanStructureCommand(
+            plan.Value, "Lifecycle Plan", "v1",
+            new[]
+            {
+                new NutritionPlanMealInput("Breakfast", 1, new TimeOnly(8, 0), DayApplicability.EveryDay,
+                    new[] { new NutritionPlanItemInput(food.Value, 1, 1m) })
+            }));
+        Assert.True(version.IsSuccess);
+
+        // 2. Assign it to ClientB.
+        var assign = await fixture.SendAsync(new CreateNutritionAssignmentCommand(
+            fixture.ClientBId, version.Value, startDate, EndDate: null,
+            NutritionVisibilityMode.Full, HideMacroTargets: false, DisableTraineeEditing: false));
+        Assert.True(assign.IsSuccess);
+        var assignmentId = assign.Value;
+
+        // 3. EDIT the assignment (new dates + visibility + flags); the pinned version + name are kept.
+        var newStart = new DateOnly(2026, 9, 15);
+        var newEnd = new DateOnly(2026, 12, 31);
+        var edit = await fixture.SendAsync(new UpdateNutritionAssignmentCommand(
+            assignmentId, newStart, newEnd, NutritionVisibilityMode.Guided,
+            HideMacroTargets: true, DisableTraineeEditing: true));
+        Assert.True(edit.IsSuccess);
+
+        var afterEdit = await fixture.SendAsync(
+            new ListNutritionAssignmentsQuery(fixture.ClientBId, ActiveOnly: false, 1, 50));
+        Assert.True(afterEdit.IsSuccess);
+        var edited = Assert.Single(afterEdit.Value!.Items, a => a.Id == assignmentId);
+        Assert.Equal(newStart, edited.StartDate);
+        Assert.Equal(newEnd, edited.EndDate);
+        Assert.Equal(NutritionVisibilityMode.Guided, edited.VisibilityMode);
+        Assert.True(edited.HideMacroTargets);
+        Assert.True(edited.DisableTraineeEditing);
+        Assert.Equal(version.Value, edited.PlanId); // pinned version untouched
+        Assert.True(edited.IsActive);
+
+        // 4. PAUSE → drops out of the active-only list, still present unfiltered.
+        Assert.True((await fixture.SendAsync(new SetNutritionAssignmentActiveCommand(assignmentId, false))).IsSuccess);
+        var activeOnly = await fixture.SendAsync(
+            new ListNutritionAssignmentsQuery(fixture.ClientBId, ActiveOnly: true, 1, 50));
+        Assert.True(activeOnly.IsSuccess);
+        Assert.DoesNotContain(activeOnly.Value!.Items, a => a.Id == assignmentId);
+        var paused = await fixture.SendAsync(
+            new ListNutritionAssignmentsQuery(fixture.ClientBId, ActiveOnly: false, 1, 50));
+        Assert.False(Assert.Single(paused.Value!.Items, a => a.Id == assignmentId).IsActive);
+
+        // 5. RESUME → back in the active-only list.
+        Assert.True((await fixture.SendAsync(new SetNutritionAssignmentActiveCommand(assignmentId, true))).IsSuccess);
+        var resumed = await fixture.SendAsync(
+            new ListNutritionAssignmentsQuery(fixture.ClientBId, ActiveOnly: true, 1, 50));
+        Assert.True(resumed.IsSuccess);
+        Assert.True(Assert.Single(resumed.Value!.Items, a => a.Id == assignmentId).IsActive);
+
+        // 6. REVOKE (soft-delete) → gone from the unfiltered list.
+        Assert.True((await fixture.SendAsync(new DeleteNutritionAssignmentCommand(assignmentId))).IsSuccess);
+        var afterRevoke = await fixture.SendAsync(
+            new ListNutritionAssignmentsQuery(fixture.ClientBId, ActiveOnly: false, 1, 50));
+        Assert.True(afterRevoke.IsSuccess);
+        Assert.DoesNotContain(afterRevoke.Value!.Items, a => a.Id == assignmentId);
+
+        // 7. ARCHIVE the plan → drops out of the default list, appears in the archived list.
+        Assert.True((await fixture.SendAsync(new SetNutritionPlanArchivedCommand(version.Value, true))).IsSuccess);
+        var defaultList = await fixture.SendAsync(new ListNutritionPlansQuery("Lifecycle Plan", 1, 50, Archived: false));
+        Assert.True(defaultList.IsSuccess);
+        Assert.DoesNotContain(defaultList.Value!.Items, p => p.TemplateId == version.Value || p.Name == "Lifecycle Plan");
+
+        var archivedList = await fixture.SendAsync(new ListNutritionPlansQuery("Lifecycle Plan", 1, 50, Archived: true));
+        Assert.True(archivedList.IsSuccess);
+        var archived = Assert.Single(archivedList.Value!.Items, p => p.Name == "Lifecycle Plan");
+        Assert.True(archived.IsArchived);
+
+        // 8. UNARCHIVE → back in the default list, gone from the archived list.
+        Assert.True((await fixture.SendAsync(new SetNutritionPlanArchivedCommand(version.Value, false))).IsSuccess);
+        var restored = await fixture.SendAsync(new ListNutritionPlansQuery("Lifecycle Plan", 1, 50, Archived: false));
+        Assert.True(restored.IsSuccess);
+        var restoredPlan = Assert.Single(restored.Value!.Items, p => p.Name == "Lifecycle Plan");
+        Assert.False(restoredPlan.IsArchived);
+    }
+
+    [SkippableFact]
     public async Task Coach_cannot_see_another_gyms_client_nutrition()
     {
         Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);

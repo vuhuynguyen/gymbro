@@ -20,6 +20,14 @@ public sealed class DeleteNutritionPlanCommandValidator : AbstractValidator<Dele
     }
 }
 
+public sealed class SetNutritionPlanArchivedCommandValidator : AbstractValidator<SetNutritionPlanArchivedCommand>
+{
+    public SetNutritionPlanArchivedCommandValidator()
+    {
+        RuleFor(x => x.Id).NotEmpty();
+    }
+}
+
 public sealed class ReplaceNutritionPlanStructureCommandValidator
     : AbstractValidator<ReplaceNutritionPlanStructureCommand>
 {

@@ -37,3 +37,10 @@ public sealed record DeleteNutritionPlanCommand(Guid Id) : IRequest<Result>, ITe
 {
     public Permission RequiredPermission => Permission.NutritionPlanDelete;
 }
+
+/// <summary>Archive (retire) or unarchive a nutrition plan template. Mirrors SetWorkoutPlanArchivedCommand.</summary>
+public sealed record SetNutritionPlanArchivedCommand(Guid Id, bool Archived)
+    : IRequest<Result>, ITenantAuthorizedRequest
+{
+    public Permission RequiredPermission => Permission.NutritionPlanUpdate;
+}

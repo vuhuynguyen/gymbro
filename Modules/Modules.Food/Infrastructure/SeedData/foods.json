@@ -46,6 +46,20 @@
     { "name": "Casein Protein", "kind": "Supplement", "servingLabel": "1 scoop (33 g)", "servingSizeGrams": 33, "energyKcal": 120, "proteinG": 24, "carbsG": 3, "fatG": 1, "fiberG": 0, "isActive": true },
     { "name": "Creatine Monohydrate", "kind": "Supplement", "servingLabel": "1 scoop (5 g)", "servingSizeGrams": 5, "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true },
     { "name": "Fish Oil (Omega-3)", "kind": "Supplement", "servingLabel": "1 softgel", "energyKcal": 10, "proteinG": 0, "carbsG": 0, "fatG": 1, "fiberG": 0, "isActive": true },
-    { "name": "Multivitamin", "kind": "Supplement", "servingLabel": "1 tablet", "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true }
+    { "name": "Multivitamin", "kind": "Supplement", "servingLabel": "1 tablet", "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true },
+
+    {"name": "Raspberries", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 52, "proteinG": 1.2, "carbsG": 11.9, "fatG": 0.7, "fiberG": 6.5, "isActive": true},
+    {"name": "Guava", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 68, "proteinG": 2.6, "carbsG": 14.3, "fatG": 1.0, "fiberG": 5.4, "isActive": true},
+    {"name": "White Fish, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 96, "proteinG": 21, "carbsG": 0, "fatG": 1.0, "fiberG": 0, "isActive": true},
+    {"name": "Squid, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 92, "proteinG": 15.6, "carbsG": 3.1, "fatG": 1.4, "fiberG": 0, "isActive": true},
+    {"name": "Mixed Vegetables, Cooked", "kind": "Food", "servingLabel": "100 g", "servingSizeGrams": 100, "energyKcal": 45, "proteinG": 2.5, "carbsG": 8.5, "fatG": 0.3, "fiberG": 3.5, "isActive": true},
+    {"name": "Lemon", "kind": "Food", "servingLabel": "1 lemon (58 g)", "servingSizeGrams": 58, "energyKcal": 17, "proteinG": 0.6, "carbsG": 5.4, "fatG": 0.2, "fiberG": 1.6, "isActive": true},
+    {"name": "Cashew Butter", "kind": "Food", "servingLabel": "2 tbsp (32 g)", "servingSizeGrams": 32, "energyKcal": 196, "proteinG": 5.6, "carbsG": 8.9, "fatG": 16, "fiberG": 0.6, "isActive": true},
+    {"name": "L-Glutamine", "kind": "Supplement", "servingLabel": "1 serving (5 g)", "servingSizeGrams": 5, "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true},
+    {"name": "Vitamin D3", "kind": "Supplement", "servingLabel": "1 softgel", "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true},
+    {"name": "Vitamin K2 (MK-7)", "kind": "Supplement", "servingLabel": "1 capsule", "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true},
+    {"name": "Zinc", "kind": "Supplement", "servingLabel": "1 tablet", "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true},
+    {"name": "Magnesium", "kind": "Supplement", "servingLabel": "1 capsule", "energyKcal": 0, "proteinG": 0, "carbsG": 0, "fatG": 0, "fiberG": 0, "isActive": true},
+    {"name": "Whey Protein Isolate (Dymatize ISO 100)", "brand": "Dymatize", "kind": "Supplement", "servingLabel": "1 scoop (32 g)", "servingSizeGrams": 32, "energyKcal": 120, "proteinG": 25, "carbsG": 2, "fatG": 0.5, "fiberG": 0, "isActive": true}
   ]
 }

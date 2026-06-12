@@ -24,4 +24,11 @@ public sealed class DailyNutritionLogRepository(AppDbContext context) : IDailyNu
             .Where(l => l.TraineeId == traineeId && !l.IsDeleted);
 
     public IQueryable<DailyNutritionLog> Query() => context.Set<DailyNutritionLog>().AsQueryable();
+
+    public void Detach(DailyNutritionLog log)
+    {
+        foreach (var item in log.Items)
+            context.Entry(item).State = EntityState.Detached;
+        context.Entry(log).State = EntityState.Detached;
+    }
 }

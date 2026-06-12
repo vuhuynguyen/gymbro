@@ -151,6 +151,11 @@ internal static class NutritionMapping
             l.Items.Count(i => i.PlanMealItemId != null
                 && (i.Status == LoggedItemStatus.Completed || i.Status == LoggedItemStatus.Substituted)));
 
+    // ── Metric entries (daily check-in) ───────────────────────────────────
+
+    public static MetricEntryDto ToMetricDto(MetricEntry e) =>
+        new(e.Type, e.Value, e.Unit, e.LocalDate, e.LoggedAtUtc);
+
     public static DailyNutritionLogSummaryDto ToSummaryDto(DailyLogCounts r) =>
         new(r.Id, r.TraineeId, r.LocalDate, r.Status, r.Source.ToString(),
             r.Status == DailyLogStatus.Closed

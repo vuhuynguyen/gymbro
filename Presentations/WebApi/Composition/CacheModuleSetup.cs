@@ -1,4 +1,5 @@
 using Modules.ExerciseModule.Application.Caching;
+using Modules.FoodModule.Application.Caching;
 
 namespace WebApi.Composition;
 
@@ -9,6 +10,10 @@ public static class CacheModuleSetup
         services.AddScoped<ExerciseCatalogSearchReader>();
         services.AddScoped<ExerciseCatalogDetailReader>();
         services.AddScoped<ExerciseCatalogCache>();
+
+        services.AddScoped<FoodCatalogSearchReader>();
+        services.AddScoped<FoodCatalogDetailReader>();
+        services.AddScoped<FoodCatalogCache>();
 
         return services;
     }

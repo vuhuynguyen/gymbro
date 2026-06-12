@@ -35,6 +35,32 @@ public sealed class DailyNutritionLogTests
     }
 
     [Fact]
+    public void OpenSelfLogged_is_an_open_plan_less_adhoc_day()
+    {
+        var tenantId = Guid.NewGuid();
+        var log = DailyNutritionLog.OpenSelfLogged(Guid.NewGuid(), tenantId, new DateOnly(2026, 6, 10), "UTC");
+
+        Assert.True(log.IsOpen);
+        Assert.Equal(NutritionSource.Adhoc, log.Source);
+        Assert.Null(log.NutritionPlanAssignmentId);
+        Assert.Null(log.SnapshotJson);
+        Assert.Equal(tenantId, log.TenantId);
+        Assert.Empty(log.Items);
+    }
+
+    [Fact]
+    public void OpenSelfLogged_with_an_adhoc_item_closes_at_full_adherence()
+    {
+        var log = DailyNutritionLog.OpenSelfLogged(Guid.NewGuid(), Guid.NewGuid(), new DateOnly(2026, 6, 10), "UTC");
+        log.AddAdhocItem(Adhoc(), note: null);
+
+        log.Close();
+
+        Assert.Equal(DailyLogStatus.Closed, log.Status);
+        Assert.Equal(100, log.AdherencePct); // no planned items → 100% by convention
+    }
+
+    [Fact]
     public void SeedPlannedItems_seeds_items_as_Planned_with_durable_snapshot()
     {
         var log = OpenLog();
@@ -102,6 +128,72 @@ public sealed class DailyNutritionLogTests
         Assert.Equal(2, log.Items.Count);
         Assert.Null(adhoc.PlanMealItemId); // ad-hoc
         Assert.Equal(LoggedItemStatus.Completed, adhoc.Status);
+    }
+
+    // ── Re-transition contract ─────────────────────────────────────────────
+    // The entity deliberately allows undo-by-overwrite between the directly settable statuses
+    // (Complete ↔ Skip — the handler gates *which* statuses may be set and whether the day is open;
+    // the entity does not freeze them), while MarkMissedIfPlanned ignores anything that is no longer
+    // Planned, and removing a planned item is rejected outright.
+
+    [Fact]
+    public void Skip_after_Complete_overwrites_status_undo_by_design()
+    {
+        var log = OpenLog();
+        log.SeedPlannedItems(new[] { Planned(1) });
+        var item = log.Items.First();
+
+        item.Complete("ate it");
+        item.Skip("actually didn't");
+
+        Assert.Equal(LoggedItemStatus.Skipped, item.Status);
+        Assert.Equal("actually didn't", item.Note);
+        Assert.NotNull(item.LoggedAtUtc);
+    }
+
+    [Fact]
+    public void Complete_after_Skip_overwrites_status_undo_by_design()
+    {
+        var log = OpenLog();
+        log.SeedPlannedItems(new[] { Planned(1) });
+        var item = log.Items.First();
+
+        item.Skip(null);
+        item.Complete(null);
+
+        Assert.Equal(LoggedItemStatus.Completed, item.Status);
+    }
+
+    [Fact]
+    public void MarkMissedIfPlanned_ignores_non_planned_statuses()
+    {
+        var log = OpenLog();
+        log.SeedPlannedItems(new[] { Planned(1), Planned(2), Planned(3), Planned(4) });
+        var items = log.Items.ToList();
+        items[0].Complete(null);
+        items[1].Skip(null);
+        items[2].Substitute(Guid.NewGuid(), "Food", "alt", "1", 1m, null, null, null, null, null, null);
+        // items[3] left Planned
+
+        foreach (var item in items)
+            item.MarkMissedIfPlanned();
+
+        Assert.Equal(LoggedItemStatus.Completed, items[0].Status);   // untouched
+        Assert.Equal(LoggedItemStatus.Skipped, items[1].Status);     // untouched
+        Assert.Equal(LoggedItemStatus.Substituted, items[2].Status); // untouched
+        Assert.Equal(LoggedItemStatus.Missed, items[3].Status);      // only Planned transitions
+    }
+
+    [Fact]
+    public void RemoveAdhocItem_rejects_planned_items()
+    {
+        var log = OpenLog();
+        log.SeedPlannedItems(new[] { Planned(1) });
+        var planned = log.Items.First();
+
+        Assert.Throws<BuildingBlocks.Shared.DomainPrimitives.DomainException>(
+            () => log.RemoveAdhocItem(planned));
+        Assert.Single(log.Items); // still there — planned items are skipped, never deleted
     }
 
     // ── Adherence ─────────────────────────────────────────────────────────

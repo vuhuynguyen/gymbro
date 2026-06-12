@@ -2,6 +2,7 @@ using BuildingBlocks.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Modules.FoodModule.Application.Caching;
 using Modules.FoodModule.Entities;
 using WebApi.Composition;
 using Xunit;
@@ -24,7 +25,8 @@ public sealed class FoodSeedingTests(PostgresFixture fixture)
         await fixture.InScopeAsync(async sp =>
         {
             var db = sp.GetRequiredService<AppDbContext>();
-            await FoodMasterDataSeeder.SeedAsync(db, NullLogger.Instance, FoodSeedMode.InsertMissing);
+            var cache = sp.GetRequiredService<FoodCatalogCache>();
+            await FoodMasterDataSeeder.SeedAsync(db, cache, NullLogger.Instance, FoodSeedMode.InsertMissing);
         });
 
         var afterFirst = await CountGlobal("Chicken Breast, Cooked");
@@ -34,7 +36,8 @@ public sealed class FoodSeedingTests(PostgresFixture fixture)
         await fixture.InScopeAsync(async sp =>
         {
             var db = sp.GetRequiredService<AppDbContext>();
-            await FoodMasterDataSeeder.SeedAsync(db, NullLogger.Instance, FoodSeedMode.InsertMissing);
+            var cache = sp.GetRequiredService<FoodCatalogCache>();
+            await FoodMasterDataSeeder.SeedAsync(db, cache, NullLogger.Instance, FoodSeedMode.InsertMissing);
         });
 
         Assert.Equal(1, await CountGlobal("Chicken Breast, Cooked"));

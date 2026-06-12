@@ -3,6 +3,7 @@ using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.FoodModule.Application.Abstractions;
+using Modules.FoodModule.Application.Caching;
 using Modules.FoodModule.Entities;
 using static BuildingBlocks.Shared.Errors.CommonErrors;
 
@@ -11,7 +12,8 @@ namespace Modules.FoodModule.Application.Commands.Handlers;
 public sealed class CreateCustomFoodHandler(
     IFoodRepository repository,
     IUnitOfWork unitOfWork,
-    ITenantContext tenantContext)
+    ITenantContext tenantContext,
+    FoodCatalogCache catalogCache)
     : IRequestHandler<CreateCustomFoodCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(CreateCustomFoodCommand request, CancellationToken cancellationToken)
@@ -36,6 +38,9 @@ public sealed class CreateCustomFoodHandler(
 
         await repository.AddAsync(food, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // A new tenant-custom food changes this tenant's search results — bump the search generation.
+        await catalogCache.InvalidateSearchAsync(cancellationToken);
 
         return Result<Guid>.Success(food.Id);
     }

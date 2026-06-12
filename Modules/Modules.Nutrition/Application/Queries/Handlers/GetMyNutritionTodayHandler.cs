@@ -3,7 +3,6 @@ using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Modules.FoodModule.Application.Queries;
 using Modules.NutritionModule.Application.Abstractions;
 using Modules.NutritionModule.Application.DTOs;
 using Modules.NutritionModule.Application.Mapping;
@@ -16,12 +15,12 @@ namespace Modules.NutritionModule.Application.Queries.Handlers;
 /// (<c>currentUser.UserId</c>) across every gym. On first access of a date it (1) closes any stale prior
 /// open days — marking still-Planned items Missed and finalizing adherence via the outbox — then (2) returns
 /// the existing day, or (3) lazily creates + seeds it from the active assignment's snapshot. A trainee with
-/// no active nutrition assignment gets an empty, non-persisted day (MVP: logging requires an assignment).
+/// no active assignment gets an empty, non-persisted day on READ; the persisted plan-less self-logged day is
+/// created only by a WRITE (see <c>NutritionDayProvisioner</c> / <c>AddAdhocNutritionItemHandler</c>).
 /// </summary>
 public sealed class GetMyNutritionTodayHandler(
     IDailyNutritionLogRepository logRepository,
-    INutritionPlanAssignmentRepository assignmentRepository,
-    IMediator mediator,
+    INutritionDayProvisioner provisioner,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser)
     : IRequestHandler<GetMyNutritionTodayQuery, Result<DailyNutritionLogDto>>
@@ -40,43 +39,20 @@ public sealed class GetMyNutritionTodayHandler(
             day.Close();
         var hasPendingClose = staleOpen.Count > 0;
 
-        // (2) Existing day for the date?
-        var existing = await logRepository.GetOwnByDateAsync(userId, localDate, cancellationToken);
-        if (existing != null)
-        {
-            if (hasPendingClose)
-                await unitOfWork.SaveChangesAsync(cancellationToken);
-            return Result<DailyNutritionLogDto>.Success(NutritionMapping.ToDayDto(existing));
-        }
+        // (2) Existing day, or lazily create+seed from the active assignment. READS never create a plan-less
+        // self-logged row — only WRITES do — so the no-assignment case falls through to a non-persisted
+        // EmptyDay below.
+        var log = await provisioner.GetOrCreateFromAssignmentAsync(userId, localDate, request.Timezone, cancellationToken);
 
-        // (3) Create + seed from the active assignment governing this date.
-        var assignment = await assignmentRepository.QueryOwnAcrossGyms(userId)
-            .Where(a => a.IsActive && a.StartDate <= localDate && (a.EndDate == null || a.EndDate >= localDate))
-            .OrderByDescending(a => a.StartDate)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (assignment == null)
+        if (log == null)
         {
             if (hasPendingClose)
                 await unitOfWork.SaveChangesAsync(cancellationToken);
             return Result<DailyNutritionLogDto>.Success(NutritionMapping.EmptyDay(userId, localDate));
         }
 
-        var log = DailyNutritionLog.Open(
-            userId, assignment.TenantId!.Value, localDate, request.Timezone,
-            NutritionSource.FromAssignment, assignment.Id, assignment.SnapshotJson);
-
-        var snapshot = NutritionMapping.DeserializeSnapshot(assignment.SnapshotJson);
-        if (snapshot != null)
-        {
-            // Resolve each planned food's kind once (so supplements/beverages tag in the checklist); the
-            // kind is then denormalized onto the seeded items and reads never re-touch the catalog.
-            var kinds = await ResolveKindsAsync(snapshot, cancellationToken);
-            log.SeedPlannedItems(NutritionMapping.ToSeedItems(snapshot, kinds));
-        }
-
-        await logRepository.AddAsync(log, cancellationToken);
-
+        // Persist a freshly-created+seeded day (and any pending stale close). A no-op when the day already
+        // existed and nothing changed; EF tracks no changes so SaveChanges does nothing.
         try
         {
             await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -91,21 +67,5 @@ public sealed class GetMyNutritionTodayHandler(
         }
 
         return Result<DailyNutritionLogDto>.Success(NutritionMapping.ToDayDto(log));
-    }
-
-    /// <summary>Best-effort map of the snapshot's foods to their catalog kind name. On any resolve failure
-    /// the items just default to "Food" — kind is cosmetic and never blocks seeding.</summary>
-    private async Task<IReadOnlyDictionary<Guid, string>> ResolveKindsAsync(
-        NutritionPlanSnapshot snapshot, CancellationToken ct)
-    {
-        var foodIds = snapshot.Meals.SelectMany(m => m.Items.Select(i => i.FoodId)).Distinct().ToList();
-        if (foodIds.Count == 0) return new Dictionary<Guid, string>();
-
-        var result = await mediator.Send(new ResolveFoodSummariesQuery(foodIds), ct);
-        var kinds = new Dictionary<Guid, string>();
-        if (result.IsSuccess)
-            foreach (var (id, food) in result.Value!)
-                kinds[id] = food.Kind;
-        return kinds;
     }
 }

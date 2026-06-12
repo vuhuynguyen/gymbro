@@ -109,6 +109,17 @@ days? Three candidate strategies:
   > to without a manual "start my day" tap. The creation is still lazy (no background job pre-creating rows) — it
   > just triggers on first read of an un-opened current/past date rather than on an explicit start action.
 
+  > **As built — `NutritionDayProvisioner`.** The get-or-create logic lives in
+  > `Modules.Nutrition/Application/Services/NutritionDayProvisioner` (`INutritionDayProvisioner`): existing day →
+  > else assignment-seeded day (snapshot deserialize + planned-item seed) → else, for off-plan logging with no
+  > assignment, a plan-less **self-logged** day (`DailyNutritionLog.OpenSelfLogged`, `NutritionSource.Adhoc`).
+  > `AddAdhocNutritionItemHandler` calls the provisioner so off-plan logging works without a prescribed plan.
+  > Because the trainee write surface is now **tenant-scoped** (`/api/nutrition/log/*`, requires `X-Tenant-Id`),
+  > the self-logged day is simply stamped with the **active gym** from `ITenantContext.TenantId` — a nutrition day
+  > is unique per `(trainee, date)` globally, so its `TenantId` is the gym active when the day was first created.
+  > If no tenant is in context the provisioner returns `null` and the handler returns a clean validation failure.
+  > The provisioner does not save; the calling handler owns the unit of work.
+
 ### Decision 3 — recurrence lives on the assignment as a structured `Schedule`, evaluated client- and server-side from a shared rule set
 
 Workouts have only `frequencyDaysPerWeek` (an integer the trainee satisfies by manually starting sessions).

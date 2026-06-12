@@ -2,6 +2,7 @@ using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Modules.FoodModule.Application.Queries;
 using Modules.NutritionModule.Application.Abstractions;
 using Modules.NutritionModule.Entities;
@@ -10,6 +11,7 @@ using static BuildingBlocks.Shared.Errors.CommonErrors;
 namespace Modules.NutritionModule.Application.Commands.Handlers;
 
 public sealed class AddAdhocNutritionItemHandler(
+    INutritionDayProvisioner provisioner,
     IDailyNutritionLogRepository logRepository,
     IMediator mediator,
     IUnitOfWork unitOfWork,
@@ -18,9 +20,17 @@ public sealed class AddAdhocNutritionItemHandler(
 {
     public async Task<Result<Guid>> Handle(AddAdhocNutritionItemCommand request, CancellationToken cancellationToken)
     {
-        var log = await logRepository.GetOwnByDateAsync(currentUser.UserId, request.Date, cancellationToken);
+        // Get-or-create the caller's own day for the date. With no assignment, this provisions a plan-less,
+        // self-logged day stamped with the active gym (this write surface is tenant-scoped), so off-plan logging
+        // works even without a prescribed plan. currentUser.UserId is the only trainee id used (self-scoped):
+        // a nutrition day is unique per (TraineeId, LocalDate) globally, so its TenantId is simply the gym that
+        // was active when the day was first created.
+        var log = await provisioner.GetOrCreateForWriteAsync(
+            currentUser.UserId, request.Date, timezone: null, cancellationToken);
         if (log == null)
-            return Result<Guid>.Failure(NotFound("NotFound", "Open today's nutrition before logging an off-plan item."));
+            return Result<Guid>.Failure(Validation(
+                "Tenant",
+                "Select a gym to log nutrition."));
         if (!log.IsOpen)
             return Result<Guid>.Failure(Conflict("DailyLog.Closed", "This day is closed and can no longer be edited."));
 
@@ -63,7 +73,28 @@ public sealed class AddAdhocNutritionItemHandler(
         }
 
         var item = log.AddAdhocItem(data, request.Note);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        return Result<Guid>.Success(item.Id);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return Result<Guid>.Success(item.Id);
+        }
+        catch (DbUpdateException)
+        {
+            // Race: a concurrent first-touch created the day for this (trainee, date) between the provisioner's
+            // existence check and our save (the unique TraineeId+LocalDate index rejects our insert). Mirrors
+            // StartSessionHandler's duplicate-key handling — but a nutrition day is shared, not exclusive, so
+            // recover onto the winning day and re-apply the item rather than returning a conflict.
+            var raced = await logRepository.GetOwnByDateAsync(currentUser.UserId, request.Date, cancellationToken);
+            if (raced == null || raced.Id == log.Id)
+                throw; // Not the day-uniqueness race — surface the real failure.
+
+            logRepository.Detach(log); // drop our losing insert so the next save only writes the new item
+            if (!raced.IsOpen)
+                return Result<Guid>.Failure(Conflict("DailyLog.Closed", "This day is closed and can no longer be edited."));
+
+            var retryItem = raced.AddAdhocItem(data, request.Note);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return Result<Guid>.Success(retryItem.Id);
+        }
     }
 }

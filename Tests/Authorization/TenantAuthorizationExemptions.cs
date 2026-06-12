@@ -112,8 +112,10 @@ internal static class TenantAuthorizationExemptions
                 "Row-level ownership: handler allows admins or the assignment's own trainee "
                 + "(assignment.TraineeId == currentUser.UserId), not a tenant-wide permission."),
 
-            // Self-scoped nutrition (api/me/nutrition/*): the caller's own daily log across all gyms,
+            // Self-scoped nutrition READS (api/me/nutrition/*): the caller's own daily log across all gyms,
             // scoped strictly to currentUser.UserId — a per-user surface, not a tenant permission.
+            // (Trainee nutrition WRITES are now tenant-scoped ITenantAuthorizedRequest commands on
+            // api/nutrition/log — declaratively gated, so they are NOT exempt here.)
             ["GetMyNutritionTodayQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Snapshot-on-touch for the caller's own day (currentUser.UserId) across all gyms; never "
                 + "accepts a client-supplied trainee id."),
@@ -121,15 +123,12 @@ internal static class TenantAuthorizationExemptions
                 "Self-scoped day read keyed on currentUser.UserId; a foreign date/user resolves to NotFound."),
             ["GetMyNutritionHistoryQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Personal nutrition history via QueryOwnAcrossGyms(currentUser.UserId) only; no cross-user surface."),
-            ["SetNutritionItemStatusCommand"] = new(ExemptionKind.ImperativeGuarded,
-                "Completion-first write on the caller's own open day (currentUser.UserId); operates only on "
-                + "an Open day and never another user's log."),
-            ["SubstituteNutritionItemCommand"] = new(ExemptionKind.ImperativeGuarded,
-                "Self-scoped substitute on the caller's own open day (currentUser.UserId)."),
-            ["AddAdhocNutritionItemCommand"] = new(ExemptionKind.ImperativeGuarded,
-                "Self-scoped ad-hoc log on the caller's own open day (currentUser.UserId)."),
-            ["RemoveNutritionItemCommand"] = new(ExemptionKind.ImperativeGuarded,
-                "Self-scoped removal of an ad-hoc item on the caller's own open day (currentUser.UserId)."),
+            ["LogMetricEntryCommand"] = new(ExemptionKind.ImperativeGuarded,
+                "Self-scoped daily check-in append: the handler stamps owner = currentUser.UserId and never "
+                + "accepts a client-supplied trainee id; the personal metric series has no tenant context."),
+            ["GetMyNutritionMetricsQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Self-scoped metric read via GetOwnForDateAsync(currentUser.UserId) only; the personal "
+                + "check-in series is cross-gym and exposes no other user's rows."),
 
             // --- InternalLookup: no caller-facing auth; only reached behind a guarded handler in-process ---
             ["GetWorkoutForSnapshotQuery"] = new(ExemptionKind.InternalLookup,

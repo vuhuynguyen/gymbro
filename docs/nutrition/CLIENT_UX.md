@@ -6,6 +6,19 @@ built almost entirely from existing components and state patterns.
 **Related:** [Flutter ARCHITECTURE](../../../gymbroapp/docs/ARCHITECTURE.md) · [Portal ARCHITECTURE](../../../GymBroPortal/docs/ARCHITECTURE.md)
 · [REMINDERS_AND_OFFLINE.md](REMINDERS_AND_OFFLINE.md) (the mobile offline/notification specifics).
 
+> **Status.** The backend and the **Flutter logging surface are shipped** — Today checklist (embedded on the
+> Log tab, not a dedicated tab), day detail (`/nutrition-day/:date`), history (`/nutrition-history`),
+> device-local "My foods" (`/my-foods`), food picker + custom-food form, and the coach client-nutrition
+> panel. **Off-plan logging works for self-train users without an active assignment** — the backend provisions
+> a plan-less self-logged day stamped with the **active gym** (trainee writes are tenant-scoped on
+> `/api/nutrition/log/*`, requiring `X-Tenant-Id`), so the floating **+** persists even with no
+> prescribed plan (`addOffPlan` refetches `today()` after the POST to adopt the server item id + roll-up
+> counts). The **daily check-in (weight/sleep) now persists server-side** via the built `MetricEntry`
+> GET/POST `/api/me/nutrition/metrics` endpoints (previously the metrics call 404'd and the value was
+> discarded). The pure-Dart `nutrition_adherence.dart`/`nutrition_schedule.dart` helpers described in §2 were
+> **not built**, nor were the offline queue and reminders. **All Angular portal surfaces in §3 are
+> design-only — zero nutrition UI exists in GymBroPortal.** See the [as-built status](README.md).
+
 ## 1. The core interaction — "today" as a checklist
 
 The whole MVP hinges on one screen: **Today's Nutrition**. It is a vertically-grouped checklist of the day's
@@ -32,6 +45,10 @@ work one-handed**; the rich data (macros, timing, trends) accrues invisibly and 
 
 ### Navigation
 
+> **As built:** no dedicated Nutrition tab was added — the Today checklist ships as a section on the **Log**
+> tab, with full-screen routes `/nutrition-history`, `/nutrition-day/:date`, and `/my-foods` above the shell.
+> The proposal below is kept as the original design.
+
 Add a **`Nutrition` tab** to the trainee branch of the existing `StatefulShellRoute.indexedStack`. Today's tab
 order is **log · plan · progress** (trainee) / **clients · coach-plans** (coach) / **profile** (shared). Proposed:
 
@@ -57,7 +74,7 @@ workout history) — no new top-level coach tab needed for MVP.
   `LiveSessionController` pattern extended with a persistent queue (see
   [REMINDERS_AND_OFFLINE §3](REMINDERS_AND_OFFLINE.md)).
 - **Pure-Dart derivations** in `lib/domain/` (no Flutter imports), exactly like `session_metrics.dart` /
-  `session_grouping.dart`:
+  `session_grouping.dart` — *proposed, **not built**: neither file exists in `gymbroapp` today*:
   - `nutrition_adherence.dart` — `adherencePct(items)`, `streak(days)`, `macroTotals(items)`.
   - `nutrition_schedule.dart` — the client mirror of `BuildingBlocks.Shared.Nutrition.NutritionScheduleRules`
     (today's applicable meals + times), used both to render "today" and to schedule local reminders.
@@ -90,6 +107,13 @@ Net new mobile UI is small: an adherence-ring painter, the food-search content, 
 everything else is the existing kit.
 
 ## 3. Angular (GymBroPortal) — coach authoring + review
+
+> **Built (2026-06).** Shipped in GymBroPortal: nutrition plan list + meal builder (`/workspace/nutrition-plans`,
+> `…/:planId`, food picker against `/api/foods`, client-side macro subtotals, one-save-one-version structure PUT),
+> assignment management (`/workspace/nutrition-assignments` — 3-step wizard with date range, visibility mode,
+> hide-macro/lock flags; MVP list+create), and the coach adherence view (`/workspace/clients/:clientId/nutrition`
+> day list + day-detail dialog). All Owner-guarded clones of the workout-plan siblings. Not built on web yet:
+> trainee self-log checklist (`/api/me/nutrition/*`) and the per-meal schedule editor beyond time + day-type.
 
 The web portal is **coach-first** for nutrition (mirrors how plan *authoring* is portal-first for workouts). Three
 surfaces, each cloning an existing one:

@@ -2,6 +2,7 @@ using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Modules.FoodModule.Application.DTOs;
 using Modules.FoodModule.Application.Queries;
 using Modules.NutritionModule.Application.Abstractions;
@@ -88,15 +89,17 @@ public sealed class NutritionLogHandlerTests
     public async Task Adhoc_with_unknown_food_is_rejected()
     {
         var log = SeededOpenLog(out _);
-        var repo = Substitute.For<IDailyNutritionLogRepository>();
-        repo.GetOwnByDateAsync(Arg.Any<Guid>(), Date, Arg.Any<CancellationToken>()).Returns(log);
+        var provisioner = Substitute.For<INutritionDayProvisioner>();
+        provisioner.GetOrCreateForWriteAsync(Arg.Any<Guid>(), Date, Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(log);
         var mediator = Substitute.For<IMediator>();
         mediator.Send(Arg.Any<ResolveFoodSummariesQuery>(), Arg.Any<CancellationToken>())
             .Returns(Result<IReadOnlyDictionary<Guid, FoodSummaryDto>>.Success(new Dictionary<Guid, FoodSummaryDto>()));
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(Guid.NewGuid());
 
-        var sut = new AddAdhocNutritionItemHandler(repo, mediator, Substitute.For<IUnitOfWork>(), currentUser);
+        var sut = new AddAdhocNutritionItemHandler(
+            provisioner, Substitute.For<IDailyNutritionLogRepository>(), mediator, Substitute.For<IUnitOfWork>(), currentUser);
 
         var result = await sut.Handle(
             new AddAdhocNutritionItemCommand(Date, Guid.NewGuid(), 1m, "Snack", null), CancellationToken.None);
@@ -110,8 +113,9 @@ public sealed class NutritionLogHandlerTests
     {
         var log = SeededOpenLog(out _);
         var foodId = Guid.NewGuid();
-        var repo = Substitute.For<IDailyNutritionLogRepository>();
-        repo.GetOwnByDateAsync(Arg.Any<Guid>(), Date, Arg.Any<CancellationToken>()).Returns(log);
+        var provisioner = Substitute.For<INutritionDayProvisioner>();
+        provisioner.GetOrCreateForWriteAsync(Arg.Any<Guid>(), Date, Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(log);
         var mediator = Substitute.For<IMediator>();
         var dict = new Dictionary<Guid, FoodSummaryDto>
         {
@@ -123,7 +127,8 @@ public sealed class NutritionLogHandlerTests
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(Guid.NewGuid());
 
-        var sut = new AddAdhocNutritionItemHandler(repo, mediator, uow, currentUser);
+        var sut = new AddAdhocNutritionItemHandler(
+            provisioner, Substitute.For<IDailyNutritionLogRepository>(), mediator, uow, currentUser);
 
         var result = await sut.Handle(
             new AddAdhocNutritionItemCommand(Date, foodId, 1m, null, null), CancellationToken.None);
@@ -139,14 +144,16 @@ public sealed class NutritionLogHandlerTests
     public async Task Adhoc_with_inline_custom_food_logs_a_kinded_item_without_a_food_id()
     {
         var log = SeededOpenLog(out _);
-        var repo = Substitute.For<IDailyNutritionLogRepository>();
-        repo.GetOwnByDateAsync(Arg.Any<Guid>(), Date, Arg.Any<CancellationToken>()).Returns(log);
+        var provisioner = Substitute.For<INutritionDayProvisioner>();
+        provisioner.GetOrCreateForWriteAsync(Arg.Any<Guid>(), Date, Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(log);
         var mediator = Substitute.For<IMediator>(); // never queried for a custom food
         var uow = Substitute.For<IUnitOfWork>();
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(Guid.NewGuid());
 
-        var sut = new AddAdhocNutritionItemHandler(repo, mediator, uow, currentUser);
+        var sut = new AddAdhocNutritionItemHandler(
+            provisioner, Substitute.For<IDailyNutritionLogRepository>(), mediator, uow, currentUser);
 
         var result = await sut.Handle(
             new AddAdhocNutritionItemCommand(Date, null, 1m, "Supplements", null,
@@ -159,6 +166,55 @@ public sealed class NutritionLogHandlerTests
         Assert.Equal("supplement", added.Kind);
         Assert.Equal(LoggedItemStatus.Completed, added.Status);
         await mediator.DidNotReceive().Send(Arg.Any<ResolveFoodSummariesQuery>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Adhoc_recovers_onto_the_winning_day_when_the_unique_day_race_loses()
+    {
+        // The provisioner hands back a freshly-created (losing) self-logged day; the unique (TraineeId,
+        // LocalDate) index then rejects our insert because a concurrent first-touch already created the day.
+        var userId = Guid.NewGuid();
+        var tenantId = Guid.NewGuid();
+        var foodId = Guid.NewGuid();
+        var losing = DailyNutritionLog.OpenSelfLogged(userId, tenantId, Date, null);
+        var winning = DailyNutritionLog.OpenSelfLogged(userId, tenantId, Date, null);
+
+        var provisioner = Substitute.For<INutritionDayProvisioner>();
+        provisioner.GetOrCreateForWriteAsync(Arg.Any<Guid>(), Date, Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(losing);
+
+        var repo = Substitute.For<IDailyNutritionLogRepository>();
+        repo.GetOwnByDateAsync(Arg.Any<Guid>(), Date, Arg.Any<CancellationToken>()).Returns(winning);
+
+        var mediator = Substitute.For<IMediator>();
+        var dict = new Dictionary<Guid, FoodSummaryDto>
+        {
+            [foodId] = new(foodId, "Banana", "Food", "1 medium", 105m, 1.3m, 27m, 0.4m, 3m)
+        };
+        mediator.Send(Arg.Any<ResolveFoodSummariesQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyDictionary<Guid, FoodSummaryDto>>.Success(dict));
+
+        // First save loses the race (duplicate day); the retry save (onto the winning day) succeeds.
+        var uow = Substitute.For<IUnitOfWork>();
+        uow.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(_ => throw new DbUpdateException("duplicate day"), _ => 1);
+
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.UserId.Returns(userId);
+
+        var sut = new AddAdhocNutritionItemHandler(provisioner, repo, mediator, uow, currentUser);
+
+        var result = await sut.Handle(
+            new AddAdhocNutritionItemCommand(Date, foodId, 1m, "Snack", null), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        // The returned id is the item on the WINNING day; the losing day was detached (abandoned), so its
+        // lingering in-memory item is never persisted.
+        var added = winning.Items.Single(i => i.FoodId == foodId);
+        Assert.Equal(result.Value, added.Id);
+        Assert.DoesNotContain(winning.Items, i => i.Id == losing.Items.Single().Id);
+        repo.Received(1).Detach(losing);
+        await uow.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]

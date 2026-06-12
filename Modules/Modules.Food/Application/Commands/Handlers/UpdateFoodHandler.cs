@@ -2,12 +2,16 @@ using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.FoodModule.Application.Abstractions;
+using Modules.FoodModule.Application.Caching;
 using Modules.FoodModule.Entities;
 using static BuildingBlocks.Shared.Errors.CommonErrors;
 
 namespace Modules.FoodModule.Application.Commands.Handlers;
 
-public sealed class UpdateFoodHandler(IFoodRepository repository, IUnitOfWork unitOfWork)
+public sealed class UpdateFoodHandler(
+    IFoodRepository repository,
+    IUnitOfWork unitOfWork,
+    FoodCatalogCache catalogCache)
     : IRequestHandler<UpdateFoodCommand, Result>
 {
     public async Task<Result> Handle(UpdateFoodCommand request, CancellationToken cancellationToken)
@@ -33,6 +37,11 @@ public sealed class UpdateFoodHandler(IFoodRepository repository, IUnitOfWork un
             request.Food.Brand);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // The edited food must vanish from cached detail + search rows.
+        await catalogCache.InvalidateDetailAsync(request.Id, cancellationToken);
+        await catalogCache.InvalidateSearchAsync(cancellationToken);
+
         return Result.Success();
     }
 }

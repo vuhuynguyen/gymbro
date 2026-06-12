@@ -47,9 +47,14 @@ NutritionPlanDelete, NutritionPlanAssign, NutritionLogCreate, NutritionLogViewOw
 | NutritionLogViewAll | ✓ | — |
 
 The Nutrition log permissions mirror the Workout log family (Create/ViewOwn for trainees, ViewAll for
-coaches). Trainee nutrition logging is **self-scoped** on `api/me/nutrition/*` (handler-gated by
-`currentUser.UserId`, classified `ImperativeGuarded`), so a Client's `NutritionLogCreate` is the symmetric
-grant rather than the gate. Detail: [nutrition/API_AND_PERMISSIONS.md](nutrition/API_AND_PERMISSIONS.md).
+coaches). Trainee nutrition **writes** are **tenant-scoped** on `api/nutrition/log/*` — the four log-write
+commands are `ITenantAuthorizedRequest` (`NutritionLogCreate`, held by Owner AND Client), gated declaratively by
+`AuthorizationBehavior` + membership-validated `TenantResolutionMiddleware`, exactly like `StartSessionCommand`
+on `api/sessions` (handlers still scope to `currentUser.UserId` for defense in depth). Off-plan logging needs no
+active assignment: a self-logged day is stamped with the **active gym** (`ITenantContext.TenantId`), so it stays
+tenant-isolated from coaches in other gyms. Trainee **reads** and the personal `MetricEntry` series stay
+self-scoped on `api/me/nutrition/*` (handler-gated by `currentUser.UserId`, classified `ImperativeGuarded`).
+Detail: [nutrition/API_AND_PERMISSIONS.md](nutrition/API_AND_PERMISSIONS.md).
 
 ## Capability matrix
 

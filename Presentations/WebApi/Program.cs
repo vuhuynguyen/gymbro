@@ -15,6 +15,8 @@ using Microsoft.IdentityModel.Tokens;
 using Modules.ExerciseModule;
 using Modules.FoodModule;
 using Modules.NutritionModule;
+using Modules.NutritionModule.Application.Abstractions;
+using Modules.NutritionModule.Application.Services;
 using Modules.IdentityModule;
 using Modules.IdentityModule.Application.Abstractions;
 using Modules.IdentityModule.DependencyInjection;
@@ -90,6 +92,7 @@ builder.Services.AddCrossStoreReconciliation(builder.Configuration);
 builder.Services.AddGymBroObservability(builder.Configuration);
 builder.Services.AddSingleton<IPermissionService, PermissionService>();
 builder.Services.AddScoped<ITenantRoleResolver, TenantRoleResolver>();
+builder.Services.AddScoped<INutritionDayProvisioner, NutritionDayProvisioner>();
 builder.Services.AddScoped<ITenantAuthorizationService, TenantAuthorizationService>();
 // Per-request memo so the membership/role lookup runs once per request instead of 2-4 times.
 builder.Services.AddScoped<IRequestRoleCache, RequestRoleCache>();

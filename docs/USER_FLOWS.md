@@ -149,6 +149,17 @@ caller's own data via a deliberate, audited tenant-filter bypass (`QueryOwnAcros
 | `GET /api/me/sessions/{id}` | own session detail; another user's id → **404** (never a leak). PR flags use lifetime cross-gym prior-bests |
 | `GET /api/me/records` | lifetime PRs — best estimated-1RM per lift across all gyms |
 | `GET /api/me/progress` | weekly volume/frequency analytics across all gyms |
+| `GET /api/me/nutrition/today` / `days` / `days/{date}` | own nutrition daily log(s) across all gyms; no assignment + no existing day → a non-persisted empty day |
+| `GET /api/me/nutrition/metrics?date=` / `POST …/metrics` | own body-metric check-in series (`MetricEntry`: weight, sleep, …); GET returns `{items:[…]}` newest-first, POST `{type,value,unit?,localDate?}` → `{logged:true}`. Self-scoped, **not** tenant-bound (personal body data) |
+
+Trainee nutrition **writes** are **tenant-scoped** (they mirror workout sessions — the write happens in the
+context of a gym), on `NutritionLogController` `/api/nutrition/log/*` (`X-Tenant-Id` required,
+`NutritionLogCreate`, held by Owner AND Client):
+
+| Endpoint | Behavior |
+|---|---|
+| `POST /api/nutrition/log/items` | log an **off-plan** food on the caller's own day. With no active assignment a plan-less self-logged day is provisioned, **stamped with the active gym** (the `X-Tenant-Id` header), so off-plan logging works without a prescribed plan. `201` with the item id; a non-member of the active gym → `401` (declarative gate) |
+| `POST /api/nutrition/log/items/status` / `items/substitute`, `DELETE …/items/{id}?date=` | complete/skip/substitute/remove an item on own day (`204` for delete) |
 
 These power the trainee/personal experience in the SPA. The **coach** view of a gym's members stays on the
 tenant-scoped `GET /api/sessions` (`WorkoutLogViewAll`) — no cross-gym visibility. Authorization:

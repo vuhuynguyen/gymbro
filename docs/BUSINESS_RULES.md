@@ -100,6 +100,27 @@ are correct.
   in-app rest timer, editable; drop stages carry none). It is distinct from the plan's prescribed/target rest, which
   seeds the countdown.
 
+## Nutrition daily-log lifecycle
+
+The dietary mirror of the session lifecycle (full detail: [nutrition/DOMAIN_MODEL.md](nutrition/DOMAIN_MODEL.md)).
+A `DailyNutritionLog` is one row per **(trainee, local date)**, created lazily by snapshot-on-touch.
+
+- **Provisioning (get-or-create, `NutritionDayProvisioner`):** existing day → else a day seeded from the active
+  assignment (`Source = FromAssignment`, snapshot + planned `LoggedItem`s) → else, for **off-plan logging with no
+  active assignment**, a plan-less **self-logged** day (`Source = NutritionSource.Adhoc`, no snapshot). Off-plan
+  logging therefore **no longer requires an active assignment** (the earlier MVP limitation is lifted).
+- **Trainee logging is tenant-scoped; the self-logged day is stamped with the active gym.** The four log-write
+  commands are `ITenantAuthorizedRequest` (`NutritionLogCreate`) on `api/nutrition/log/*`, requiring `X-Tenant-Id`
+  (membership-validated) — mirroring workout sessions. A self-logged day is stamped with the **active gym**
+  (`ITenantContext.TenantId`); a nutrition day is unique per `(trainee, date)` globally, so its `TenantId` is the
+  gym active when it was first created. `TenantId` stays non-null and the EF tenant filter keeps the day invisible
+  to coaches in other gyms. A non-member of the active gym is rejected by the declarative authorization gate; no
+  tenant in context → a clean validation failure, not a 500 — no row is created.
+- **Reads never create.** A read (`today`/`days`) with no assignment and no existing day returns a non-persisted
+  empty day; only a **write** provisions the self-logged row.
+- **Close:** at local midnight (or first interaction the next day) still-`Planned` items become `Missed`,
+  `AdherencePct` is finalized, and `DailyLogClosedEvent` is raised through the outbox.
+
 ## Membership lifecycle (tenant + Owner/Client)
 
 - **Account vs membership are independent.** Registration creates an account and (via `UserRegisteredNotification`) a `User` + a personal `Tenant` + an `Owner` role. **Registration takes no invite code.**

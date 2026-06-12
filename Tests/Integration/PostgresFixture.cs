@@ -15,6 +15,8 @@ using Modules.ExerciseModule;
 using Modules.ExerciseModule.Application.Caching;
 using Modules.FoodModule;
 using Modules.NutritionModule;
+using Modules.NutritionModule.Application.Abstractions;
+using Modules.NutritionModule.Application.Services;
 using Modules.IdentityModule;
 using Modules.IdentityModule.DependencyInjection;
 using Modules.IdentityModule.Infrastructure.Identity;
@@ -199,6 +201,7 @@ public sealed class PostgresFixture : IAsyncLifetime
         // Per-request role memo — TenantRoleResolver depends on it (registered in Program.cs the same way).
         services.AddScoped<IRequestRoleCache, RequestRoleCache>();
         services.AddScoped<ITenantRoleResolver, TenantRoleResolver>();
+        services.AddScoped<INutritionDayProvisioner, NutritionDayProvisioner>();
         services.AddScoped<ITenantAuthorizationService, TenantAuthorizationService>();
 
         // The mutable principal stands in for the HTTP-scoped CurrentUser/TenantContext. Registered LAST

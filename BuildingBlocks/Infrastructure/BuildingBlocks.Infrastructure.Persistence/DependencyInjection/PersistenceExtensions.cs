@@ -48,6 +48,7 @@ public static class PersistenceExtensions
         services.AddScoped<INutritionPlanRepository, NutritionPlanRepository>();
         services.AddScoped<INutritionPlanAssignmentRepository, NutritionPlanAssignmentRepository>();
         services.AddScoped<IDailyNutritionLogRepository, DailyNutritionLogRepository>();
+        services.AddScoped<IMetricEntryRepository, MetricEntryRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IUserTenantRoleRepository, UserTenantRoleRepository>();

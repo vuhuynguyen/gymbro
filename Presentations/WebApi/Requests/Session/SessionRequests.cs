@@ -64,6 +64,12 @@ public sealed class EditSetRequest
     public PerformedSetType? SetType { get; set; }
 }
 
+public sealed class ReorderSetsRequest
+{
+    /// The exercise's set ids in their new order (must be exactly the exercise's current sets).
+    public List<Guid> SetIds { get; set; } = [];
+}
+
 public sealed class CompleteSessionRequest
 {
     public int? RpeOverall { get; set; }

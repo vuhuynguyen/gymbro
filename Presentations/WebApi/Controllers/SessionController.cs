@@ -204,6 +204,22 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("{sessionId:guid}/exercises/{exerciseId:guid}/sets/order")]
+    public async Task<IActionResult> ReorderSets(
+        Guid sessionId,
+        Guid exerciseId,
+        [FromBody] ReorderSetsRequest request,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(
+            new ReorderSetsCommand(sessionId, exerciseId, request.SetIds), ct);
+
+        if (result.IsFailure)
+            return result.ToFailureResult(this);
+
+        return Ok(new { reordered = true });
+    }
+
     [HttpPost("{sessionId:guid}/complete")]
     public async Task<IActionResult> Complete(
         Guid sessionId,

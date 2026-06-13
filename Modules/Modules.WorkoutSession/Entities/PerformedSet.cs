@@ -109,6 +109,14 @@ public sealed class PerformedSet : BaseEntity, ITenantEntity
         EstimatedOneRepMaxKg = ComputeOneRepMax(SetType, Reps, WeightKg);
     }
 
+    /// <summary>Sets this set's ordinal within its exercise (used when reordering logged sets).</summary>
+    public void Reposition(int setNumber)
+    {
+        if (setNumber < 1)
+            throw new DomainException("setNumber must be positive.");
+        SetNumber = setNumber;
+    }
+
     private static decimal? ComputeOneRepMax(PerformedSetType setType, int? reps, decimal? weightKg)
     {
         if (setType != PerformedSetType.Working || !reps.HasValue || !weightKg.HasValue || reps.Value <= 0)

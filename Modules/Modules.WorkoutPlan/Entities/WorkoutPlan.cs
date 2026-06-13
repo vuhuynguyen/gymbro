@@ -8,7 +8,7 @@ namespace Modules.WorkoutPlanModule.Entities;
 /// only <see cref="Publish"/> turns a draft into an immutable published version — the only thing that advances the
 /// version trainees and assignments see.
 /// </summary>
-public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
+public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete, IVersionedPlan
 {
     public Guid TemplateId { get; private set; }
     public int Version { get; private set; }

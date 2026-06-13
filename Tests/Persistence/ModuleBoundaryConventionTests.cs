@@ -26,6 +26,14 @@ namespace Gymbro.Tests.Persistence;
 /// <para>If a genuinely shared contract type currently lives under <c>*.Entities</c>, the fix is to MOVE it to
 /// the owning module's <c>*.Application</c> namespace (as <c>PlanVisibilityMode</c> already is) — not to relax
 /// this test.</para>
+///
+/// <para><b>Scope (and a known exemption).</b> This guards feature-module ↔ feature-module boundaries. It does
+/// NOT scan <c>BuildingBlocks.Infrastructure.Persistence</c>, which currently owns the EF model (entity
+/// configurations, <c>DbSet</c>s and repositories) and therefore deliberately references every module's
+/// <c>*.Entities</c> — i.e. the persistence kernel depends on the feature modules rather than the reverse. That
+/// inversion is a recognised structural item: were each module to own its own persistence, this test should be
+/// widened to scan the kernel too. The exemption is documented here so the green result is not mistaken for a
+/// guarantee that <i>nothing</i> in the solution references module entities.</para>
 /// </summary>
 public sealed class ModuleBoundaryConventionTests
 {

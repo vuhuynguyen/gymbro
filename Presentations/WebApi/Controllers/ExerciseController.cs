@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.ExerciseModule.Application.Commands;
 using Modules.ExerciseModule.Application.Queries;
+using WebApi.Http;
 using WebApi.Requests.Exercise;
 
 namespace WebApi.Controllers;
@@ -40,7 +41,7 @@ public class ExerciseController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(command);
 
         if (result.IsFailure)
-            return MapExerciseCommandFailure(result);
+            return result.ToFailureResult(this);
 
         return CreatedAtAction(nameof(GetById), new { id = result.Value }, result.Value);
     }
@@ -51,7 +52,7 @@ public class ExerciseController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetExerciseByIdQuery(id));
 
         if (result.IsFailure)
-            return MapExerciseQueryFailure(result);
+            return result.ToFailureResult(this);
 
         return Ok(result.Value);
     }
@@ -62,7 +63,7 @@ public class ExerciseController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(query);
 
         if (result.IsFailure)
-            return MapExerciseQueryFailure(result);
+            return result.ToFailureResult(this);
 
         return Ok(result.Value);
     }
@@ -95,7 +96,7 @@ public class ExerciseController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(command);
 
         if (result.IsFailure)
-            return MapExerciseCommandFailure(result);
+            return result.ToFailureResult(this);
 
         return Ok(result.Value);
     }
@@ -107,42 +108,10 @@ public class ExerciseController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new DeleteExerciseCommand(id));
 
         if (result.IsFailure)
-            return MapExerciseCommandFailure(result);
+            return result.ToFailureResult(this);
 
         return NoContent();
     }
-
-    private IActionResult MapExerciseCommandFailure(
-        BuildingBlocks.Shared.Results.Result<Guid> result)
-    {
-        if (result.Error.Code == "Conflict") return Conflict(result.Error.Message);
-        if (result.Error.Code == "NotFound") return NotFound(result.Error.Message);
-        if (IsForbiddenExerciseCode(result.Error.Code))
-            return StatusCode(StatusCodes.Status403Forbidden, result.Error.Message);
-        return BadRequest(result.Error.Message);
-    }
-
-    private IActionResult MapExerciseCommandFailure(BuildingBlocks.Shared.Results.Result result)
-    {
-        if (result.Error.Code == "NotFound") return NotFound(result.Error.Message);
-        if (IsForbiddenExerciseCode(result.Error.Code))
-            return StatusCode(StatusCodes.Status403Forbidden, result.Error.Message);
-        return BadRequest(result.Error.Message);
-    }
-
-    private IActionResult MapExerciseQueryFailure<TResult>(
-        BuildingBlocks.Shared.Results.Result<TResult> result)
-    {
-        if (result.Error.Code == "NotFound") return NotFound(result.Error.Message);
-        if (IsForbiddenExerciseCode(result.Error.Code))
-            return StatusCode(StatusCodes.Status403Forbidden, result.Error.Message);
-        if (result.Error.Code == "Validation") return BadRequest(result.Error.Message);
-        return BadRequest(result.Error.Message);
-    }
-
-    private static bool IsForbiddenExerciseCode(string code) =>
-        code is "AdminOnly" or "Unauthorized"
-        || code.Contains("Unauthorized", StringComparison.OrdinalIgnoreCase);
 
     private static IReadOnlyList<ExerciseMuscleInput> MapMuscles(
         List<ExerciseMuscleRequest>? muscles,

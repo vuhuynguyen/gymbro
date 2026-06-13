@@ -2,7 +2,7 @@ using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.FoodModule.Application.Abstractions;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.FoodModule.Application.Queries.Handlers;
 

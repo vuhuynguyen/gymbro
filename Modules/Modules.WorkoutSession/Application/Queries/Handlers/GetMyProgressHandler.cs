@@ -1,5 +1,6 @@
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Time;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.WorkoutSessionModule.Application.Abstractions;
@@ -26,6 +27,7 @@ public sealed class GetMyProgressHandler(
             .Select(s => new
             {
                 s.StartedAt,
+                s.ClientTimezone,
                 s.Status,
                 // Drop/rest-pause stages roll up into their lead set — count only parentless rows.
                 TotalSets = s.Exercises.SelectMany(e => e.Sets).Count(set => set.ParentSetId == null),
@@ -42,7 +44,7 @@ public sealed class GetMyProgressHandler(
         var completed = sessions.Count(s => s.Status == SessionStatus.Completed);
 
         var weeks = sessions
-            .GroupBy(s => WeekStart(s.StartedAt))
+            .GroupBy(s => WeekStart(s.StartedAt, s.ClientTimezone))
             .OrderByDescending(g => g.Key)
             .Select(g => new ProgressWeekDto(
                 g.Key,
@@ -55,10 +57,10 @@ public sealed class GetMyProgressHandler(
             new ProgressDto(sessions.Count, completed, totalVolume, totalSets, weeks));
     }
 
-    // Monday-anchored start of the week containing the given instant (UTC).
-    private static DateOnly WeekStart(DateTimeOffset startedAt)
+    // Monday-anchored start of the week containing the given instant, in the trainee's captured zone (UTC fallback).
+    private static DateOnly WeekStart(DateTimeOffset startedAt, string? ianaZone)
     {
-        var date = DateOnly.FromDateTime(startedAt.UtcDateTime);
+        var date = LocalDayResolver.LocalDateOf(startedAt, ianaZone);
         var offsetFromMonday = ((int)date.DayOfWeek + 6) % 7;
         return date.AddDays(-offsetFromMonday);
     }

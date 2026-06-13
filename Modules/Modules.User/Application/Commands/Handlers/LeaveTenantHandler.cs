@@ -16,24 +16,42 @@ public class LeaveTenantHandler(
 {
     public async Task<Result> Handle(LeaveTenantCommand request, CancellationToken cancellationToken)
     {
-        var membership = await roleRepository.GetByUserAndTenantAsync(
-            currentUser.UserId, request.TenantId, cancellationToken);
+        var result = Result.Success();
 
-        if (membership == null)
-            return Result.Failure(Error.NotFound("Membership not found."));
-
-        if (membership.Role == TenantRole.Owner)
+        // The "last Owner cannot leave" rule is a read-modify-write: two Owners leaving at once could both see
+        // the other and both delete, orphaning the tenant. A per-tenant advisory lock inside the transaction
+        // serialises them — the second caller blocks until the first commits, then re-reads the smaller roster
+        // and is correctly rejected.
+        await unitOfWork.ExecuteTransactionalAsync(async () =>
         {
-            var allMembers = await roleRepository.GetByTenantAsync(request.TenantId, cancellationToken);
-            var otherOwners = allMembers.Any(m => m.UserId != currentUser.UserId && m.Role == TenantRole.Owner);
+            await roleRepository.LockForTenantMembershipChangeAsync(request.TenantId, cancellationToken);
 
-            if (!otherOwners)
-                return Result.Failure(Error.Validation("Cannot leave: you are the only owner. Transfer ownership first."));
-        }
+            var membership = await roleRepository.GetByUserAndTenantAsync(
+                currentUser.UserId, request.TenantId, cancellationToken);
 
-        roleRepository.Remove(membership);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+            if (membership == null)
+            {
+                result = Result.Failure(Error.NotFound("Membership not found."));
+                return;
+            }
 
-        return Result.Success();
+            if (membership.Role == TenantRole.Owner)
+            {
+                var allMembers = await roleRepository.GetByTenantAsync(request.TenantId, cancellationToken);
+                var otherOwners = allMembers.Any(m => m.UserId != currentUser.UserId && m.Role == TenantRole.Owner);
+
+                if (!otherOwners)
+                {
+                    result = Result.Failure(Error.Validation(
+                        "Cannot leave: you are the only owner. Transfer ownership first."));
+                    return;
+                }
+            }
+
+            roleRepository.Remove(membership);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }, cancellationToken);
+
+        return result;
     }
 }

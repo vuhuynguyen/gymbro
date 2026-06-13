@@ -7,7 +7,7 @@ namespace Modules.NutritionModule.Entities;
 /// Direct port of <c>PlanAssignment</c>. The daily log reads the active assignment for a date to snapshot
 /// that day's planned meals.
 /// </summary>
-public sealed class NutritionPlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete
+public sealed class NutritionPlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete, ISettableActive
 {
     public Guid TraineeId { get; private set; }
     public Guid PlanId { get; private set; }

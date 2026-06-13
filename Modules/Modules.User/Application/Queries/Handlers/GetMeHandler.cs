@@ -3,7 +3,7 @@ using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.UserModule.Application.Abstractions;
 using Modules.UserModule.Application.DTOs;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.UserModule.Application.Queries.Handlers;
 

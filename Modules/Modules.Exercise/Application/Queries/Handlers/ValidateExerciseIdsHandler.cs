@@ -2,7 +2,7 @@ using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.ExerciseModule.Application.Abstractions;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.ExerciseModule.Application.Queries.Handlers;
 

@@ -173,7 +173,6 @@ public sealed class DeleteWorkoutPlanHandlerTests
     {
         public ICurrentUser CurrentUser => this;
         public ITenantContext TenantContext => this;
-        public IPublisher Publisher => throw new NotSupportedException("AppDbContext no longer publishes inline.");
         public Guid UserId => Guid.Empty;
         public bool IsAdmin => true;
         public Guid? TenantId => null;

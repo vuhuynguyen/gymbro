@@ -35,7 +35,12 @@ public class JoinTenantHandler(
         if (alreadyMember != null)
             return Result<Guid>.Failure(Error.Conflict("User is already a member of this tenant."));
 
-        invite.MarkUsed();
+        // Atomically claim the single-use invite before granting membership. The conditional UPDATE inside
+        // TryClaimAsync lets at most ONE concurrent redemption win, closing the read-check-then-mark race where
+        // two users could redeem the same invite; it also turns a same-user double-submit into a clean Conflict
+        // instead of a unique-index 500.
+        if (!await inviteRepository.TryClaimAsync(invite.Id, cancellationToken))
+            return Result<Guid>.Failure(Error.Conflict("Invite is already used or revoked."));
 
         var role = UserTenantRole.Create(currentUser.UserId, tenantId, invite.Role);
         await roleRepository.AddAsync(role, cancellationToken);

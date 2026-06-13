@@ -24,7 +24,7 @@ public sealed class GetMyPersonalRecordsHandler(
         GetMyPersonalRecordsQuery request,
         CancellationToken cancellationToken)
     {
-        var workingSets = await sessionRepository.QueryOwnAcrossGyms(currentUser.UserId)
+        var workingSets = sessionRepository.QueryOwnAcrossGyms(currentUser.UserId)
             .SelectMany(s => s.Exercises)
             .SelectMany(e => e.Sets.Select(set => new
             {
@@ -34,14 +34,24 @@ public sealed class GetMyPersonalRecordsHandler(
                 set.EstimatedOneRepMaxKg,
                 set.LoggedAt
             }))
-            .Where(x => x.EstimatedOneRepMaxKg != null && x.WeightKg != null && x.Reps != null)
+            .Where(x => x.EstimatedOneRepMaxKg != null && x.WeightKg != null && x.Reps != null);
+
+        // Best set per lift = highest e1RM (ties broken by most recent). Reduced in SQL via a correlated
+        // "no other set of this lift beats it" so only ~one row per exercise is materialised, instead of the
+        // caller's entire lifetime of working sets.
+        var topSets = await workingSets
+            .Where(x => !workingSets.Any(other =>
+                other.ExerciseId == x.ExerciseId &&
+                (other.EstimatedOneRepMaxKg > x.EstimatedOneRepMaxKg ||
+                    (other.EstimatedOneRepMaxKg == x.EstimatedOneRepMaxKg && other.LoggedAt > x.LoggedAt))))
             .ToListAsync(cancellationToken);
 
-        if (workingSets.Count == 0)
+        if (topSets.Count == 0)
             return Result<PersonalRecordListDto>.Success(new PersonalRecordListDto([]));
 
-        // Best set per lift = highest e1RM (ties broken by most recent).
-        var best = workingSets
+        // Collapse the (astronomically rare) exact e1RM-and-timestamp tie back to one row per lift, so the
+        // result matches the prior "single best set per exercise" guarantee. Operates on the small reduced set.
+        var best = topSets
             .GroupBy(x => x.ExerciseId)
             .Select(g => g
                 .OrderByDescending(x => x.EstimatedOneRepMaxKg!.Value)

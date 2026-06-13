@@ -63,7 +63,5 @@ public sealed class GlobalFilterLiveReadTests
     {
         public ICurrentUser CurrentUser => principal;
         public ITenantContext TenantContext => principal;
-        public IPublisher Publisher =>
-            throw new NotSupportedException("AppDbContext does not publish inline; the outbox owns dispatch.");
     }
 }

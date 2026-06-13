@@ -2,7 +2,7 @@ using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.NutritionModule.Application.Abstractions;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.NutritionModule.Application.Commands.Handlers;
 

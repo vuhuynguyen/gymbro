@@ -10,7 +10,7 @@ public class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUse
         get
         {
             var claim = httpContextAccessor.HttpContext?.User?.FindFirst("domainUserId")?.Value;
-            return claim != null ? Guid.Parse(claim) : Guid.Empty;
+            return Guid.TryParse(claim, out var id) ? id : Guid.Empty;
         }
     }
 

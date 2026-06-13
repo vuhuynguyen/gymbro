@@ -26,7 +26,7 @@ public sealed class FoodSeedingTests(PostgresFixture fixture)
         {
             var db = sp.GetRequiredService<AppDbContext>();
             var cache = sp.GetRequiredService<FoodCatalogCache>();
-            await FoodMasterDataSeeder.SeedAsync(db, cache, NullLogger.Instance, FoodSeedMode.InsertMissing);
+            await FoodMasterDataSeeder.SeedAsync(db, cache, NullLogger.Instance, MasterDataSeedMode.InsertMissing);
         });
 
         var afterFirst = await CountGlobal("Chicken Breast, Cooked");
@@ -37,7 +37,7 @@ public sealed class FoodSeedingTests(PostgresFixture fixture)
         {
             var db = sp.GetRequiredService<AppDbContext>();
             var cache = sp.GetRequiredService<FoodCatalogCache>();
-            await FoodMasterDataSeeder.SeedAsync(db, cache, NullLogger.Instance, FoodSeedMode.InsertMissing);
+            await FoodMasterDataSeeder.SeedAsync(db, cache, NullLogger.Instance, MasterDataSeedMode.InsertMissing);
         });
 
         Assert.Equal(1, await CountGlobal("Chicken Breast, Cooked"));

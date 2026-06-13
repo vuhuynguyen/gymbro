@@ -45,9 +45,11 @@ read-only via injected repositories or MediatR queries.
 | `DailyNutritionLog`, `LoggedItem` | Nutrition | App | Nutrition (trainee = owner) | `ITenantEntity`; log soft-delete + self-scoped cross-gym reads (`QueryOwnAcrossGyms`); **items hard-delete** |
 | `Translation` | BuildingBlocks | App | (i18n) | **none — unfiltered** (global i18n by design) |
 
-Nutrition tables mirror the workout spine (catalog → versioned template → per-day snapshot log). Schema,
-indexes (incl. the unique `(TraineeId, LocalDate)` one-day-per-user and the partial-unique plan/assignment
-indexes), and constraints: [nutrition/DATABASE.md](nutrition/DATABASE.md).
+Nutrition tables mirror the workout spine (catalog → versioned template → per-day snapshot log), with the same
+load-bearing indexes reused from their workout siblings: the unique `(TraineeId, LocalDate)` one-day-per-user
+index on `DailyNutritionLog`, the partial-unique `(TemplateId, Version)` plan-version index, and the
+partial-unique `(TenantId, TraineeId, PlanId)` one-live-assignment index — the `WorkoutPlan`/`WorkoutSession`
+rules applied verbatim.
 
 ## Relationships
 

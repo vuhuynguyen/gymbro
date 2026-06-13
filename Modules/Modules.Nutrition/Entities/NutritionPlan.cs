@@ -9,7 +9,7 @@ namespace Modules.NutritionModule.Entities;
 /// turns a draft into an immutable published version — the only thing that advances the version trainees and
 /// assignments see. Direct port of the <c>WorkoutPlan</c> lifecycle.
 /// </summary>
-public sealed class NutritionPlan : AggregateRoot, ITenantEntity, ISoftDelete
+public sealed class NutritionPlan : AggregateRoot, ITenantEntity, ISoftDelete, IVersionedPlan
 {
     public Guid TemplateId { get; private set; }
     public int Version { get; private set; }

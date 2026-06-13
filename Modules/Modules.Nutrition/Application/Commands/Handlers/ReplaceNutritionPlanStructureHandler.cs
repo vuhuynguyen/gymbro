@@ -6,8 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Modules.FoodModule.Application.DTOs;
 using Modules.FoodModule.Application.Queries;
 using Modules.NutritionModule.Application.Abstractions;
+using Modules.NutritionModule.Application.Authorization;
 using Modules.NutritionModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.NutritionModule.Application.Commands.Handlers;
 
@@ -59,6 +60,10 @@ public sealed class ReplaceNutritionPlanStructureHandler(
         if (current.Id != head.Id)
             return Result<Guid>.Failure(Conflict(
                 "Conflict", "This is not the latest version of the plan. Refresh and edit the latest version."));
+
+        var authorCheck = NutritionPlanAuthorPolicy.EnsureCanMutate(head, currentUser);
+        if (authorCheck.IsFailure)
+            return Result<Guid>.Failure(authorCheck.Error);
 
         // Edits never bump the published version: they land on the single draft head. Replacing an existing draft
         // keeps its version number (and drops the old draft row); the first edit after a publish forks a new draft

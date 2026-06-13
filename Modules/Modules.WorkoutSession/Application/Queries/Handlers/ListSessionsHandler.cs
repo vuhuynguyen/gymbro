@@ -8,7 +8,7 @@ using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Application.DTOs;
 using Modules.WorkoutSessionModule.Application.Mapping;
 using Modules.WorkoutSessionModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutSessionModule.Application.Queries.Handlers;
 
@@ -122,7 +122,7 @@ public sealed class ListSessionsHandler(
                     volumeMap.TryGetValue(s.Id, out var vol) ? vol : 0m,
                     s.PrCount,
                     ctx?.ProgramName,
-                    ctx is null ? null : SessionMapping.ComputePlanWeek(ctx.StartDate, s.StartedAt),
+                    ctx is null ? null : SessionMapping.ComputePlanWeek(ctx.StartDate, s.StartedAt, s.ClientTimezone),
                     ctx?.FrequencyDaysPerWeek);
             })
             .ToList();

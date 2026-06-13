@@ -22,5 +22,16 @@ public sealed class PerformedSetConfiguration : IEntityTypeConfiguration<Perform
 
         builder.HasIndex(x => new { x.PerformedExerciseId, x.SetNumber });
         builder.HasIndex(x => x.LoggedAt);
+
+        // A drop/rest-pause cluster's stage rows reference their lead set via ParentSetId. Deleting the lead
+        // removes its stages (they are not standalone logical sets), so a cluster can never be left with
+        // orphaned, parent-less-but-still-volume-bearing rows when the lead is deleted. Indexed for the
+        // cascade and for stage lookups by parent.
+        builder.HasOne<PerformedSet>()
+            .WithMany()
+            .HasForeignKey(x => x.ParentSetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(x => x.ParentSetId);
     }
 }

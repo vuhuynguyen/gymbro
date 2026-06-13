@@ -4,7 +4,7 @@ using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.FoodModule.Application.Caching;
 using Modules.FoodModule.Application.DTOs;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.FoodModule.Application.Queries.Handlers;
 

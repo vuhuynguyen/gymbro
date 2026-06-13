@@ -1,8 +1,9 @@
 using BuildingBlocks.Application.Abstractions;
+using BuildingBlocks.Application.Plans;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.WorkoutPlanModule.Application.Abstractions;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using Modules.WorkoutPlanModule.Entities;
 
 namespace Modules.WorkoutPlanModule.Application.Commands.Handlers;
 
@@ -11,15 +12,8 @@ public sealed class SetPlanAssignmentActiveHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<SetPlanAssignmentActiveCommand, Result>
 {
-    public async Task<Result> Handle(SetPlanAssignmentActiveCommand request, CancellationToken cancellationToken)
-    {
-        var assignment = await assignmentRepository.GetByIdAsync(request.AssignmentId, cancellationToken);
-        if (assignment == null)
-            return Result.Failure(NotFound("NotFound", "Plan assignment not found."));
-
-        assignment.SetActive(request.Active);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Result.Success();
-    }
+    public Task<Result> Handle(SetPlanAssignmentActiveCommand request, CancellationToken cancellationToken) =>
+        PlanAssignmentLifecycle.SetActiveAsync<PlanAssignment>(
+            assignmentRepository.GetByIdAsync, unitOfWork, request.AssignmentId, request.Active,
+            "Plan assignment not found.", cancellationToken);
 }

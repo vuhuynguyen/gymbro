@@ -126,15 +126,16 @@ Required repo secrets (both repos): `VM_HOST`, `VM_USER`, `DEPLOY_SSH_KEY`.
 The app is platform-agnostic; this is the one environment it is actually deployed to.
 
 ```
-        HTTPS (Cloudflare in front)        single VM (Oracle Cloud)
-browser ─────────────────────────▶ ┌──────────────────────────────────────┐
-                                    │  frontend nginx :80 ──/api──▶ api :8080│
-                                    └───────────────┬──────────────┬────────┘
-                                              Neon (Postgres)   Redis Cloud
+        HTTPS (Caddy / Let's Encrypt)       single VM (GCP Compute Engine)
+browser ──────────────────────────▶ ┌─────────────────────────────────────────────┐
+                                     │ caddy :443 ─▶ frontend nginx :80 ─/api─▶ api :8080│
+                                     └────────────────────┬──────────────┬─────────────┘
+                                                    Neon (Postgres)   Redis Cloud
 ```
 
-- **Host:** one Linux VM. The app directory (`~/gymbro-app`) holds the compose files + an `app.env` (never committed) with the Neon connection string, the Redis Cloud connection string, `Jwt__Secret`, and the seed admin.
-- **One origin:** the frontend's nginx serves the SPA and reverse-proxies `/api` → `api:8080`, so there is no CORS. Data is fully external (Neon + Redis Cloud), so the VM is stateless and disposable.
+- **Host:** one Linux VM (GCP Compute Engine `e2-micro`; the stack is provider-agnostic and was previously on Oracle Always Free — see the deploy-root `MIGRATION.md`). The app directory (`~/gymbro-app`) holds the compose files + an `app.env` (never committed) with the Neon connection string, the Redis Cloud connection string, `Jwt__Secret`, and the seed admin.
+- **TLS:** a **Caddy** service terminates HTTPS with an auto-issued, auto-renewed **Let's Encrypt** certificate (config in the deploy-root `Caddyfile`, generated per-host by `provision-vm.sh`) and reverse-proxies to the frontend nginx.
+- **One origin:** behind Caddy, the frontend's nginx serves the SPA and reverse-proxies `/api` → `api:8080`, so there is no CORS. Data is fully external (Neon + Redis Cloud), so the VM is stateless and disposable.
 - **Compose files** (live at the deploy root, outside both app repos):
 
   | File | Role |

@@ -8,7 +8,7 @@ using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Application.DTOs;
 using Modules.WorkoutSessionModule.Application.Mapping;
 using Modules.WorkoutSessionModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutSessionModule.Application.Queries.Handlers;
 
@@ -69,7 +69,7 @@ public sealed class GetMyWorkoutSessionByIdHandler(
             if (contextResult.IsSuccess && contextResult.Value!.TryGetValue(assignmentId, out var ctx))
             {
                 programName = ctx.ProgramName;
-                planWeek = SessionMapping.ComputePlanWeek(ctx.StartDate, session.StartedAt);
+                planWeek = SessionMapping.ComputePlanWeek(ctx.StartDate, session.StartedAt, session.ClientTimezone);
             }
         }
 

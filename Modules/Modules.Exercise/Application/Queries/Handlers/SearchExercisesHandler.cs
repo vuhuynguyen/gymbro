@@ -5,7 +5,7 @@ using MediatR;
 using Modules.ExerciseModule.Application.Caching;
 using Modules.ExerciseModule.Application.DTOs;
 using Modules.ExerciseModule.Application.Queries;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.ExerciseModule.Application.Queries.Handlers;
 

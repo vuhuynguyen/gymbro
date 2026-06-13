@@ -54,7 +54,6 @@ on `api/sessions` (handlers still scope to `currentUser.UserId` for defense in d
 active assignment: a self-logged day is stamped with the **active gym** (`ITenantContext.TenantId`), so it stays
 tenant-isolated from coaches in other gyms. Trainee **reads** and the personal `MetricEntry` series stay
 self-scoped on `api/me/nutrition/*` (handler-gated by `currentUser.UserId`, classified `ImperativeGuarded`).
-Detail: [nutrition/API_AND_PERMISSIONS.md](nutrition/API_AND_PERMISSIONS.md).
 
 ## Capability matrix
 

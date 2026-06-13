@@ -28,6 +28,7 @@ and deployed to a single cloud VM. Unit and integration tests run in CI.
 - **Smart assignments** — plans are assigned with per-trainee visibility controls (full / guided / blind) and pinned to a version until the coach applies the latest.
 - **Session logging** — trainees run one workout at a time, logging sets (weight/reps, time, distance); the API computes training volume, estimated 1RM, and personal records.
 - **Global exercise catalog** — a platform-admin-curated library shared across all tenants, served from a Redis-backed cache.
+- **Nutrition tracking** — a global food/supplement catalog plus versioned nutrition plans, plan→trainee assignments, and completion-first daily logging with adherence.
 
 ## Tech stack
 
@@ -42,7 +43,7 @@ and deployed to a single cloud VM. Unit and integration tests run in CI.
 
 ## Architecture
 
-A **modular monolith**: one ASP.NET Core process, five feature modules over a shared kernel, one PostgreSQL
+A **modular monolith**: one ASP.NET Core process, seven feature modules over a shared kernel, one PostgreSQL
 database. Requests flow through thin controllers → a MediatR pipeline (validation → authorization) → one handler
 per use case (returns `Result<T>`, never throws for business rules) → domain aggregates → `AppDbContext`.
 
@@ -56,6 +57,8 @@ flowchart LR
     EX[Exercise]
     WP[WorkoutPlan]
     WS[WorkoutSession]
+    FD[Food]
+    NU[Nutrition]
   end
   API --> DB[("PostgreSQL<br/>AppDbContext + IdentityDbContext")]
   API --> RD[("Redis<br/>cache · rate limits · revocation")]
@@ -68,6 +71,8 @@ flowchart LR
 | **Exercise** | the global exercise catalog (cached) |
 | **WorkoutPlan** | versioned plan templates + plan→trainee assignments |
 | **WorkoutSession** | session logging, performed exercises/sets, derived metrics |
+| **Food** | the global food/supplement catalog (+ tenant-custom foods) |
+| **Nutrition** | versioned nutrition plans, assignments, daily logging + adherence |
 
 **Cross-cutting highlights** (each links to its owning doc):
 
@@ -80,7 +85,7 @@ flowchart LR
 ```
 gymbro/
 ├── Presentations/WebApi/   # thin controllers, Program.cs (composition root), middleware, health
-├── Modules/Modules.*/      # Identity, User, Exercise, WorkoutPlan, WorkoutSession
+├── Modules/Modules.*/      # Identity, User, Exercise, WorkoutPlan, WorkoutSession, Food, Nutrition
 ├── BuildingBlocks/         # Shared kernel · Application (pipeline) · Infrastructure (AppDbContext, JWT, Outbox)
 └── Tests/                  # xUnit + NSubstitute + Testcontainers
 ```
@@ -160,7 +165,9 @@ Configuration, health probes, migrations, and the reference environment: **[docs
 | Authentication & tokens | [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) |
 | Business / lifecycle rules | [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md) |
 | End-to-end user flows | [docs/USER_FLOWS.md](docs/USER_FLOWS.md) |
+| Catalog seeding (exercises & foods) | [docs/SEEDING.md](docs/SEEDING.md) |
 | Testing | [docs/TESTING.md](docs/TESTING.md) |
 | Deployment & operations | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
+| Not-yet-built design (nutrition & exercise master-data) | [docs/ROADMAP.md](docs/ROADMAP.md) |
 
 Contributor and AI-agent conventions live in [CLAUDE.md](CLAUDE.md).

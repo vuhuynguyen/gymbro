@@ -84,7 +84,7 @@ public sealed class ReplaceWorkoutPlanStructureHandlerTests
 
         // The cross-module exercise validation fails; the handler returns that exact failure verbatim.
         mediator.Send(Arg.Any<ValidateExerciseIdsQuery>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Failure(new BuildingBlocks.Shared.Errors.Error("Validation", "Unknown exercise.")));
+            .Returns(Result.Failure(BuildingBlocks.Shared.Errors.Error.Validation("Unknown exercise.")));
 
         var sut = CreateSut(repository, mediator, unitOfWork, authorId);
 

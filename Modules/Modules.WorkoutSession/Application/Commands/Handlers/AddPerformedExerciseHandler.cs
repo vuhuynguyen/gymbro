@@ -9,7 +9,7 @@ using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Application.DTOs;
 using Modules.WorkoutSessionModule.Application.Mapping;
 using Modules.WorkoutSessionModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutSessionModule.Application.Commands.Handlers;
 
@@ -42,7 +42,7 @@ public sealed class AddPerformedExerciseHandler(
         // sessions (no assignment) and deleted assignments impose no restriction.
         if (await TraineeEditingDisabledGuard.IsDisabledAsync(mediator, session.PlanAssignmentId, cancellationToken))
             return Result<PerformedExerciseDto>.Failure(
-                Unauthorized("Forbidden", "Editing the planned workout is disabled for this assignment."));
+                Forbidden("Forbidden", "Editing the planned workout is disabled for this assignment."));
 
         // Capture the exercise name and tracking mode now so the log survives a later rename/delete of the
         // exercise and the loggers/per-mode validation know how this exercise is tracked.

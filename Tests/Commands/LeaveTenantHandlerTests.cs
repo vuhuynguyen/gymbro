@@ -25,6 +25,11 @@ public sealed class LeaveTenantHandlerTests
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(userId);
 
+        // The handler runs its logic inside unitOfWork.ExecuteTransactionalAsync; invoke the action inline so
+        // these mocked-repository tests exercise it (the real per-tenant advisory lock is integration-level).
+        unitOfWork.ExecuteTransactionalAsync(Arg.Any<Func<Task>>(), Arg.Any<CancellationToken>())
+            .Returns(ci => ((Func<Task>)ci[0]).Invoke());
+
         return new LeaveTenantHandler(roleRepository, currentUser, unitOfWork);
     }
 
@@ -106,6 +111,8 @@ public sealed class LeaveTenantHandlerTests
 
         Assert.True(result.IsSuccess);
 
+        // The membership change is serialised by the per-tenant advisory lock before the owner-count check.
+        await roleRepository.Received(1).LockForTenantMembershipChangeAsync(tenantId, Arg.Any<CancellationToken>());
         roleRepository.Received(1).Remove(membership);
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }

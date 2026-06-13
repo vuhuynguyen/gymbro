@@ -6,7 +6,7 @@ using MediatR;
 using Modules.UserModule.Application.Abstractions;
 using BuildingBlocks.Application.Authorization;
 using Modules.UserModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.UserModule.Application.Commands.Handlers;
 
@@ -20,7 +20,7 @@ public class RemoveMemberHandler(
     public async Task<Result> Handle(RemoveMemberCommand request, CancellationToken cancellationToken)
     {
         if (!await tenantAuth.HasPermissionAsync(request.TenantId, Permission.ClientRemove, cancellationToken))
-            return Result.Failure(Unauthorized("Forbidden", "You do not have permission to remove members from this tenant."));
+            return Result.Failure(Forbidden("Forbidden", "You do not have permission to remove members from this tenant."));
 
         var membership = await roleRepository.GetByUserAndTenantAsync(
             request.UserId, request.TenantId, cancellationToken);

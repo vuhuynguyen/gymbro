@@ -1599,6 +1599,8 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("LoggedAt");
 
+                    b.HasIndex("ParentSetId");
+
                     b.HasIndex("PerformedExerciseId", "SetNumber");
 
                     b.ToTable("PerformedSets", (string)null);
@@ -1829,6 +1831,11 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Modules.WorkoutSessionModule.Entities.PerformedSet", b =>
                 {
+                    b.HasOne("Modules.WorkoutSessionModule.Entities.PerformedSet", null)
+                        .WithMany()
+                        .HasForeignKey("ParentSetId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Modules.WorkoutSessionModule.Entities.PerformedExercise", null)
                         .WithMany("Sets")
                         .HasForeignKey("PerformedExerciseId")

@@ -4,7 +4,7 @@ using MediatR;
 using Modules.NutritionModule.Application.Abstractions;
 using Modules.NutritionModule.Application.DTOs;
 using Modules.NutritionModule.Application.Mapping;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.NutritionModule.Application.Queries.Handlers;
 

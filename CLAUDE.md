@@ -13,8 +13,10 @@ one document that owns your topic; don't re-scan the repo.
 | Token lifecycle (access/refresh/revocation) | [`docs/AUTHENTICATION.md`](docs/AUTHENTICATION.md) |
 | Lifecycle rules (plan/assignment/session/membership) | [`docs/BUSINESS_RULES.md`](docs/BUSINESS_RULES.md) |
 | Flows / endpoints | [`docs/USER_FLOWS.md`](docs/USER_FLOWS.md) |
+| Catalog seeding (exercises & foods) | [`docs/SEEDING.md`](docs/SEEDING.md) |
 | Tests | [`docs/TESTING.md`](docs/TESTING.md) |
 | Config / migrations / deploy | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) |
+| Not-yet-built design (nutrition future / exercise master-data) | [`docs/ROADMAP.md`](docs/ROADMAP.md) |
 
 ## Hard rules
 

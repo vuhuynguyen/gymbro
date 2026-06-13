@@ -3,7 +3,7 @@ using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.FoodModule.Application.Abstractions;
 using Modules.FoodModule.Application.Caching;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.FoodModule.Application.Commands.Handlers;
 

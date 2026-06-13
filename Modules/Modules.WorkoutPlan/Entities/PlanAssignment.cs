@@ -3,7 +3,7 @@ using Modules.WorkoutPlanModule.Application;
 
 namespace Modules.WorkoutPlanModule.Entities;
 
-public sealed class PlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete
+public sealed class PlanAssignment : AggregateRoot, ITenantEntity, ISoftDelete, ISettableActive
 {
     public Guid TraineeId { get; private set; }
     public Guid PlanId { get; private set; }

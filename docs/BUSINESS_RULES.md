@@ -104,8 +104,8 @@ are correct.
 
 ## Nutrition daily-log lifecycle
 
-The dietary mirror of the session lifecycle (full detail: [nutrition/DOMAIN_MODEL.md](nutrition/DOMAIN_MODEL.md)).
-A `DailyNutritionLog` is one row per **(trainee, local date)**, created lazily by snapshot-on-touch.
+The dietary mirror of the session lifecycle. A `DailyNutritionLog` is one row per **(trainee, local date)**,
+created lazily by snapshot-on-touch.
 
 - **Provisioning (get-or-create, `NutritionDayProvisioner`):** existing day → else a day seeded from the active
   assignment (`Source = FromAssignment`, snapshot + planned `LoggedItem`s) → else, for **off-plan logging with no

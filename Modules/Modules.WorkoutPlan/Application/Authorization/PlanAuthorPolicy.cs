@@ -1,7 +1,7 @@
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using Modules.WorkoutPlanModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutPlanModule.Application.Authorization;
 

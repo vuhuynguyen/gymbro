@@ -1,9 +1,12 @@
 using BuildingBlocks.Application.Abstractions;
+using BuildingBlocks.Shared.Abstractions;
+using BuildingBlocks.Shared.Plans;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.NutritionModule.Application.Abstractions;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using Modules.NutritionModule.Application.Authorization;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.NutritionModule.Application.Commands.Handlers;
 
@@ -13,7 +16,8 @@ namespace Modules.NutritionModule.Application.Commands.Handlers;
 /// </summary>
 public sealed class PublishNutritionPlanHandler(
     INutritionPlanRepository repository,
-    IUnitOfWork unitOfWork)
+    IUnitOfWork unitOfWork,
+    ICurrentUser currentUser)
     : IRequestHandler<PublishNutritionPlanCommand, Result<int>>
 {
     public async Task<Result<int>> Handle(PublishNutritionPlanCommand request, CancellationToken cancellationToken)
@@ -22,16 +26,11 @@ public sealed class PublishNutritionPlanHandler(
         if (current == null)
             return Result<int>.Failure(NotFound("NotFound", "Nutrition plan not found."));
 
-        if (current.IsArchived)
-            return Result<int>.Failure(Conflict("Conflict", "Unarchive the plan before publishing it."));
-
         var head = await repository.GetLatestVersionInTemplateAsync(current.TemplateId, cancellationToken) ?? current;
-        if (current.Id != head.Id)
-            return Result<int>.Failure(Conflict(
-                "Conflict", "This is not the latest version of the plan. Refresh and publish the latest version."));
 
-        if (!head.IsDraft)
-            return Result<int>.Failure(Conflict("Conflict", "There are no unpublished changes to publish."));
+        var guard = PlanLifecycle.CanPublish(current, head, () => NutritionPlanAuthorPolicy.EnsureCanMutate(head, currentUser));
+        if (guard.IsFailure)
+            return Result<int>.Failure(guard.Error);
 
         head.Publish();
 

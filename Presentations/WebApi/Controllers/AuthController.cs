@@ -111,10 +111,7 @@ public class AuthController(IMediator mediator) : ControllerBase
     {
         var result = await mediator.Send(cmd);
         if (result.IsFailure)
-        {
-            if (result.Error.Code == "NotFound") return NotFound(result.Error.Message);
-            return BadRequest(result.Error);
-        }
+            return result.ToFailureResult(this);
         // The user's other sessions were just revoked server-side; drop this connection's cookie too.
         ClearRefreshCookie();
         return NoContent();

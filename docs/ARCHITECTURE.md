@@ -4,7 +4,7 @@ How the API is structured: the modular-monolith layout, the seven feature module
 dependencies, and the request pipeline.
 
 **Related:** [DATABASE.md](DATABASE.md) · [PERMISSIONS.md](PERMISSIONS.md) · [USER_FLOWS.md](USER_FLOWS.md) ·
-nutrition feature: [nutrition/](nutrition/)
+not-yet-built design: [ROADMAP.md](ROADMAP.md)
 
 ## The shape: a modular monolith
 
@@ -127,7 +127,7 @@ Nutrition **plan → assignment → daily log** — the dietary mirror of Workou
 (Planned/Completed/Skipped/Substituted/Missed); raises `DailyLogClosedEvent` through the outbox and computes
 adherence. Trainee logging is self-scoped on `MeController` `/api/me/nutrition/*`.
 - **Public API:** `NutritionController` `/api/nutrition/*` (coach) + `MeController` additions (trainee).
-- Depends on Food (contracts only). Full design + as-built status: [nutrition/](nutrition/).
+- Depends on Food (contracts only). Not-yet-built nutrition design (offline, reminders, push, analytics): [ROADMAP.md](ROADMAP.md).
 
 ### BuildingBlocks (shared kernel)
 - **Shared:** `Result`/`Error`, domain primitives (`Entity`/`AggregateRoot`, markers `ITenantEntity`/`ISharedEntity`/`ISoftDelete`), `ICurrentUser`/`ITenantContext`, `Permission`/`TenantRole` enums.

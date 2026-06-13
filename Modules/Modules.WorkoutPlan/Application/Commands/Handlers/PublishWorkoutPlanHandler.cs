@@ -1,11 +1,12 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
+using BuildingBlocks.Shared.Plans;
 using BuildingBlocks.Shared.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.WorkoutPlanModule.Application.Abstractions;
 using Modules.WorkoutPlanModule.Application.Authorization;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutPlanModule.Application.Commands.Handlers;
 
@@ -25,20 +26,11 @@ public sealed class PublishWorkoutPlanHandler(
         if (current == null)
             return Result<int>.Failure(NotFound("NotFound", "Plan not found."));
 
-        if (current.IsArchived)
-            return Result<int>.Failure(Conflict("Conflict", "Unarchive the plan before publishing it."));
-
         var head = await repository.GetLatestVersionInTemplateAsync(current.TemplateId, cancellationToken) ?? current;
-        if (current.Id != head.Id)
-            return Result<int>.Failure(Conflict(
-                "Conflict", "This is not the latest version of the plan. Refresh and publish the latest version."));
 
-        var authorCheck = PlanAuthorPolicy.EnsureCanMutate(head, currentUser);
-        if (authorCheck.IsFailure)
-            return Result<int>.Failure(authorCheck.Error);
-
-        if (!head.IsDraft)
-            return Result<int>.Failure(Conflict("Conflict", "There are no unpublished changes to publish."));
+        var guard = PlanLifecycle.CanPublish(current, head, () => PlanAuthorPolicy.EnsureCanMutate(head, currentUser));
+        if (guard.IsFailure)
+            return Result<int>.Failure(guard.Error);
 
         head.Publish();
 

@@ -4,7 +4,7 @@ using BuildingBlocks.Shared.Results;
 using MediatR;
 using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutSessionModule.Application.Commands.Handlers;
 

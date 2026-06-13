@@ -1,4 +1,5 @@
 using BuildingBlocks.Application.Abstractions;
+using BuildingBlocks.Shared.Abstractions;
 using Modules.NutritionModule.Application.Abstractions;
 using Modules.NutritionModule.Application.Commands;
 using Modules.NutritionModule.Application.Commands.Handlers;
@@ -11,18 +12,25 @@ namespace Gymbro.Tests.Commands;
 /// <summary>
 /// Pins the archive/unarchive lifecycle for a nutrition plan template: setting
 /// <see cref="SetNutritionPlanArchivedCommand.Archived"/> flips <see cref="NutritionPlan.IsArchived"/> on the
-/// loaded plan and persists it, and a missing plan returns NotFound before any save. The row-level tenant
-/// check is the EF tenant filter on the repository (nutrition has no per-row author policy), so the handler
-/// itself does no author gating — mirrors the other nutrition plan handlers. Fully mocked — no database.
+/// loaded plan and persists it; a missing plan returns NotFound before any save; and a non-author is Forbidden
+/// (the EF tenant filter scopes the load, the row-level author policy gates mutation — mirrors the workout
+/// module). Fully mocked — no database.
 /// </summary>
 public sealed class SetNutritionPlanArchivedHandlerTests
 {
+    private static readonly Guid Author = Guid.NewGuid();
+
     private static SetNutritionPlanArchivedHandler CreateSut(
-        INutritionPlanRepository repository, IUnitOfWork unitOfWork)
-        => new(repository, unitOfWork);
+        INutritionPlanRepository repository, IUnitOfWork unitOfWork, Guid currentUserId, bool isAdmin = false)
+    {
+        var currentUser = Substitute.For<ICurrentUser>();
+        currentUser.UserId.Returns(currentUserId);
+        currentUser.IsAdmin.Returns(isAdmin);
+        return new SetNutritionPlanArchivedHandler(repository, unitOfWork, currentUser);
+    }
 
     private static NutritionPlan CreatePlan()
-        => NutritionPlan.Create(Guid.NewGuid(), Guid.NewGuid(), "Cut Plan", null);
+        => NutritionPlan.Create(Guid.NewGuid(), Author, "Cut Plan", null);
 
     [Fact]
     public async Task Archiving_plan_sets_flag_true_and_persists()
@@ -32,7 +40,7 @@ public sealed class SetNutritionPlanArchivedHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         repository.GetForUpdateAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
 
-        var sut = CreateSut(repository, unitOfWork);
+        var sut = CreateSut(repository, unitOfWork, Author);
 
         var result = await sut.Handle(
             new SetNutritionPlanArchivedCommand(plan.Id, true), CancellationToken.None);
@@ -52,7 +60,7 @@ public sealed class SetNutritionPlanArchivedHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         repository.GetForUpdateAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
 
-        var sut = CreateSut(repository, unitOfWork);
+        var sut = CreateSut(repository, unitOfWork, Author);
 
         var result = await sut.Handle(
             new SetNutritionPlanArchivedCommand(plan.Id, false), CancellationToken.None);
@@ -63,6 +71,25 @@ public sealed class SetNutritionPlanArchivedHandlerTests
     }
 
     [Fact]
+    public async Task Non_author_is_forbidden()
+    {
+        var plan = CreatePlan();
+        var repository = Substitute.For<INutritionPlanRepository>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+        repository.GetForUpdateAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
+
+        var sut = CreateSut(repository, unitOfWork, Guid.NewGuid());
+
+        var result = await sut.Handle(
+            new SetNutritionPlanArchivedCommand(plan.Id, true), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("Forbidden", result.Error.Code);
+        Assert.False(plan.IsArchived);
+        await unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task Missing_plan_returns_not_found_without_saving()
     {
         var repository = Substitute.For<INutritionPlanRepository>();
@@ -70,7 +97,7 @@ public sealed class SetNutritionPlanArchivedHandlerTests
         repository.GetForUpdateAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((NutritionPlan?)null);
 
-        var sut = CreateSut(repository, unitOfWork);
+        var sut = CreateSut(repository, unitOfWork, Author);
 
         var result = await sut.Handle(
             new SetNutritionPlanArchivedCommand(Guid.NewGuid(), true), CancellationToken.None);

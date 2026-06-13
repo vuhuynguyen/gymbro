@@ -147,9 +147,7 @@ public class AppDbContext(
 
             var parameter = Expression.Parameter(clrType, "e");
 
-            // ========================
             // 1. Admin bypass (from ICurrentUser — identity concern)
-            // ========================
             // INVARIANT: Expression.Constant(this) captures this DbContext instance in the compiled EF
             // query filter. The filter is safe because CurrentUser and TenantContext read from
             // IHttpContextAccessor.HttpContext on every call (AsyncLocal, not cached), so they always
@@ -164,9 +162,7 @@ public class AppDbContext(
             var isAdminExpr = Expression.Property(currentUserExpr, nameof(ICurrentUser.IsAdmin));
             var isAdmin = Expression.Equal(isAdminExpr, Expression.Constant(true));
 
-            // ========================
             // 2. Tenant / Shared logic (from ITenantContext — location concern)
-            // ========================
             var tenantContextExpr = Expression.Property(
                 Expression.Constant(this),
                 nameof(TenantContext));
@@ -182,9 +178,7 @@ public class AppDbContext(
                 tenantExpression = BuildSharedFilter(parameter, tenantContextExpr);
             }
 
-            // ========================
             // 3. Soft delete
-            // ========================
             Expression? softDeleteExpression = null;
 
             if (typeof(ISoftDelete).IsAssignableFrom(clrType))
@@ -193,9 +187,7 @@ public class AppDbContext(
                 softDeleteExpression = Expression.Equal(isDeletedProp, Expression.Constant(false));
             }
 
-            // ========================
             // 4. Combine conditions
-            // ========================
             Expression? combined = tenantExpression;
 
             if (combined != null && softDeleteExpression != null)

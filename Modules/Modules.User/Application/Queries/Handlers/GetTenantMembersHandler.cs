@@ -8,7 +8,7 @@ using Modules.UserModule.Application.DTOs;
 using Modules.UserModule.Application.Mapping;
 using Modules.UserModule.Application.Queries;
 using Modules.UserModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.UserModule.Application.Queries.Handlers;
 
@@ -22,7 +22,7 @@ public class GetTenantMembersHandler(
     public async Task<Result<List<MemberDto>>> Handle(GetTenantMembersQuery request, CancellationToken cancellationToken)
     {
         if (!await tenantAuth.HasPermissionAsync(request.TenantId, Permission.ClientView, cancellationToken))
-            return Result<List<MemberDto>>.Failure(Unauthorized("Forbidden", "You are not a member of this tenant."));
+            return Result<List<MemberDto>>.Failure(Forbidden("Forbidden", "You are not a member of this tenant."));
 
         if (currentUser.UserId == Guid.Empty)
             return Result<List<MemberDto>>.Failure(Unauthorized("Unauthorized", "User context is missing."));

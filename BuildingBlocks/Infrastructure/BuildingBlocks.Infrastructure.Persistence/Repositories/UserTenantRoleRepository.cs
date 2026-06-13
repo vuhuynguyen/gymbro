@@ -27,4 +27,10 @@ public class UserTenantRoleRepository(AppDbContext context)
             .Where(r => r.TenantId == tenantId)
             .ToListAsync(cancellationToken);
     }
+
+    public Task LockForTenantMembershipChangeAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
+        // Transaction-scoped advisory lock keyed on the tenant; concurrent membership changes for the same
+        // tenant serialise on it and auto-release at commit/rollback.
+        Db.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT pg_advisory_xact_lock(hashtextextended({tenantId}::text, 0))", cancellationToken);
 }

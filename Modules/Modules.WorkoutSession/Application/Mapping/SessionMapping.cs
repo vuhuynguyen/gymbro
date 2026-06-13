@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using BuildingBlocks.Shared.Time;
 using Modules.WorkoutPlanModule.Application.DTOs;
 using Modules.WorkoutSessionModule.Application.Commands;
 using Modules.WorkoutSessionModule.Application.DTOs;
@@ -23,12 +24,6 @@ internal static class SessionMapping
     public static SessionSnapshotDto? DeserializeSnapshot(string? json) =>
         json != null ? JsonSerializer.Deserialize<SessionSnapshotDto>(json, SnapshotJsonOptions) : null;
 
-    /// <summary>
-    /// Returns a copy of the snapshot with prescribed targets (reps/weight/RPE/duration) removed,
-    /// for a trainee on a <c>HideSetsReps</c> assignment (filter-on-read). Set structure — count,
-    /// type and rest — is preserved, and the stored snapshot is never mutated, so a coach (who
-    /// never passes through this path) still sees the full prescription.
-    /// </summary>
     /// <summary>
     /// Trainee-facing redaction for <c>HideSetsReps</c> (filter-on-read). Drops the prescribed sets
     /// entirely so the trainee sees no prescribed set count, reps, weight, RPE or duration — they log
@@ -146,13 +141,15 @@ internal static class SessionMapping
             .Sum(s => s.WeightKg!.Value * s.Reps!.Value);
 
     /// <summary>
-    /// 1-based plan week a session falls in, derived from the assignment start date and the session date.
-    /// Null when the session is not tied to a plan or starts before the assignment.
+    /// 1-based plan week a session falls in, from the assignment start date and the session's LOCAL date — the
+    /// date is resolved in the trainee's captured time-zone (<paramref name="ianaZone"/>, UTC fallback) so an
+    /// evening session west of UTC isn't pushed into the next week. Null when the session isn't tied to a plan
+    /// or starts before the assignment.
     /// </summary>
-    public static int? ComputePlanWeek(DateOnly? startDate, DateTimeOffset sessionStart)
+    public static int? ComputePlanWeek(DateOnly? startDate, DateTimeOffset sessionStart, string? ianaZone)
     {
         if (startDate is null) return null;
-        var sessionDate = DateOnly.FromDateTime(sessionStart.UtcDateTime);
+        var sessionDate = LocalDayResolver.LocalDateOf(sessionStart, ianaZone);
         var days = sessionDate.DayNumber - startDate.Value.DayNumber;
         if (days < 0) return null;
         return days / 7 + 1;

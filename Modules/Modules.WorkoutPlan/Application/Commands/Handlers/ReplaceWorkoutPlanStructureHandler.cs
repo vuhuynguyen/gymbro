@@ -7,7 +7,7 @@ using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutPlanModule.Application.Abstractions;
 using Modules.WorkoutPlanModule.Application.Authorization;
 using Modules.WorkoutPlanModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutPlanModule.Application.Commands.Handlers;
 

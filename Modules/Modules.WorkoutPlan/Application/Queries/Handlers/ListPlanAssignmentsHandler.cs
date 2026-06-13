@@ -6,7 +6,7 @@ using BuildingBlocks.Application.Authorization;
 using Modules.WorkoutPlanModule.Application.Abstractions;
 using Modules.WorkoutPlanModule.Application.DTOs;
 using Modules.WorkoutPlanModule.Application.Mapping;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutPlanModule.Application.Queries.Handlers;
 

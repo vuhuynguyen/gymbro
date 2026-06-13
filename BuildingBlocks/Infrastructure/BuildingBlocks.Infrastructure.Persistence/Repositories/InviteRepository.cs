@@ -41,4 +41,15 @@ public class InviteRepository(AppDbContext context) : Repository<Invite>(context
             .FirstOrDefaultAsync(
                 i => i.Code == code.ToUpperInvariant() && i.TenantId == tenantId,
                 cancellationToken);
+
+    public async Task<bool> TryClaimAsync(Guid inviteId, CancellationToken cancellationToken = default)
+    {
+        // Single conditional UPDATE: only the row that is still unused is claimed, so two concurrent
+        // redemptions of the same invite cannot both succeed (the loser updates 0 rows).
+        var affected = await Db.Invites
+            .Where(i => i.Id == inviteId && !i.IsUsed)
+            .ExecuteUpdateAsync(s => s.SetProperty(i => i.IsUsed, true), cancellationToken);
+
+        return affected > 0;
+    }
 }

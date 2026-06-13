@@ -88,6 +88,9 @@ builder.Services.AddOutboxProcessing(builder.Configuration);
 // Read-only safety net: periodically reports drift between the Identity store (AppUser) and the domain
 // store (User), which are linked only by convention (AppUser.DomainUserId == User.Id) with no cross-store FK.
 builder.Services.AddCrossStoreReconciliation(builder.Configuration);
+// Closes nutrition days at the trainee's local midnight out-of-band, so finalization is never a read side
+// effect and a day closes even if the trainee never reopens the app.
+builder.Services.AddHostedService<NutritionStaleDayCloser>();
 // OpenTelemetry traces + metrics (OTLP export opt-in via OpenTelemetry:OtlpEndpoint / OTEL_EXPORTER_OTLP_ENDPOINT).
 builder.Services.AddGymBroObservability(builder.Configuration);
 builder.Services.AddSingleton<IPermissionService, PermissionService>();
@@ -322,7 +325,7 @@ if (args.Contains("--migrate"))
 if (args.Contains("--seed-exercises") || args.Contains("--reseed-exercises"))
 {
     await DatabaseMigrationStartup.EnsureMigrationsAppliedAsync(app.Services);
-    var seedMode = args.Contains("--reseed-exercises") ? ExerciseSeedMode.Reseed : ExerciseSeedMode.InsertMissing;
+    var seedMode = args.Contains("--reseed-exercises") ? MasterDataSeedMode.Reseed : MasterDataSeedMode.InsertMissing;
     await ExerciseMasterDataSeeder.RunAsync(app.Services, seedMode);
     return;
 }
@@ -335,7 +338,7 @@ if (args.Contains("--seed-exercises") || args.Contains("--reseed-exercises"))
 if (args.Contains("--seed-foods") || args.Contains("--reseed-foods"))
 {
     await DatabaseMigrationStartup.EnsureMigrationsAppliedAsync(app.Services);
-    var seedMode = args.Contains("--reseed-foods") ? FoodSeedMode.Reseed : FoodSeedMode.InsertMissing;
+    var seedMode = args.Contains("--reseed-foods") ? MasterDataSeedMode.Reseed : MasterDataSeedMode.InsertMissing;
     await FoodMasterDataSeeder.RunAsync(app.Services, seedMode);
     return;
 }

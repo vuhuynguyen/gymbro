@@ -14,6 +14,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- Exposes internal Application helpers (e.g. SessionMapping) to the unit-test project. -->
+        <InternalsVisibleTo Include="Gymbro.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\..\BuildingBlocks\Application\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
         <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Shared\BuildingBlocks.Shared.csproj" />
         <ProjectReference Include="..\Modules.Exercise\Modules.Exercise.csproj" />

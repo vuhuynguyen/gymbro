@@ -6,7 +6,7 @@ using MediatR;
 using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Entities;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutSessionModule.Application.Commands.Handlers;
 
@@ -34,7 +34,7 @@ public sealed class UpdatePerformedExerciseHandler(
         // exercises. Ad-hoc sessions and deleted assignments impose no restriction.
         if (await TraineeEditingDisabledGuard.IsDisabledAsync(mediator, session.PlanAssignmentId, cancellationToken))
             return Result.Failure(
-                Unauthorized("Forbidden", "Editing the planned workout is disabled for this assignment."));
+                Forbidden("Forbidden", "Editing the planned workout is disabled for this assignment."));
 
         var exercise = await exerciseRepository.GetByIdWithSetsAsync(request.ExerciseId, cancellationToken);
         if (exercise == null || exercise.SessionId != session.Id)

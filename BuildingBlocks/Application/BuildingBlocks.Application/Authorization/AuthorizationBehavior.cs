@@ -2,7 +2,7 @@ using BuildingBlocks.Application.Pipeline;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace BuildingBlocks.Application.Authorization;
 

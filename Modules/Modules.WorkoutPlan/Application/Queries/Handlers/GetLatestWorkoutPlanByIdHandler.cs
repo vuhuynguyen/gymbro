@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.WorkoutPlanModule.Application.Abstractions;
 using Modules.WorkoutPlanModule.Application.DTOs;
-using static BuildingBlocks.Shared.Errors.CommonErrors;
+using static BuildingBlocks.Shared.Errors.Error;
 
 namespace Modules.WorkoutPlanModule.Application.Queries.Handlers;
 

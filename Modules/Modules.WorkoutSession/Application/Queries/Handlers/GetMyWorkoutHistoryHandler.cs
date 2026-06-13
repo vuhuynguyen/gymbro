@@ -92,7 +92,7 @@ public sealed class GetMyWorkoutHistoryHandler(
                     r.Volume,
                     r.Session.PrCount,
                     ctx?.ProgramName,
-                    ctx is null ? null : SessionMapping.ComputePlanWeek(ctx.StartDate, r.Session.StartedAt),
+                    ctx is null ? null : SessionMapping.ComputePlanWeek(ctx.StartDate, r.Session.StartedAt, r.Session.ClientTimezone),
                     ctx?.FrequencyDaysPerWeek);
             })
             .ToList();

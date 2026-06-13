@@ -22,11 +22,11 @@ public static class DbSeeder
         // C#). Startup uses the non-destructive InsertMissing mode: it adds catalog exercises that don't yet
         // exist and never touches existing rows (so admin edits and a destructive --reseed-exercises run are
         // both preserved). A full refresh is the explicit `--reseed-exercises` CLI entrypoint.
-        await ExerciseMasterDataSeeder.RunAsync(services, ExerciseSeedMode.InsertMissing);
+        await ExerciseMasterDataSeeder.RunAsync(services, MasterDataSeedMode.InsertMissing);
 
         // Food/supplement catalog — same non-destructive InsertMissing seeding from the embedded file; a full
         // refresh is the explicit `--reseed-foods` CLI entrypoint.
-        await FoodMasterDataSeeder.RunAsync(services, FoodSeedMode.InsertMissing);
+        await FoodMasterDataSeeder.RunAsync(services, MasterDataSeedMode.InsertMissing);
     }
 
     private static async Task SeedAdminAsync(

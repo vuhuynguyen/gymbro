@@ -20,7 +20,19 @@ public sealed class NutritionPlanTests
         Assert.Equal(1, plan.Version);
         Assert.NotEqual(Guid.Empty, plan.TemplateId);
         Assert.Equal("Cut Plan", plan.Name);
+        Assert.True(plan.IsDraft);
         Assert.False(plan.IsDeleted);
+    }
+
+    [Fact]
+    public void Publish_clears_the_draft_flag_and_then_throws_if_published_again()
+    {
+        var plan = NutritionPlan.Create(Guid.NewGuid(), Guid.NewGuid(), "Plan", null);
+
+        plan.Publish();
+        Assert.False(plan.IsDraft);
+
+        Assert.Throws<DomainException>(() => plan.Publish());
     }
 
     [Fact]
@@ -58,15 +70,16 @@ public sealed class NutritionPlanTests
     }
 
     [Fact]
-    public void CreateNewVersion_deep_copies_structure_and_bumps_version()
+    public void CreateDraft_deep_copies_structure_at_the_caller_supplied_version()
     {
         var plan = NutritionPlan.Create(Guid.NewGuid(), Guid.NewGuid(), "Plan", null);
         plan.ReplaceStructure(new[] { Meal("Breakfast", 1, Item(1), Item(2)) });
 
-        var v2 = NutritionPlan.CreateNewVersion(plan, Guid.NewGuid(), "Plan v2", "new");
+        var v2 = NutritionPlan.CreateDraft(plan, Guid.NewGuid(), plan.Version + 1, "Plan v2", "new");
 
         Assert.Equal(plan.TemplateId, v2.TemplateId); // same template chain
         Assert.Equal(2, v2.Version);
+        Assert.True(v2.IsDraft);
         Assert.NotEqual(plan.Id, v2.Id);
         Assert.Single(v2.Meals);
         Assert.Equal(2, v2.Meals.First().Items.Count); // structure carried over

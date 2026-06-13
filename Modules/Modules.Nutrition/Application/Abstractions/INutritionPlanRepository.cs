@@ -12,7 +12,14 @@ public interface INutritionPlanRepository
     /// <summary>Loads a plan with its meals and items, tracked, for a structure edit / delete.</summary>
     Task<NutritionPlan?> GetForUpdateAsync(Guid id, CancellationToken cancellationToken = default);
 
+    /// <summary>The version head for a template — the draft if one exists, else the latest published version.</summary>
     Task<NutritionPlan?> GetLatestVersionInTemplateAsync(Guid templateId, CancellationToken cancellationToken = default);
+
+    /// <summary>The newest <b>published</b> version in a template (ignores any draft head). Null when never published.</summary>
+    Task<NutritionPlan?> GetLatestPublishedVersionInTemplateAsync(Guid templateId, CancellationToken cancellationToken = default);
+
+    /// <summary>Hard-removes a plan row (used to drop a superseded draft head when replacing it).</summary>
+    void Remove(NutritionPlan entity);
 
     /// <summary>Bulk-removes a plan's meals + items (no tracked deletes), mirroring ClearPlanStructureAsync.</summary>
     Task ClearPlanStructureAsync(Guid nutritionPlanId, CancellationToken cancellationToken = default);

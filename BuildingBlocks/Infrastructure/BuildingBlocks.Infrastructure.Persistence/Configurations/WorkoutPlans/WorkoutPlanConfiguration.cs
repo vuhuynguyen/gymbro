@@ -38,10 +38,16 @@ public sealed class WorkoutPlanConfiguration : IEntityTypeConfiguration<WorkoutP
         builder.Property(x => x.IsArchived)
             .HasDefaultValue(false);
 
+        builder.Property(x => x.IsDraft)
+            .HasDefaultValue(false);
+
         builder.HasIndex(x => new { x.TenantId, x.Name });
+        // Uniqueness covers PUBLISHED versions only: the single draft head is replaced in place (a new row at the
+        // same version while the old is deleted in the same unit of work), so drafts must be exempt or that swap
+        // would trip the index.
         builder.HasIndex(x => new { x.TemplateId, x.Version })
             .IsUnique()
-            .HasFilter("\"IsDeleted\" = false");
+            .HasFilter("\"IsDeleted\" = false AND \"IsDraft\" = false");
 
         builder.HasMany(x => x.Workouts)
             .WithOne()

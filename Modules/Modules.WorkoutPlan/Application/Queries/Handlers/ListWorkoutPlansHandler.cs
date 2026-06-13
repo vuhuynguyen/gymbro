@@ -78,7 +78,21 @@ public sealed class ListWorkoutPlansHandler(
             .Select(WorkoutPlanMapping.WorkoutPlanSummaryProjection)
             .ToListAsync(cancellationToken);
 
+        // Patch the latest PUBLISHED version per template so the list (and assign picker) can show publish state.
+        var templateIds = rows.Select(r => r.TemplateId).Distinct().ToList();
+        var latestPublishedByTemplate = await repository.Query()
+            .Where(p => templateIds.Contains(p.TemplateId) && !p.IsDraft)
+            .GroupBy(p => p.TemplateId)
+            .Select(g => new { TemplateId = g.Key, Version = g.Max(x => x.Version) })
+            .ToDictionaryAsync(x => x.TemplateId, x => (int?)x.Version, cancellationToken);
+
+        var patched = rows
+            .Select(r => latestPublishedByTemplate.TryGetValue(r.TemplateId, out var v)
+                ? r with { LatestPublishedVersion = v }
+                : r)
+            .ToList();
+
         return Result<WorkoutPlanListDto>.Success(
-            WorkoutPlanMapping.ToWorkoutPlanListDto(rows, page, pageSize, totalCount));
+            WorkoutPlanMapping.ToWorkoutPlanListDto(patched, page, pageSize, totalCount));
     }
 }

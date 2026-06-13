@@ -138,6 +138,7 @@ public sealed class CrossTraineeAccessTests(PostgresFixture fixture)
                     new[] { new NutritionPlanItemInput(food.Value, 1, 1m) })
             }));
         Assert.True(version.IsSuccess);
+        Assert.True((await fixture.SendAsync(new PublishNutritionPlanCommand(version.Value))).IsSuccess);
         var assign = await fixture.SendAsync(new CreateNutritionAssignmentCommand(
             traineeId, version.Value, day, EndDate: null,
             NutritionVisibilityMode.Full, HideMacroTargets: false, DisableTraineeEditing: false));

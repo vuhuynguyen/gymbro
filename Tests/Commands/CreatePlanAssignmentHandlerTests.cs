@@ -44,8 +44,13 @@ public sealed class CreatePlanAssignmentHandlerTests
             roleResolver);
     }
 
+    // A published plan — only published versions are assignable.
     private static WorkoutPlan CreatePlan(Guid tenantId, Guid createdBy)
-        => WorkoutPlan.Create(tenantId, createdBy, "Strength Block", null, null, null);
+    {
+        var plan = WorkoutPlan.Create(tenantId, createdBy, "Strength Block", null, null, null);
+        plan.Publish();
+        return plan;
+    }
 
     private static CreatePlanAssignmentCommand CreateCommand(Guid traineeId, Guid planId)
         => new(
@@ -73,8 +78,10 @@ public sealed class CreatePlanAssignmentHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var roleResolver = Substitute.For<ITenantRoleResolver>();
 
-        workoutPlanRepository.GetByIdAsync(planId, Arg.Any<CancellationToken>())
-            .Returns(CreatePlan(tenantId, currentUserId));
+        var plan = CreatePlan(tenantId, currentUserId);
+        workoutPlanRepository.GetByIdAsync(planId, Arg.Any<CancellationToken>()).Returns(plan);
+        workoutPlanRepository.GetLatestPublishedVersionInTemplateAsync(plan.TemplateId, Arg.Any<CancellationToken>())
+            .Returns(plan);
         // The trainee has no role in this tenant → not a member.
         roleResolver.GetRoleAsync(traineeId, tenantId, Arg.Any<CancellationToken>())
             .Returns((TenantRole?)null);
@@ -108,12 +115,14 @@ public sealed class CreatePlanAssignmentHandlerTests
 
         var plan = CreatePlan(tenantId, currentUserId);
         workoutPlanRepository.GetByIdAsync(planId, Arg.Any<CancellationToken>()).Returns(plan);
+        workoutPlanRepository.GetLatestPublishedVersionInTemplateAsync(plan.TemplateId, Arg.Any<CancellationToken>())
+            .Returns(plan);
         roleResolver.GetRoleAsync(traineeId, tenantId, Arg.Any<CancellationToken>())
             .Returns(TenantRole.Client);
 
-        // An existing live assignment of this plan to this trainee makes the AnyAsync pre-check true.
+        // An existing live assignment of this published version to this trainee makes the AnyAsync pre-check true.
         var existing = PlanAssignment.Create(
-            tenantId, currentUserId, traineeId, planId, plan.Version, new DateOnly(2026, 5, 1),
+            tenantId, currentUserId, traineeId, plan.Id, plan.Version, new DateOnly(2026, 5, 1),
             3, PlanVisibilityMode.Full, false, false, false, false, null);
         assignmentRepository.Query()
             .Returns(new TestAsyncEnumerable<PlanAssignment>(new[] { existing }));
@@ -146,6 +155,8 @@ public sealed class CreatePlanAssignmentHandlerTests
 
         var plan = CreatePlan(tenantId, currentUserId);
         workoutPlanRepository.GetByIdAsync(planId, Arg.Any<CancellationToken>()).Returns(plan);
+        workoutPlanRepository.GetLatestPublishedVersionInTemplateAsync(plan.TemplateId, Arg.Any<CancellationToken>())
+            .Returns(plan);
         roleResolver.GetRoleAsync(traineeId, tenantId, Arg.Any<CancellationToken>())
             .Returns(TenantRole.Client);
         // No existing assignment → duplicate pre-check passes.
@@ -164,7 +175,7 @@ public sealed class CreatePlanAssignmentHandlerTests
         await assignmentRepository.Received(1).AddAsync(
             Arg.Is<PlanAssignment>(a =>
                 a.TraineeId == traineeId &&
-                a.PlanId == planId &&
+                a.PlanId == plan.Id &&
                 a.PlanVersion == plan.Version &&
                 a.IsActive &&
                 a.Id == result.Value),

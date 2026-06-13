@@ -11,7 +11,7 @@ namespace Modules.WorkoutPlanModule.Application.Authorization;
 /// replaced by per-row author ownership — see <c>docs/PERMISSIONS.md</c>.
 ///
 /// Authorship is stable across versions: only the author can produce the next version, and
-/// <see cref="WorkoutPlan.CreateNewVersion"/> stamps the editing (author) user as <c>CreatedBy</c>,
+/// <see cref="WorkoutPlan.CreateDraft"/> stamps the editing (author) user as <c>CreatedBy</c>,
 /// so every version in a template carries the same author.
 /// </summary>
 internal static class PlanAuthorPolicy

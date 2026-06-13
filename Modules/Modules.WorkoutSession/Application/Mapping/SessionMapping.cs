@@ -100,7 +100,8 @@ internal static class SessionMapping
     public static PerformedExerciseDto ToPerformedExerciseDto(
         PerformedExercise exercise,
         IReadOnlyDictionary<Guid, string>? nameById = null,
-        IReadOnlySet<Guid>? prSetIds = null)
+        IReadOnlySet<Guid>? prSetIds = null,
+        IReadOnlyDictionary<Guid, LastPerformedSetDto>? lastPerformedByExercise = null)
     {
         nameById ??= new Dictionary<Guid, string>();
 
@@ -123,16 +124,18 @@ internal static class SessionMapping
                 .Select(s => ToPerformedSetDto(s, prSetIds?.Contains(s.Id) ?? false))
                 .ToList(),
             exercise.TrackingType.ToString(),
-            exercise.SupersetGroupId);
+            exercise.SupersetGroupId,
+            lastPerformedByExercise?.GetValueOrDefault(exercise.ExerciseId));
     }
 
     public static IReadOnlyList<PerformedExerciseDto> ToPerformedExerciseDtos(
         IEnumerable<PerformedExercise> exercises,
         IReadOnlyDictionary<Guid, string> nameById,
-        IReadOnlySet<Guid>? prSetIds = null) =>
+        IReadOnlySet<Guid>? prSetIds = null,
+        IReadOnlyDictionary<Guid, LastPerformedSetDto>? lastPerformedByExercise = null) =>
         exercises
             .OrderBy(e => e.Order)
-            .Select(e => ToPerformedExerciseDto(e, nameById, prSetIds))
+            .Select(e => ToPerformedExerciseDto(e, nameById, prSetIds, lastPerformedByExercise))
             .ToList();
 
     /// <summary>Working-set volume: Σ (weight × reps) over working sets that carry both values.</summary>
@@ -235,14 +238,15 @@ internal static class SessionMapping
     public static ActiveSessionDto ToActiveSessionDto(
         WorkoutSession session,
         SessionSnapshotDto? snapshot,
-        IReadOnlyDictionary<Guid, string> nameById) =>
+        IReadOnlyDictionary<Guid, string> nameById,
+        IReadOnlyDictionary<Guid, LastPerformedSetDto>? lastPerformedByExercise = null) =>
         new(
             session.Id,
             session.Status,
             session.StartedAt,
             session.Source,
             snapshot,
-            ToPerformedExerciseDtos(session.Exercises, nameById));
+            ToPerformedExerciseDtos(session.Exercises, nameById, lastPerformedByExercise: lastPerformedByExercise));
 
     public static SessionDetailDto ToSessionDetailDto(
         WorkoutSession session,

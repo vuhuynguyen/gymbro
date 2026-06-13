@@ -47,6 +47,9 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
         Assert.True(structureResult.IsSuccess);
         var planVersionId = structureResult.Value;
 
+        // Publishing the draft is what makes it assignable (plain edits never advance the version).
+        Assert.True((await fixture.SendAsync(new PublishNutritionPlanCommand(planVersionId))).IsSuccess);
+
         var assignResult = await fixture.SendAsync(new CreateNutritionAssignmentCommand(
             fixture.ClientAId, planVersionId, Day, EndDate: null,
             NutritionVisibilityMode.Full, HideMacroTargets: false, DisableTraineeEditing: false));
@@ -124,6 +127,9 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
             }));
         Assert.True(v1.IsSuccess);
 
+        // Publish v1 so it can be assigned.
+        Assert.True((await fixture.SendAsync(new PublishNutritionPlanCommand(v1.Value))).IsSuccess);
+
         var assign = await fixture.SendAsync(new CreateNutritionAssignmentCommand(
             fixture.ClientAId, v1.Value, day, EndDate: null,
             NutritionVisibilityMode.Full, HideMacroTargets: false, DisableTraineeEditing: false));
@@ -135,7 +141,8 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
         Assert.True(before.IsSuccess);
         Assert.Equal("Snapshot Oats", before.Value!.Meals.Single().Items.Single().FoodName);
 
-        // 4. Coach publishes v2 with different meals/items (Dinner + Rice).
+        // 4. Coach edits the plan (forking a new draft v2) with different meals/items (Dinner + Rice). It need
+        //    not even be published — the trainee's assignment stays pinned to its v1 snapshot regardless.
         fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
         var v2 = await fixture.SendAsync(new ReplaceNutritionPlanStructureCommand(
             v1.Value, "Snapshot Plan", "v2",
@@ -239,6 +246,7 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
                         new[] { new NutritionPlanItemInput(food.Value, 1, 1m) })
                 }));
             Assert.True(version.IsSuccess);
+            Assert.True((await fixture.SendAsync(new PublishNutritionPlanCommand(version.Value))).IsSuccess);
             var assigned = await fixture.SendAsync(new CreateNutritionAssignmentCommand(
                 fixture.ClientBId, version.Value, day, EndDate: day,
                 mode, hideMacros, DisableTraineeEditing: false));
@@ -433,6 +441,7 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
                     new[] { new NutritionPlanItemInput(food.Value, 1, 1m) })
             }));
         Assert.True(version.IsSuccess);
+        Assert.True((await fixture.SendAsync(new PublishNutritionPlanCommand(version.Value))).IsSuccess);
 
         // 2. Assign it to ClientB.
         var assign = await fixture.SendAsync(new CreateNutritionAssignmentCommand(

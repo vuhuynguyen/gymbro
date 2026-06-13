@@ -112,7 +112,7 @@ public sealed class UpdateWorkoutPlanHandlerTests
     }
 
     [Fact]
-    public async Task Author_editing_latest_version_appends_new_version_and_saves()
+    public async Task Author_editing_draft_head_replaces_it_at_the_same_version()
     {
         var tenantId = Guid.NewGuid();
         var author = Guid.NewGuid();
@@ -120,7 +120,9 @@ public sealed class UpdateWorkoutPlanHandlerTests
         var repository = Substitute.For<IWorkoutPlanRepository>();
         var unitOfWork = Substitute.For<IUnitOfWork>();
 
+        // A freshly created plan is a draft head; editing it must NOT bump the version (no version inflation).
         var plan = CreatePlan(tenantId, author);
+        Assert.True(plan.IsDraft);
         repository.GetForUpdateAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
         repository.GetLatestVersionInTemplateAsync(plan.TemplateId, Arg.Any<CancellationToken>())
             .Returns(plan);
@@ -132,16 +134,53 @@ public sealed class UpdateWorkoutPlanHandlerTests
 
         Assert.True(result.IsSuccess);
 
-        // A new immutable version is appended (same template, bumped version, command fields applied) and
-        // committed exactly once.
+        // The draft is replaced in place: a new draft row at the SAME version, the old draft dropped, one commit.
         await repository.Received(1).AddAsync(
             Arg.Is<WorkoutPlan>(p =>
                 p.TemplateId == plan.TemplateId &&
-                p.Version == plan.Version + 1 &&
+                p.Version == plan.Version &&
+                p.IsDraft &&
                 p.Id != plan.Id &&
                 p.Name == "Strength Block v2" &&
                 p.CreatedBy == author),
             Arg.Any<CancellationToken>());
+        repository.Received(1).Remove(plan);
+        await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Author_editing_published_head_forks_a_new_draft_version()
+    {
+        var tenantId = Guid.NewGuid();
+        var author = Guid.NewGuid();
+
+        var repository = Substitute.For<IWorkoutPlanRepository>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+
+        // The head is already published → the first edit forks a NEW draft one version above it.
+        var plan = CreatePlan(tenantId, author);
+        plan.Publish();
+        repository.GetForUpdateAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
+        repository.GetLatestVersionInTemplateAsync(plan.TemplateId, Arg.Any<CancellationToken>())
+            .Returns(plan);
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = CreateSut(repository, unitOfWork, author);
+
+        var result = await sut.Handle(CreateCommand(plan.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+
+        await repository.Received(1).AddAsync(
+            Arg.Is<WorkoutPlan>(p =>
+                p.TemplateId == plan.TemplateId &&
+                p.Version == plan.Version + 1 &&
+                p.IsDraft &&
+                p.Id != plan.Id &&
+                p.Name == "Strength Block v2"),
+            Arg.Any<CancellationToken>());
+        // A published version is immutable — it must NOT be removed when forking a draft off it.
+        repository.DidNotReceive().Remove(plan);
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

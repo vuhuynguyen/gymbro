@@ -64,7 +64,11 @@ public sealed class GetWorkoutPlanByIdHandler(
         if (namesResult.IsFailure)
             return Result<WorkoutPlanDetailDto>.Failure(namesResult.Error);
 
-        var dto = WorkoutPlanMapping.ToWorkoutPlanDetailDto(plan, namesResult.Value!);
+        var latestPublishedVersion = await repository.Query()
+            .Where(p => p.TemplateId == plan.TemplateId && !p.IsDraft)
+            .MaxAsync(p => (int?)p.Version, cancellationToken);
+
+        var dto = WorkoutPlanMapping.ToWorkoutPlanDetailDto(plan, namesResult.Value!, latestPublishedVersion);
 
         if (traineeAssignment != null)
             dto = WorkoutPlanMapping.RedactForTrainee(dto, traineeAssignment);

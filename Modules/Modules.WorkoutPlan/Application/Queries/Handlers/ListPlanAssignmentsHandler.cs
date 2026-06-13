@@ -39,7 +39,10 @@ public sealed class ListPlanAssignmentsHandler(
         var page = request.Page < 1 ? 1 : request.Page;
         var pageSize = request.PageSize < 1 ? 10 : Math.Min(request.PageSize, 100);
 
+        // "New vX" compares against the latest PUBLISHED version only — an in-progress draft head must not
+        // light up the badge, since trainees can never be advanced onto an unpublished draft.
         var latestVersionByPlan = workoutPlanRepository.Query()
+            .Where(p => !p.IsDraft)
             .GroupBy(p => p.TemplateId)
             .Select(g => new
             {

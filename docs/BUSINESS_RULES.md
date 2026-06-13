@@ -12,29 +12,31 @@ they signal a bug, not bad input.
 
 ## Workout plan lifecycle
 
-A "plan" is an **immutable version chain** — rows sharing one `TemplateId`, each with an incrementing `Version`.
+A "plan" is a `TemplateId` chain of versioned rows. Authoring is **draft-first**: a single mutable **draft head**
+absorbs every edit, and **only `publish` advances the published version** that trainees and assignments see. Published
+versions are immutable. (`IsDraft` distinguishes the two; published versions form the immutable history.)
 
 - **Preconditions:** caller is Owner in the tenant (`PlanCreate`/`PlanUpdate`); plan name required (≤ 200).
-- **Create:** `WorkoutPlan.Create` → new `Id` **and** new `TemplateId`, `Version = 1`. A plan is assignable the moment it is created — there is **no "publish" step**.
-- **Edit structure (`PUT /{id}/structure`):** never mutates in place. `CreateNewVersion` deep-copies the whole tree (workouts → exercises → prescribed sets, order preserved) into a **new row**, same `TemplateId`, `Version + 1`. Reads select the latest non-deleted version. **Carries metadata too** (name/description/duration/workouts-per-week) so a builder save applies metadata **and** structure as **one** new version — the client must **not** chain a separate `PUT /{id}` before it (the metadata PUT would fork a newer version, leaving the structure PUT targeting a now-stale id → `409`).
-- **Edit metadata (`PUT /{id}`):** also creates a **new version** (name/description/duration land on `Version + 1`, same `TemplateId`). Use it for metadata-only edits; a builder save that also changes structure uses `PUT /{id}/structure` (above), not both.
-- **Both edit PUTs return the new version id** (`200 { id }`, not `204`). Because each edit forks a new id, the caller must re-point to the returned id before its next edit — otherwise that next edit targets the now-stale id and is rejected (`409`, below).
-- **Edit targets the latest version only:** both edit paths reject (`409`) when the supplied id is not the latest version in the template, so an edit can never silently fork off the newest one.
-- **Archive (`PUT /{id}/archive` · `/unarchive`):** `IsArchived` retires a template (reversible). An archived plan is hidden from the active list, **cannot be edited / newly assigned / reached by `apply-latest`** (each `409`). Existing assignments keep working by design — archiving stops *new* distribution, not *in-flight* training. Revoke the assignment to stop training.
+- **Create:** `WorkoutPlan.Create` → new `Id` **and** new `TemplateId`, `Version = 1`, **`IsDraft = true`**. A new plan is an unpublished draft — it must be **published before it can be assigned**.
+- **Edit structure (`PUT /{id}/structure`) / metadata (`PUT /{id}`):** never bump the published version. Both edits land on the single **draft head**: replacing an existing draft keeps its `Version` (the old draft row is dropped in the same unit of work), while the first edit after a publish **forks a new draft** at `latestPublished + 1`. `CreateDraft` deep-copies the whole tree into a fresh untracked row (so a single `AddAsync` persists it; no in-place child mutation), `IsDraft = true`. Structure edits **carry metadata too**, so a builder save applies metadata **and** structure as one draft (don't chain a separate `PUT /{id}` → `409` on the stale id).
+- **Publish (`PUT /{id}/publish`):** flips the draft head to published (`IsDraft = false`), returning the published `version`. This is the **only** action that advances the version. `409` if there is no draft to publish ("nothing to publish"). Repeated edits between two publishes never inflate the version — they keep replacing the one draft.
+- **Both edit PUTs return the draft head id** (`200 { id }`, not `204`). Because replacing a draft mints a new row id, the caller must re-point to the returned id before its next edit (else `409` on the stale id).
+- **Edit/publish target the latest version only:** reject (`409`) when the supplied id is not the head of the template.
+- **Archive (`PUT /{id}/archive` · `/unarchive`):** `IsArchived` retires a template (reversible). An archived plan is hidden from the active list, **cannot be edited / published / newly assigned / reached by `apply-latest`** (each `409`). Existing assignments keep working by design — archiving stops *new* distribution, not *in-flight* training. Revoke the assignment to stop training.
 - **Delete guard:** soft-delete is blocked (`409`) while a **live `PlanAssignment` pins this plan version** — revoke the assignment first. A version with only historical sessions is still deletable (sessions carry their own snapshot).
-- **Edge cases:** unique index `(TemplateId, Version)` filtered `IsDeleted=false` (versions reusable after soft-delete); soft-deleted plans hidden from non-admins; old versions are retained but there is no version-history UI.
+- **Edge cases:** unique index `(TemplateId, Version)` filtered `IsDeleted=false AND IsDraft=false` — **drafts are exempt** so the draft head can be replaced at the same version number without tripping it; published versions stay unique. Soft-deleted plans hidden from non-admins; published versions are retained but there is no version-history UI.
 
 ## Assignment lifecycle
 
 `PlanAssignment` pins one plan **version** to a trainee with a point-in-time `SnapshotJson` and client-visibility
 controls.
 
-- **Preconditions:** Owner with `PlanAssign`; `frequencyDaysPerWeek ∈ [1,7]`; `planVersion ≥ 1`. Assign pins `PlanVersion = plan.Version` at assign time.
+- **Preconditions:** Owner with `PlanAssign`; `frequencyDaysPerWeek ∈ [1,7]`. Assign always pins the **latest published** version of the plan's template (never a draft head, even if the picker passes a draft id); a template with **no published version yet** is rejected (`409` "Publish the plan before assigning it").
   - **Trainee must be a tenant member** — non-member rejected (`PlanAssignment.TraineeNotMember`, 400). Any member is allowed (Owner or Client), so an Owner self-assigning their own plan is permitted.
-  - **No duplicate live assignment** — a unique partial index `(TenantId, TraineeId, PlanId)` filtered `IsDeleted=false` plus a handler pre-check (`409`) prevent assigning the same plan to the same trainee twice.
-- **Allowed:** create; `UpdateConfiguration` (start date, frequency, visibility flags — no snapshot); `apply-latest` (re-point to newest version; **preserves the current snapshot when the caller supplies none**); pause/resume; soft-delete.
+  - **No duplicate live assignment** — a unique partial index `(TenantId, TraineeId, PlanId)` filtered `IsDeleted=false` plus a handler pre-check (`409`) prevent assigning the same published version to the same trainee twice.
+- **Allowed:** create; `UpdateConfiguration` (start date, frequency, visibility flags — no snapshot); `apply-latest` (re-point to the newest **published** version; **preserves the current snapshot when the caller supplies none**); pause/resume; soft-delete.
 - **Pause / resume:** `IsActive` (default `true`). A trainee may hold **multiple active assignments** and picks one at workout start (no auto-select). Pausing keeps history but hides the assignment from the trainee's start-workout picker (`GET /assignments?activeOnly=true`); the coach list still shows it with a "Paused" badge. Resuming sets it active again.
-- **Version impact:** editing the source plan does **not** change existing assignments — they stay pinned until an explicit `apply-latest`. This is the historical-integrity guarantee.
+- **Version impact:** neither editing nor publishing the source plan changes existing assignments — they stay pinned until an explicit `apply-latest`. Publishing a newer version surfaces a "New vX" indicator on the assignment (and enables `apply-latest`); unpublished draft edits never do. This is the historical-integrity guarantee.
 - **Permissive by default:** all four hide/lock flags (`HideExercises`, `HideSetsReps`, `HideFutureWorkouts`, `DisableTraineeEditing`) default to **false** in EF config — a freshly assigned plan is fully visible and trainee-editable unless an Owner restricts it.
 
 ### Visibility modes

@@ -12,7 +12,11 @@ public sealed record WorkoutPlanSummaryDto(
     int? WorkoutsPerWeek,
     DateTimeOffset CreatedOnUtc,
     int WorkoutCount,
-    bool IsArchived);
+    bool IsArchived,
+    /// <summary>True when the head row is an unpublished draft (has edits not yet published).</summary>
+    bool IsDraft,
+    /// <summary>Latest published version of this template; null when the plan has never been published (draft-only).</summary>
+    int? LatestPublishedVersion);
 
 public sealed record WorkoutPlanListDto(
     IReadOnlyList<WorkoutPlanSummaryDto> Items,
@@ -55,4 +59,6 @@ public sealed record WorkoutPlanDetailDto(
     int? DurationWeeks,
     int? WorkoutsPerWeek,
     DateTimeOffset CreatedOnUtc,
-    IReadOnlyList<PlanWorkoutDetailDto> Workouts);
+    IReadOnlyList<PlanWorkoutDetailDto> Workouts,
+    bool IsDraft = false,
+    int? LatestPublishedVersion = null);

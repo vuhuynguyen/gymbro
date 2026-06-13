@@ -52,13 +52,24 @@ public sealed class ReplaceNutritionPlanStructureHandler(
         if (current == null)
             return Result<Guid>.Failure(NotFound("NotFound", "Nutrition plan not found."));
 
-        var latest = await repository.GetLatestVersionInTemplateAsync(current.TemplateId, cancellationToken) ?? current;
-        if (current.Id != latest.Id)
+        if (current.IsArchived)
+            return Result<Guid>.Failure(Conflict("Conflict", "Unarchive the plan before editing it."));
+
+        var head = await repository.GetLatestVersionInTemplateAsync(current.TemplateId, cancellationToken) ?? current;
+        if (current.Id != head.Id)
             return Result<Guid>.Failure(Conflict(
                 "Conflict", "This is not the latest version of the plan. Refresh and edit the latest version."));
 
-        var next = NutritionPlan.CreateNewVersion(latest, currentUser.UserId, request.Name, request.Description);
+        // Edits never bump the published version: they land on the single draft head. Replacing an existing draft
+        // keeps its version number (and drops the old draft row); the first edit after a publish forks a new draft
+        // one above the latest published version. Either way the structure is rebuilt as a fresh untracked graph,
+        // so a single AddAsync persists it (no in-place child mutation, no version inflation).
+        var draftVersion = head.IsDraft ? head.Version : head.Version + 1;
+        var next = NutritionPlan.CreateDraft(head, currentUser.UserId, draftVersion, request.Name, request.Description);
         next.ReplaceStructure(mapped);
+
+        if (head.IsDraft)
+            repository.Remove(head);
         await repository.AddAsync(next, cancellationToken);
 
         try

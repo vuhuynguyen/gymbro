@@ -72,6 +72,19 @@ public sealed class NutritionPlanAssignment : AggregateRoot, ITenantEntity, ISof
     public void SetActive(bool active) => IsActive = active;
 
     /// <summary>
+    /// Re-points the assignment to a newer published plan version with a fresh snapshot (apply-latest). Mirrors
+    /// <c>PlanAssignment.ApplyNewVersion</c>.
+    /// </summary>
+    public void ApplyNewVersion(Guid planId, int planVersion, string? snapshotJson)
+    {
+        if (planId == Guid.Empty) throw new DomainException("PlanId is required.");
+        if (planVersion < 1) throw new DomainException("planVersion is out of range.");
+        PlanId = planId;
+        PlanVersion = planVersion;
+        SnapshotJson = string.IsNullOrWhiteSpace(snapshotJson) ? null : snapshotJson.Trim();
+    }
+
+    /// <summary>
     /// Edits the assignment's configuration in place, keeping the pinned plan version + snapshot. A null
     /// <paramref name="startDate"/> leaves the existing start date unchanged. Mirrors
     /// <c>PlanAssignment.UpdateConfiguration</c>, adapted to nutrition's fields (end date + macro hiding).

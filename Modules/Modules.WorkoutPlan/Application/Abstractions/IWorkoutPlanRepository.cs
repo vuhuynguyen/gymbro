@@ -10,7 +10,14 @@ public interface IWorkoutPlanRepository
 
     Task<WorkoutPlan?> GetForUpdateAsync(Guid id, CancellationToken cancellationToken = default);
 
+    /// <summary>The version head for a template — the draft if one exists, else the latest published version.</summary>
     Task<WorkoutPlan?> GetLatestVersionInTemplateAsync(Guid templateId, CancellationToken cancellationToken = default);
+
+    /// <summary>The newest <b>published</b> version in a template (ignores any draft head). Null when never published.</summary>
+    Task<WorkoutPlan?> GetLatestPublishedVersionInTemplateAsync(Guid templateId, CancellationToken cancellationToken = default);
+
+    /// <summary>Hard-removes a plan row (used to drop a superseded draft head when replacing it).</summary>
+    void Remove(WorkoutPlan entity);
 
     /// <summary>
     /// Removes all workouts and line items for the plan using bulk SQL (no tracked deletes), avoiding

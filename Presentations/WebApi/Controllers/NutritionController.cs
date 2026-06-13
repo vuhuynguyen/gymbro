@@ -59,6 +59,14 @@ public sealed class NutritionController(IMediator mediator) : ControllerBase
         return result.IsFailure ? result.ToFailureResult(this) : Ok(new { id = result.Value });
     }
 
+    /// <summary>Publishes the plan's draft head — the only action that advances the assignable/published version.</summary>
+    [HttpPut("plans/{id:guid}/publish")]
+    public async Task<IActionResult> PublishPlan(Guid id, CancellationToken ct)
+    {
+        var result = await mediator.Send(new PublishNutritionPlanCommand(id), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(new { version = result.Value });
+    }
+
     [HttpDelete("plans/{id:guid}")]
     public async Task<IActionResult> DeletePlan(Guid id, CancellationToken ct)
     {
@@ -117,6 +125,14 @@ public sealed class NutritionController(IMediator mediator) : ControllerBase
     {
         var result = await mediator.Send(new DeleteNutritionAssignmentCommand(assignmentId), ct);
         return result.IsFailure ? result.ToFailureResult(this) : NoContent();
+    }
+
+    /// <summary>Re-points the assignment to the plan's latest published version (rebuilds the pinned snapshot).</summary>
+    [HttpPut("assignments/{assignmentId:guid}/apply-latest")]
+    public async Task<IActionResult> ApplyLatestVersion(Guid assignmentId, CancellationToken ct)
+    {
+        var result = await mediator.Send(new UpdateNutritionAssignmentToLatestVersionCommand(assignmentId), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(new { updated = result.Value });
     }
 
     [HttpPut("assignments/{assignmentId:guid}/pause")]

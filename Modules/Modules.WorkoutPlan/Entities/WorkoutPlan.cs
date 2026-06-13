@@ -3,7 +3,10 @@ using BuildingBlocks.Shared.DomainPrimitives;
 namespace Modules.WorkoutPlanModule.Entities;
 
 /// <summary>
-/// Tenant-scoped workout plan template (sequence-based days, not calendar-bound).
+/// Tenant-scoped workout plan template (sequence-based days, not calendar-bound). Authoring is draft-first: a
+/// single mutable <b>draft head</b> absorbs every edit (the draft is replaced in place, not version-bumped), and
+/// only <see cref="Publish"/> turns a draft into an immutable published version — the only thing that advances the
+/// version trainees and assignments see.
 /// </summary>
 public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
 {
@@ -13,6 +16,13 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
     public string? Description { get; private set; }
     public int? DurationWeeks { get; private set; }
     public int? WorkoutsPerWeek { get; private set; }
+
+    /// <summary>
+    /// Unpublished working copy. Edits land on the draft head without bumping the version; published versions
+    /// are immutable. A draft is excluded from the (TemplateId, Version) uniqueness rule, never assignable, and
+    /// invisible to trainees until <see cref="Publish"/> flips it to published.
+    /// </summary>
+    public bool IsDraft { get; private set; }
 
     /// <summary>Retired template: hidden from the active plan list, not editable, not assignable. Reversible.</summary>
     public bool IsArchived { get; private set; }
@@ -50,6 +60,7 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
             Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
             DurationWeeks = durationWeeks,
             WorkoutsPerWeek = workoutsPerWeek,
+            IsDraft = true,
             IsDeleted = false
         };
     }
@@ -83,9 +94,24 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
         IsArchived = archived;
     }
 
-    public static WorkoutPlan CreateNewVersion(
+    /// <summary>Promotes this draft head to an immutable published version. Throws if already published.</summary>
+    public void Publish()
+    {
+        if (!IsDraft)
+            throw new DomainException("Plan is already published.");
+        IsDraft = false;
+    }
+
+    /// <summary>
+    /// Deep-copies a source version into a fresh <b>draft</b> row at <paramref name="version"/> (same TemplateId,
+    /// new Id, IsDraft = true). The caller decides the version: keep the source's number when replacing an existing
+    /// draft head, or source + 1 when forking a new draft off a published version. Built as an untracked graph so
+    /// it persists via a single <c>AddAsync</c> (no in-place child mutation).
+    /// </summary>
+    public static WorkoutPlan CreateDraft(
         WorkoutPlan current,
         Guid createdBy,
+        int version,
         string name,
         string? description,
         int? durationWeeks,
@@ -94,6 +120,8 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
         ArgumentNullException.ThrowIfNull(current);
         if (createdBy == Guid.Empty)
             throw new DomainException("CreatedBy is required.");
+        if (version < 1)
+            throw new DomainException("version is out of range.");
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Name is required.");
 
@@ -103,11 +131,12 @@ public sealed class WorkoutPlan : AggregateRoot, ITenantEntity, ISoftDelete
             TemplateId = current.TemplateId,
             TenantId = current.TenantId,
             CreatedBy = createdBy,
-            Version = current.Version + 1,
+            Version = version,
             Name = name.Trim(),
             Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
             DurationWeeks = durationWeeks,
             WorkoutsPerWeek = workoutsPerWeek,
+            IsDraft = true,
             IsDeleted = false
         };
 

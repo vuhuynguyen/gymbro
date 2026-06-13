@@ -47,7 +47,8 @@ internal static class WorkoutPlanMapping
 
     public static WorkoutPlanDetailDto ToWorkoutPlanDetailDto(
         WorkoutPlan plan,
-        IReadOnlyDictionary<Guid, string> nameById) =>
+        IReadOnlyDictionary<Guid, string> nameById,
+        int? latestPublishedVersion = null) =>
         new(
             plan.Id,
             plan.TemplateId,
@@ -60,7 +61,9 @@ internal static class WorkoutPlanMapping
             plan.Workouts
                 .OrderBy(w => w.Order)
                 .Select(w => ToPlanWorkoutDetailDto(w, nameById))
-                .ToList());
+                .ToList(),
+            plan.IsDraft,
+            latestPublishedVersion);
 
     /// <summary>
     /// Applies a trainee's assignment visibility flags to a plan-detail DTO (filter-on-read for a
@@ -119,6 +122,8 @@ internal static class WorkoutPlanMapping
         return dto with { Workouts = redactedWorkouts };
     }
 
+    // LatestPublishedVersion is null here; the list handler patches it per template after projection (a
+    // correlated max-published-version subquery isn't worth expressing in this static projection).
     public static Expression<Func<WorkoutPlan, WorkoutPlanSummaryDto>> WorkoutPlanSummaryProjection =>
         p => new WorkoutPlanSummaryDto(
             p.Id,
@@ -130,9 +135,11 @@ internal static class WorkoutPlanMapping
             p.WorkoutsPerWeek,
             p.CreatedOnUtc,
             p.Workouts.Count,
-            p.IsArchived);
+            p.IsArchived,
+            p.IsDraft,
+            null);
 
-    public static WorkoutPlanSummaryDto ToWorkoutPlanSummaryDto(WorkoutPlan plan) =>
+    public static WorkoutPlanSummaryDto ToWorkoutPlanSummaryDto(WorkoutPlan plan, int? latestPublishedVersion = null) =>
         new(
             plan.Id,
             plan.TemplateId,
@@ -143,7 +150,9 @@ internal static class WorkoutPlanMapping
             plan.WorkoutsPerWeek,
             plan.CreatedOnUtc,
             plan.Workouts.Count,
-            plan.IsArchived);
+            plan.IsArchived,
+            plan.IsDraft,
+            latestPublishedVersion);
 
     public static WorkoutPlanListDto ToWorkoutPlanListDto(
         IReadOnlyList<WorkoutPlanSummaryDto> items,

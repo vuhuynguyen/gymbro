@@ -24,7 +24,8 @@ public sealed class UpdatePlanAssignmentToLatestVersionHandler(
         if (currentPlan == null)
             return Result<bool>.Failure(NotFound("NotFound", "Workout plan not found."));
 
-        var latest = await workoutPlanRepository.GetLatestVersionInTemplateAsync(currentPlan.TemplateId, cancellationToken);
+        // Advance only to the latest PUBLISHED version — an in-progress draft head is never applied to a trainee.
+        var latest = await workoutPlanRepository.GetLatestPublishedVersionInTemplateAsync(currentPlan.TemplateId, cancellationToken);
         if (latest == null)
             return Result<bool>.Failure(NotFound("NotFound", "Workout plan not found."));
 

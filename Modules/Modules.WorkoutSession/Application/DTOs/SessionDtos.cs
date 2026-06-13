@@ -35,7 +35,18 @@ public sealed record PerformedExerciseDto(
     string? Notes,
     IReadOnlyList<PerformedSetDto> Sets,
     string TrackingType = "Strength",
-    Guid? SupersetGroupId = null);
+    Guid? SupersetGroupId = null,
+    LastPerformedSetDto? LastPerformed = null);
+
+/// <summary>
+/// The top working set this trainee logged for an exercise in a PRIOR completed session — the "last time"
+/// reference shown live while logging. Null when there is no prior history for the lift. Computed on read
+/// (never stored), so it reflects the most recent history at the moment the active session is loaded.
+/// </summary>
+public sealed record LastPerformedSetDto(
+    decimal? WeightKg,
+    int? Reps,
+    DateTimeOffset PerformedAt);
 
 public sealed record SessionSnapshotSetDto(
     Guid PlanSetId,

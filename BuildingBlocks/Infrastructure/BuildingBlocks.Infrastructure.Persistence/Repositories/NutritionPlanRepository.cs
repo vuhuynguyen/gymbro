@@ -18,11 +18,20 @@ public sealed class NutritionPlanRepository(AppDbContext context) : INutritionPl
             .ThenInclude(m => m.Items)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
+    // A draft head carries the highest version number, so ordering by version surfaces it when present.
     public async Task<NutritionPlan?> GetLatestVersionInTemplateAsync(Guid templateId, CancellationToken cancellationToken = default)
         => await context.Set<NutritionPlan>()
             .Where(p => p.TemplateId == templateId)
             .OrderByDescending(p => p.Version)
             .FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<NutritionPlan?> GetLatestPublishedVersionInTemplateAsync(Guid templateId, CancellationToken cancellationToken = default)
+        => await context.Set<NutritionPlan>()
+            .Where(p => p.TemplateId == templateId && !p.IsDraft)
+            .OrderByDescending(p => p.Version)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public void Remove(NutritionPlan entity) => context.Set<NutritionPlan>().Remove(entity);
 
     public async Task ClearPlanStructureAsync(Guid nutritionPlanId, CancellationToken cancellationToken = default)
     {

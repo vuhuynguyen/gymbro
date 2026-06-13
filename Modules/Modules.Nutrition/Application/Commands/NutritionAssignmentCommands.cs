@@ -31,6 +31,17 @@ public sealed record UpdateNutritionAssignmentCommand(
     public Permission RequiredPermission => Permission.NutritionPlanAssign;
 }
 
+/// <summary>
+/// Re-points a nutrition-plan assignment to the plan's latest PUBLISHED version, rebuilding the pinned snapshot
+/// from that version's structure (apply-latest). Mirrors UpdatePlanAssignmentToLatestVersionCommand; the snapshot
+/// is rebuilt server-side because nutrition snapshots are authored on the server, not the client.
+/// </summary>
+public sealed record UpdateNutritionAssignmentToLatestVersionCommand(Guid AssignmentId)
+    : IRequest<Result<bool>>, ITenantAuthorizedRequest
+{
+    public Permission RequiredPermission => Permission.NutritionPlanAssign;
+}
+
 /// <summary>Revokes (soft-deletes) a nutrition-plan assignment. Mirrors DeletePlanAssignmentCommand.</summary>
 public sealed record DeleteNutritionAssignmentCommand(Guid AssignmentId)
     : IRequest<Result<bool>>, ITenantAuthorizedRequest

@@ -30,6 +30,14 @@ public sealed class UpdatePlanAssignmentToLatestVersionHandlerTests
     private static WorkoutPlan CreatePlanV1()
         => WorkoutPlan.Create(TenantId, ActorId, "Plan", null, null, null);
 
+    // The next PUBLISHED version off v1 (apply-latest only ever advances onto published versions).
+    private static WorkoutPlan CreatePublishedNext(WorkoutPlan v1)
+    {
+        var next = WorkoutPlan.CreateDraft(v1, ActorId, v1.Version + 1, "Plan", null, null, null);
+        next.Publish();
+        return next;
+    }
+
     private static PlanAssignment CreateAssignmentOnV1(WorkoutPlan plan, string? snapshotJson)
         => PlanAssignment.Create(
             TenantId,
@@ -79,12 +87,12 @@ public sealed class UpdatePlanAssignmentToLatestVersionHandlerTests
         var assignment = CreateAssignmentOnV1(currentPlan, "{\"v\":1}");
 
         // Newest version in the template is archived → apply-latest must refuse to advance onto it.
-        var latest = WorkoutPlan.CreateNewVersion(currentPlan, ActorId, "Plan", null, null, null);
+        var latest = CreatePublishedNext(currentPlan);
         latest.SetArchived(true);
 
         assignmentRepository.GetByIdAsync(assignment.Id, Arg.Any<CancellationToken>()).Returns(assignment);
         workoutPlanRepository.GetByIdAsync(currentPlan.Id, Arg.Any<CancellationToken>()).Returns(currentPlan);
-        workoutPlanRepository.GetLatestVersionInTemplateAsync(currentPlan.TemplateId, Arg.Any<CancellationToken>())
+        workoutPlanRepository.GetLatestPublishedVersionInTemplateAsync(currentPlan.TemplateId, Arg.Any<CancellationToken>())
             .Returns(latest);
 
         var sut = CreateSut(assignmentRepository, workoutPlanRepository, unitOfWork);
@@ -112,11 +120,11 @@ public sealed class UpdatePlanAssignmentToLatestVersionHandlerTests
         var currentPlan = CreatePlanV1();
         var assignment = CreateAssignmentOnV1(currentPlan, existingSnapshot);
 
-        var latest = WorkoutPlan.CreateNewVersion(currentPlan, ActorId, "Plan", null, null, null);
+        var latest = CreatePublishedNext(currentPlan);
 
         assignmentRepository.GetByIdAsync(assignment.Id, Arg.Any<CancellationToken>()).Returns(assignment);
         workoutPlanRepository.GetByIdAsync(currentPlan.Id, Arg.Any<CancellationToken>()).Returns(currentPlan);
-        workoutPlanRepository.GetLatestVersionInTemplateAsync(currentPlan.TemplateId, Arg.Any<CancellationToken>())
+        workoutPlanRepository.GetLatestPublishedVersionInTemplateAsync(currentPlan.TemplateId, Arg.Any<CancellationToken>())
             .Returns(latest);
 
         var sut = CreateSut(assignmentRepository, workoutPlanRepository, unitOfWork);
@@ -146,11 +154,11 @@ public sealed class UpdatePlanAssignmentToLatestVersionHandlerTests
         var currentPlan = CreatePlanV1();
         var assignment = CreateAssignmentOnV1(currentPlan, "{\"frozen\":\"v1\"}");
 
-        var latest = WorkoutPlan.CreateNewVersion(currentPlan, ActorId, "Plan", null, null, null);
+        var latest = CreatePublishedNext(currentPlan);
 
         assignmentRepository.GetByIdAsync(assignment.Id, Arg.Any<CancellationToken>()).Returns(assignment);
         workoutPlanRepository.GetByIdAsync(currentPlan.Id, Arg.Any<CancellationToken>()).Returns(currentPlan);
-        workoutPlanRepository.GetLatestVersionInTemplateAsync(currentPlan.TemplateId, Arg.Any<CancellationToken>())
+        workoutPlanRepository.GetLatestPublishedVersionInTemplateAsync(currentPlan.TemplateId, Arg.Any<CancellationToken>())
             .Returns(latest);
 
         var sut = CreateSut(assignmentRepository, workoutPlanRepository, unitOfWork);

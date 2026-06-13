@@ -33,6 +33,16 @@ public sealed record ReplaceNutritionPlanStructureCommand(
     public Permission RequiredPermission => Permission.NutritionPlanUpdate;
 }
 
+/// <summary>
+/// Publishes the plan's draft head, turning it into the immutable version trainees and assignments see. This is
+/// the only action that advances the published version — plain edits keep replacing the draft in place. Returns
+/// the newly published version number.
+/// </summary>
+public sealed record PublishNutritionPlanCommand(Guid Id) : IRequest<Result<int>>, ITenantAuthorizedRequest
+{
+    public Permission RequiredPermission => Permission.NutritionPlanUpdate;
+}
+
 public sealed record DeleteNutritionPlanCommand(Guid Id) : IRequest<Result>, ITenantAuthorizedRequest
 {
     public Permission RequiredPermission => Permission.NutritionPlanDelete;

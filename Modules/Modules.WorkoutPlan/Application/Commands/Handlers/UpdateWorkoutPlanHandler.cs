@@ -25,26 +25,34 @@ public sealed class UpdateWorkoutPlanHandler(
         if (current.IsArchived)
             return Result<Guid>.Failure(Conflict("Conflict", "Unarchive the plan before editing it."));
 
-        var latest = await repository.GetLatestVersionInTemplateAsync(current.TemplateId, cancellationToken) ?? current;
+        var head = await repository.GetLatestVersionInTemplateAsync(current.TemplateId, cancellationToken) ?? current;
 
         // Edits must target the latest version; editing an older version would silently fork off the
         // newest one and discard the caller's intent. Make that explicit instead.
-        if (current.Id != latest.Id)
+        if (current.Id != head.Id)
             return Result<Guid>.Failure(Conflict(
                 "Conflict", "This is not the latest version of the plan. Refresh and edit the latest version."));
 
-        var authorCheck = PlanAuthorPolicy.EnsureCanMutate(latest, currentUser);
+        var authorCheck = PlanAuthorPolicy.EnsureCanMutate(head, currentUser);
         if (authorCheck.IsFailure)
             return Result<Guid>.Failure(authorCheck.Error);
 
-        var next = WorkoutPlan.CreateNewVersion(
-            latest,
+        // Edits never bump the published version: they land on the single draft head. Replacing an existing
+        // draft keeps its version number (and drops the old draft row); the first edit after a publish forks a
+        // new draft one above the latest published version. Structure is deep-copied so a metadata-only edit
+        // preserves the workouts.
+        var draftVersion = head.IsDraft ? head.Version : head.Version + 1;
+        var next = WorkoutPlan.CreateDraft(
+            head,
             currentUser.UserId,
+            draftVersion,
             request.Name,
             request.Description,
             request.DurationWeeks,
             request.WorkoutsPerWeek);
 
+        if (head.IsDraft)
+            repository.Remove(head);
         await repository.AddAsync(next, cancellationToken);
 
         try
@@ -57,7 +65,7 @@ public sealed class UpdateWorkoutPlanHandler(
             return Result<Guid>.Failure(Conflict("Conflict", "This plan was modified concurrently. Refresh and try again."));
         }
 
-        // Return the new version's id so the caller can re-point to the latest version for its next edit.
+        // Return the draft head's id so the caller can re-point to the latest version for its next edit.
         return Result<Guid>.Success(next.Id);
     }
 }

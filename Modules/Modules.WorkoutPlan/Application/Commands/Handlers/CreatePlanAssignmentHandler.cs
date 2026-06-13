@@ -27,7 +27,13 @@ public sealed class CreatePlanAssignmentHandler(
         if (plan == null)
             return Result<Guid>.Failure(NotFound("NotFound", "Workout plan not found."));
 
-        if (plan.IsArchived)
+        // Always pin the latest PUBLISHED version, never a draft head. The picker may pass a draft id (a plan
+        // mid-edit), but trainees only ever receive published versions.
+        var published = await workoutPlanRepository.GetLatestPublishedVersionInTemplateAsync(plan.TemplateId, cancellationToken);
+        if (published == null)
+            return Result<Guid>.Failure(Conflict("Conflict", "Publish the plan before assigning it."));
+
+        if (published.IsArchived)
             return Result<Guid>.Failure(Conflict("Conflict", "This plan is archived and cannot be assigned."));
 
         // A plan may only be assigned to a member of this tenant; without this check an Owner could
@@ -38,10 +44,10 @@ public sealed class CreatePlanAssignmentHandler(
             return Result<Guid>.Failure(
                 Validation("PlanAssignment.TraineeNotMember", "Trainee is not a member of this tenant."));
 
-        // Refuse a duplicate live assignment of the same plan to the same trainee (mirrors the unique
-        // partial index) so the caller gets a clean 409 instead of a database constraint error.
+        // Refuse a duplicate live assignment of the same published version to the same trainee (mirrors the
+        // unique partial index) so the caller gets a clean 409 instead of a database constraint error.
         var alreadyAssigned = await assignmentRepository.Query()
-            .AnyAsync(a => a.TraineeId == request.TraineeId && a.PlanId == request.PlanId, cancellationToken);
+            .AnyAsync(a => a.TraineeId == request.TraineeId && a.PlanId == published.Id, cancellationToken);
         if (alreadyAssigned)
             return Result<Guid>.Failure(
                 Conflict("Conflict", "This plan is already assigned to this trainee."));
@@ -50,8 +56,8 @@ public sealed class CreatePlanAssignmentHandler(
             tenantId,
             currentUser.UserId,
             request.TraineeId,
-            request.PlanId,
-            plan.Version,
+            published.Id,
+            published.Version,
             request.StartDate,
             request.FrequencyDaysPerWeek,
             request.VisibilityMode,

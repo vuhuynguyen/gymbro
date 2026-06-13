@@ -48,6 +48,20 @@ public sealed class ListNutritionPlansHandler(INutritionPlanRepository repositor
             .Select(NutritionMapping.PlanSummaryProjection) // meal count via subquery — no meal rows loaded
             .ToListAsync(cancellationToken);
 
-        return Result<NutritionPlanListDto>.Success(new NutritionPlanListDto(items, page, pageSize, totalCount));
+        // Patch the latest PUBLISHED version per template so the list (and assign picker) can show publish state.
+        var templateIds = items.Select(r => r.TemplateId).Distinct().ToList();
+        var latestPublishedByTemplate = await repository.Query()
+            .Where(p => templateIds.Contains(p.TemplateId) && !p.IsDraft)
+            .GroupBy(p => p.TemplateId)
+            .Select(g => new { TemplateId = g.Key, Version = g.Max(x => x.Version) })
+            .ToDictionaryAsync(x => x.TemplateId, x => (int?)x.Version, cancellationToken);
+
+        var patched = items
+            .Select(r => latestPublishedByTemplate.TryGetValue(r.TemplateId, out var v)
+                ? r with { LatestPublishedVersion = v }
+                : r)
+            .ToList();
+
+        return Result<NutritionPlanListDto>.Success(new NutritionPlanListDto(patched, page, pageSize, totalCount));
     }
 }

@@ -26,6 +26,8 @@ public sealed class CrossTenantAssignmentAndInviteIsolationTests(PostgresFixture
         fixture.Principal.Become(fixture.OtherOwnerId, fixture.OtherTenantId);
         var created = await fixture.SendAsync(new CreateWorkoutPlanCommand(name, null, null, null));
         Assert.True(created.IsSuccess);
+        // Publish so the plan is assignable (drafts can't be assigned).
+        Assert.True((await fixture.SendAsync(new PublishWorkoutPlanCommand(created.Value))).IsSuccess);
         return created.Value;
     }
 

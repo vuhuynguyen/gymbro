@@ -19,8 +19,19 @@ public sealed class WorkoutPlanRepository(AppDbContext context)
         Guid templateId,
         CancellationToken cancellationToken = default)
     {
+        // A draft head carries the highest version number, so ordering by version surfaces it when present.
         return await Db.Set<WorkoutPlan>()
             .Where(p => p.TemplateId == templateId)
+            .OrderByDescending(p => p.Version)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<WorkoutPlan?> GetLatestPublishedVersionInTemplateAsync(
+        Guid templateId,
+        CancellationToken cancellationToken = default)
+    {
+        return await Db.Set<WorkoutPlan>()
+            .Where(p => p.TemplateId == templateId && !p.IsDraft)
             .OrderByDescending(p => p.Version)
             .FirstOrDefaultAsync(cancellationToken);
     }

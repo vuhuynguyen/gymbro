@@ -23,6 +23,29 @@ public sealed class WorkoutPlanVersioningTests
     }
 
     [Fact]
+    public void Create_starts_as_draft()
+    {
+        var plan = CreatePlan();
+        Assert.True(plan.IsDraft);
+    }
+
+    [Fact]
+    public void Publish_clears_draft_flag()
+    {
+        var plan = CreatePlan();
+        plan.Publish();
+        Assert.False(plan.IsDraft);
+    }
+
+    [Fact]
+    public void Publish_throws_when_already_published()
+    {
+        var plan = CreatePlan();
+        plan.Publish();
+        Assert.Throws<DomainException>(() => plan.Publish());
+    }
+
+    [Fact]
     public void Create_assigns_unique_TemplateId()
     {
         var a = CreatePlan();
@@ -51,46 +74,55 @@ public sealed class WorkoutPlanVersioningTests
             WorkoutPlan.Create(TenantId, Guid.Empty, "Plan", null, null, null));
     }
 
-    // ── CreateNewVersion ───────────────────────────────────────────────────
+    // ── CreateDraft ────────────────────────────────────────────────────────
 
     [Fact]
-    public void CreateNewVersion_increments_version()
+    public void CreateDraft_uses_the_caller_supplied_version()
     {
         var v1 = CreatePlan();
-        var v2 = WorkoutPlan.CreateNewVersion(v1, CreatedBy, "Plan v2", null, null, null);
+        var next = WorkoutPlan.CreateDraft(v1, CreatedBy, v1.Version + 1, "Plan v2", null, null, null);
 
-        Assert.Equal(2, v2.Version);
+        Assert.Equal(2, next.Version);
     }
 
     [Fact]
-    public void CreateNewVersion_preserves_TemplateId()
+    public void CreateDraft_starts_as_draft()
     {
         var v1 = CreatePlan();
-        var v2 = WorkoutPlan.CreateNewVersion(v1, CreatedBy, "Plan v2", null, null, null);
+        var next = WorkoutPlan.CreateDraft(v1, CreatedBy, v1.Version + 1, "Plan v2", null, null, null);
 
-        Assert.Equal(v1.TemplateId, v2.TemplateId);
+        Assert.True(next.IsDraft);
     }
 
     [Fact]
-    public void CreateNewVersion_creates_distinct_Id()
+    public void CreateDraft_preserves_TemplateId()
     {
         var v1 = CreatePlan();
-        var v2 = WorkoutPlan.CreateNewVersion(v1, CreatedBy, "Plan v2", null, null, null);
+        var next = WorkoutPlan.CreateDraft(v1, CreatedBy, v1.Version + 1, "Plan v2", null, null, null);
 
-        Assert.NotEqual(v1.Id, v2.Id);
+        Assert.Equal(v1.TemplateId, next.TemplateId);
     }
 
     [Fact]
-    public void CreateNewVersion_preserves_TenantId()
+    public void CreateDraft_creates_distinct_Id()
     {
         var v1 = CreatePlan();
-        var v2 = WorkoutPlan.CreateNewVersion(v1, CreatedBy, "Plan v2", null, null, null);
+        var next = WorkoutPlan.CreateDraft(v1, CreatedBy, v1.Version + 1, "Plan v2", null, null, null);
 
-        Assert.Equal(v1.TenantId, v2.TenantId);
+        Assert.NotEqual(v1.Id, next.Id);
     }
 
     [Fact]
-    public void CreateNewVersion_deep_copies_workouts()
+    public void CreateDraft_preserves_TenantId()
+    {
+        var v1 = CreatePlan();
+        var next = WorkoutPlan.CreateDraft(v1, CreatedBy, v1.Version + 1, "Plan v2", null, null, null);
+
+        Assert.Equal(v1.TenantId, next.TenantId);
+    }
+
+    [Fact]
+    public void CreateDraft_deep_copies_workouts()
     {
         var v1 = CreatePlan();
         v1.ReplaceStructure(new[]
@@ -104,14 +136,14 @@ public sealed class WorkoutPlanVersioningTests
             })
         });
 
-        var v2 = WorkoutPlan.CreateNewVersion(v1, CreatedBy, "Plan v2", null, null, null);
+        var next = WorkoutPlan.CreateDraft(v1, CreatedBy, v1.Version + 1, "Plan v2", null, null, null);
 
-        Assert.Single(v2.Workouts);
-        Assert.Equal("Push Day", v2.Workouts.First().Name);
+        Assert.Single(next.Workouts);
+        Assert.Equal("Push Day", next.Workouts.First().Name);
     }
 
     [Fact]
-    public void CreateNewVersion_copied_workouts_have_different_Ids()
+    public void CreateDraft_copied_workouts_have_different_Ids()
     {
         var v1 = CreatePlan();
         v1.ReplaceStructure(new[]
@@ -119,24 +151,30 @@ public sealed class WorkoutPlanVersioningTests
             ("Push Day", 1, (IReadOnlyList<(Guid, int, IReadOnlyList<PlanWorkoutSetData>, Guid?)>)Array.Empty<(Guid, int, IReadOnlyList<PlanWorkoutSetData>, Guid?)>())
         });
 
-        var v2 = WorkoutPlan.CreateNewVersion(v1, CreatedBy, "Plan v2", null, null, null);
+        var next = WorkoutPlan.CreateDraft(v1, CreatedBy, v1.Version + 1, "Plan v2", null, null, null);
 
         Assert.NotEqual(
             v1.Workouts.First().Id,
-            v2.Workouts.First().Id);
+            next.Workouts.First().Id);
     }
 
     [Fact]
-    public void Chained_versioning_increments_monotonically()
+    public void Draft_replacement_keeps_same_version_then_publish_advances_it()
     {
-        var v1 = CreatePlan();
-        var v2 = WorkoutPlan.CreateNewVersion(v1, CreatedBy, "v2", null, null, null);
-        var v3 = WorkoutPlan.CreateNewVersion(v2, CreatedBy, "v3", null, null, null);
+        // Mirrors the handler flow: a brand-new plan is a draft v1; editing the draft replaces it at the
+        // SAME version (no inflation); publishing makes v1 live; the next edit forks a draft v2.
+        var v1Draft = CreatePlan();
+        var v1Edited = WorkoutPlan.CreateDraft(v1Draft, CreatedBy, v1Draft.Version, "v1 edited", null, null, null);
+        Assert.Equal(1, v1Edited.Version);
+        Assert.True(v1Edited.IsDraft);
 
-        Assert.Equal(1, v1.Version);
-        Assert.Equal(2, v2.Version);
-        Assert.Equal(3, v3.Version);
-        Assert.Equal(v1.TemplateId, v3.TemplateId);
+        v1Edited.Publish();
+        Assert.False(v1Edited.IsDraft);
+
+        var v2Draft = WorkoutPlan.CreateDraft(v1Edited, CreatedBy, v1Edited.Version + 1, "v2", null, null, null);
+        Assert.Equal(2, v2Draft.Version);
+        Assert.True(v2Draft.IsDraft);
+        Assert.Equal(v1Draft.TemplateId, v2Draft.TemplateId);
     }
 
     // ── Archive / Delete ───────────────────────────────────────────────────

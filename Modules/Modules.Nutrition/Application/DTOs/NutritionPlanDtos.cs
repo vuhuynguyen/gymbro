@@ -10,7 +10,11 @@ public sealed record NutritionPlanSummaryDto(
     string? Description,
     DateTimeOffset CreatedOnUtc,
     int MealCount,
-    bool IsArchived);
+    bool IsArchived,
+    /// <summary>True when the head row is an unpublished draft (has edits not yet published).</summary>
+    bool IsDraft,
+    /// <summary>Latest published version of this template; null when the plan has never been published (draft-only).</summary>
+    int? LatestPublishedVersion);
 
 public sealed record NutritionPlanListDto(
     IReadOnlyList<NutritionPlanSummaryDto> Items,
@@ -46,4 +50,6 @@ public sealed record NutritionPlanDetailDto(
     string Name,
     string? Description,
     DateTimeOffset CreatedOnUtc,
-    IReadOnlyList<PlanMealDto> Meals);
+    IReadOnlyList<PlanMealDto> Meals,
+    bool IsDraft = false,
+    int? LatestPublishedVersion = null);

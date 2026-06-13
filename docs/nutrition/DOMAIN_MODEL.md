@@ -72,11 +72,13 @@ nutrient amounts non-negative; provenance (`Source` + `LicenseCode`) set. These 
 
 ### 2.2 `NutritionPlan` (template aggregate) — the WorkoutPlan sibling
 
-Immutable **version chain**: rows share a `TemplateId`, each with an incrementing `Version`; edits *clone* a new
-version (deep-copying `PlanMeal → PlanMealItem`), never mutate in place; reads select the latest non-deleted
-version; soft-delete is blocked while a live assignment pins the version. **This is the workout-plan lifecycle
-verbatim** ([BUSINESS_RULES.md](../BUSINESS_RULES.md) "Workout plan lifecycle") — we reuse its rules, edge cases,
-and even its `409`-on-stale-id semantics.
+**Draft-first** `TemplateId` chain: a single mutable **draft head** absorbs every edit (the draft is replaced at
+the same `Version`, deep-copying `PlanMeal → PlanMealItem` into a fresh row — never mutated in place), and **only
+`PUT /plans/{id}/publish` advances the published version** that trainees and assignments see. A new plan is a draft
+(`IsDraft = true`) and must be published before it can be assigned; soft-delete is blocked while a live assignment
+pins a version. **This is the workout-plan lifecycle verbatim** ([BUSINESS_RULES.md](../BUSINESS_RULES.md) "Workout
+plan lifecycle") — we reuse its draft/publish rules, the published-only unique index, and the `409`-on-stale-id
+semantics.
 
 A `PlanMeal` adds the recurrence fields (`ScheduledTime`, `DayApplicability`) that workouts lacked; a
 `PlanMealItem` carries `FoodId`, a chosen `FoodServingId` + `Quantity`, and a **target-nutrition snapshot**
@@ -88,8 +90,9 @@ doesn't silently move the coach's targets).
 Pins `PlanId + PlanVersion`, stores a `SnapshotJson` of the whole plan at assign time, carries the same
 visibility model (below), `StartDate`/`EndDate`, `IsActive` (pause/resume), and the new structured `Schedule`
 (recurrence defaults + per-meal overrides). One live assignment per (trainee, plan) — the workout uniqueness rule
-reused. `apply-latest`, pause/resume, and the "trainee may hold multiple active assignments, picks at log time"
-behaviour all carry over.
+reused. `apply-latest` (`PUT /assignments/{id}/apply-latest` — re-points to the latest **published** version and
+rebuilds the pinned snapshot server-side), the "New vX" version-sync indicator, pause/resume, and the "trainee may
+hold multiple active assignments, picks at log time" behaviour all carry over.
 
 ### 2.4 `DailyNutritionLog` (+ `LoggedItem`) — the WorkoutSession sibling
 

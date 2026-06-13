@@ -18,6 +18,7 @@ namespace Gymbro.Tests.Commands;
 /// </summary>
 public sealed class CreateNutritionAssignmentHandlerTests
 {
+    // A published plan with one meal — only published versions are assignable.
     private static NutritionPlan PlanWithMeal(Guid tenantId, Guid coachId, Guid foodId)
     {
         var plan = NutritionPlan.Create(tenantId, coachId, "Cut Plan", null);
@@ -26,7 +27,16 @@ public sealed class CreateNutritionAssignmentHandlerTests
             new PlanMealData("Breakfast", 1, new TimeOnly(8, 0), DayApplicability.EveryDay,
                 new[] { new PlanMealItemData(foodId, 1, 1m, "Oats", "1 bowl", 300m, 10m, 50m, 6m, 8m) })
         });
+        plan.Publish();
         return plan;
+    }
+
+    // Wires the lookups the handler performs to resolve + snapshot the latest published version.
+    private static void SetupPublishedPlan(INutritionPlanRepository planRepository, Guid planId, NutritionPlan plan)
+    {
+        planRepository.GetByIdAsync(planId, Arg.Any<CancellationToken>()).Returns(plan);
+        planRepository.GetLatestPublishedVersionInTemplateAsync(plan.TemplateId, Arg.Any<CancellationToken>()).Returns(plan);
+        planRepository.GetForUpdateAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
     }
 
     private static CreateNutritionAssignmentHandler CreateSut(
@@ -58,8 +68,7 @@ public sealed class CreateNutritionAssignmentHandlerTests
         var foodId = Guid.NewGuid();
 
         var planRepository = Substitute.For<INutritionPlanRepository>();
-        planRepository.GetForUpdateAsync(planId, Arg.Any<CancellationToken>())
-            .Returns(PlanWithMeal(tenantId, coachId, foodId));
+        SetupPublishedPlan(planRepository, planId, PlanWithMeal(tenantId, coachId, foodId));
 
         var assignmentRepository = Substitute.For<INutritionPlanAssignmentRepository>();
         assignmentRepository.Query().Returns(new TestAsyncEnumerable<NutritionPlanAssignment>(Array.Empty<NutritionPlanAssignment>()));
@@ -92,8 +101,7 @@ public sealed class CreateNutritionAssignmentHandlerTests
         var planId = Guid.NewGuid();
 
         var planRepository = Substitute.For<INutritionPlanRepository>();
-        planRepository.GetForUpdateAsync(planId, Arg.Any<CancellationToken>())
-            .Returns(PlanWithMeal(tenantId, coachId, Guid.NewGuid()));
+        SetupPublishedPlan(planRepository, planId, PlanWithMeal(tenantId, coachId, Guid.NewGuid()));
         var assignmentRepository = Substitute.For<INutritionPlanAssignmentRepository>();
         var roleResolver = Substitute.For<ITenantRoleResolver>();
         roleResolver.GetRoleAsync(Arg.Any<Guid>(), tenantId, Arg.Any<CancellationToken>()).Returns((TenantRole?)null);
@@ -114,12 +122,12 @@ public sealed class CreateNutritionAssignmentHandlerTests
         var traineeId = Guid.NewGuid();
         var planId = Guid.NewGuid();
 
+        var plan = PlanWithMeal(tenantId, coachId, Guid.NewGuid());
         var planRepository = Substitute.For<INutritionPlanRepository>();
-        planRepository.GetForUpdateAsync(planId, Arg.Any<CancellationToken>())
-            .Returns(PlanWithMeal(tenantId, coachId, Guid.NewGuid()));
+        SetupPublishedPlan(planRepository, planId, plan);
 
         var existing = NutritionPlanAssignment.Create(
-            tenantId, coachId, traineeId, planId, 1, new DateOnly(2026, 5, 1), null,
+            tenantId, coachId, traineeId, plan.Id, 1, new DateOnly(2026, 5, 1), null,
             NutritionVisibilityMode.Full, false, false, "{}");
         var assignmentRepository = Substitute.For<INutritionPlanAssignmentRepository>();
         assignmentRepository.Query().Returns(new TestAsyncEnumerable<NutritionPlanAssignment>(new[] { existing }));

@@ -156,7 +156,7 @@ public sealed class ReplaceWorkoutPlanStructureHandlerTests
     }
 
     [Fact]
-    public async Task Author_editing_latest_version_creates_next_version_and_commits_once()
+    public async Task Author_editing_draft_head_replaces_it_at_same_version_and_commits_once()
     {
         var tenantId = Guid.NewGuid();
         var authorId = Guid.NewGuid();
@@ -166,7 +166,9 @@ public sealed class ReplaceWorkoutPlanStructureHandlerTests
         var mediator = Substitute.For<IMediator>();
         var unitOfWork = Substitute.For<IUnitOfWork>();
 
+        // A freshly created plan is a draft head; the builder save replaces it in place (no version bump).
         var plan = CreatePlan(tenantId, authorId);
+        Assert.True(plan.IsDraft);
         mediator.Send(Arg.Any<ValidateExerciseIdsQuery>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         // current == latest (same row) so the "not the latest version" guard passes.
@@ -179,20 +181,59 @@ public sealed class ReplaceWorkoutPlanStructureHandlerTests
         var result = await sut.Handle(CreateCommand(plan.Id, exerciseId), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        // The new version's id is returned (not the stale one) so the caller can re-point to the latest.
+        // The new draft head's id is returned (not the stale one) so the caller can re-point to the latest.
         Assert.NotEqual(Guid.Empty, result.Value);
         Assert.NotEqual(plan.Id, result.Value);
 
-        // A brand-new forked version (next.Version == current + 1), same template/author, carrying the new
-        // structure, is added through the repository and committed exactly once.
+        // The draft is replaced at the SAME version (no inflation), same template/author, carrying the new
+        // structure; the old draft is dropped and the unit of work commits exactly once.
+        await repository.Received(1).AddAsync(
+            Arg.Is<WorkoutPlan>(p =>
+                p.Id != plan.Id &&
+                p.TemplateId == plan.TemplateId &&
+                p.Version == plan.Version &&
+                p.IsDraft &&
+                p.CreatedBy == authorId &&
+                p.Workouts.Count == 1),
+            Arg.Any<CancellationToken>());
+        repository.Received(1).Remove(plan);
+        await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Author_editing_published_head_forks_a_new_draft_version()
+    {
+        var tenantId = Guid.NewGuid();
+        var authorId = Guid.NewGuid();
+        var exerciseId = Guid.NewGuid();
+
+        var repository = Substitute.For<IWorkoutPlanRepository>();
+        var mediator = Substitute.For<IMediator>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+
+        // The head is published → the builder save forks a new draft one version above it.
+        var plan = CreatePlan(tenantId, authorId);
+        plan.Publish();
+        mediator.Send(Arg.Any<ValidateExerciseIdsQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        repository.GetForUpdateAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
+        repository.GetLatestVersionInTemplateAsync(plan.TemplateId, Arg.Any<CancellationToken>()).Returns(plan);
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = CreateSut(repository, mediator, unitOfWork, authorId);
+
+        var result = await sut.Handle(CreateCommand(plan.Id, exerciseId), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
         await repository.Received(1).AddAsync(
             Arg.Is<WorkoutPlan>(p =>
                 p.Id != plan.Id &&
                 p.TemplateId == plan.TemplateId &&
                 p.Version == plan.Version + 1 &&
-                p.CreatedBy == authorId &&
+                p.IsDraft &&
                 p.Workouts.Count == 1),
             Arg.Any<CancellationToken>());
+        repository.DidNotReceive().Remove(plan);
         await unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

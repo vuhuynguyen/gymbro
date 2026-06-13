@@ -67,12 +67,14 @@ internal static class NutritionMapping
 
     // ── Plan DTOs ─────────────────────────────────────────────────────────
 
-    /// <summary>List projection — counts meals via a SQL subquery instead of loading the meal rows.</summary>
+    /// <summary>List projection — counts meals via a SQL subquery instead of loading the meal rows.
+    /// LatestPublishedVersion is null here; the list handler patches it per template after projection.</summary>
     public static Expression<Func<NutritionPlan, NutritionPlanSummaryDto>> PlanSummaryProjection =>
         p => new NutritionPlanSummaryDto(
-            p.Id, p.TemplateId, p.Version, p.Name, p.Description, p.CreatedOnUtc, p.Meals.Count, p.IsArchived);
+            p.Id, p.TemplateId, p.Version, p.Name, p.Description, p.CreatedOnUtc, p.Meals.Count, p.IsArchived,
+            p.IsDraft, null);
 
-    public static NutritionPlanDetailDto ToDetailDto(NutritionPlan plan) =>
+    public static NutritionPlanDetailDto ToDetailDto(NutritionPlan plan, int? latestPublishedVersion = null) =>
         new(
             plan.Id,
             plan.TemplateId,
@@ -94,7 +96,9 @@ internal static class NutritionMapping
                             i.Id, i.FoodId, i.Order, i.Quantity, i.FoodNameSnapshot, i.ServingLabelSnapshot,
                             i.EnergyKcal, i.ProteinG, i.CarbsG, i.FatG, i.FiberG))
                         .ToList()))
-                .ToList());
+                .ToList(),
+            plan.IsDraft,
+            latestPublishedVersion);
 
     // ── Daily log DTOs ────────────────────────────────────────────────────
 

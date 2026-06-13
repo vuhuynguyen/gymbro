@@ -151,6 +151,14 @@ public sealed class WorkoutPlanController(IMediator mediator) : ControllerBase
         return Ok(new { id = result.Value });
     }
 
+    /// <summary>Publishes the plan's draft head — the only action that advances the assignable/published version.</summary>
+    [HttpPut("{id:guid}/publish")]
+    public async Task<IActionResult> Publish(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new PublishWorkoutPlanCommand(id), cancellationToken);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(new { version = result.Value });
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {

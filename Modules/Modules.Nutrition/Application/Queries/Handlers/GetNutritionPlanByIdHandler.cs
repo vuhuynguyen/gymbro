@@ -20,8 +20,13 @@ public sealed class GetNutritionPlanByIdHandler(INutritionPlanRepository reposit
             .ThenInclude(m => m.Items)
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
 
-        return plan == null
-            ? Result<NutritionPlanDetailDto>.Failure(NotFound("NotFound", "Nutrition plan not found."))
-            : Result<NutritionPlanDetailDto>.Success(NutritionMapping.ToDetailDto(plan));
+        if (plan == null)
+            return Result<NutritionPlanDetailDto>.Failure(NotFound("NotFound", "Nutrition plan not found."));
+
+        var latestPublishedVersion = await repository.Query()
+            .Where(p => p.TemplateId == plan.TemplateId && !p.IsDraft)
+            .MaxAsync(p => (int?)p.Version, cancellationToken);
+
+        return Result<NutritionPlanDetailDto>.Success(NutritionMapping.ToDetailDto(plan, latestPublishedVersion));
     }
 }

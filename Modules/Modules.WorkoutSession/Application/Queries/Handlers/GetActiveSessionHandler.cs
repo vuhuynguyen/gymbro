@@ -42,7 +42,14 @@ public sealed class GetActiveSessionHandler(
         // Prefer snapshot-captured names so the in-progress view matches what was prescribed.
         var names = SessionMapping.MergeSnapshotNames(namesResult.Value!, snapshotDto);
 
+        // "Last time" reference per lift: the trainee's most recent prior performance, across all gyms.
+        var lastPerformed = await SessionHistoryLookup.TopWorkingSetPerExerciseAsync(
+            sessionRepository.QueryOwnAcrossGyms(currentUser.UserId),
+            session.Exercises.Select(e => e.ExerciseId).Distinct().ToList(),
+            session.StartedAt,
+            cancellationToken);
+
         return Result<ActiveSessionDto?>.Success(
-            SessionMapping.ToActiveSessionDto(session, snapshotDto, names));
+            SessionMapping.ToActiveSessionDto(session, snapshotDto, names, lastPerformed));
     }
 }

@@ -1,3 +1,4 @@
+using BuildingBlocks.Shared.Nutrition;
 using Modules.NutritionModule.Entities;
 
 namespace WebApi.Requests.Nutrition;

@@ -1,3 +1,4 @@
+using BuildingBlocks.Shared.Nutrition;
 using Modules.FoodModule.Application.Commands;
 using Modules.NutritionModule.Application.Commands;
 using Modules.NutritionModule.Application.Queries;

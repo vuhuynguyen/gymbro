@@ -47,8 +47,10 @@ internal static class NutritionMapping
     /// food id to its catalog kind name (resolved once at seed time) so planned supplements/beverages tag
     /// correctly; a food absent from the map defaults to "Food".</summary>
     public static IReadOnlyList<LoggedItemData> ToSeedItems(
-        NutritionPlanSnapshot snapshot, IReadOnlyDictionary<Guid, string>? kinds = null) =>
+        NutritionPlanSnapshot snapshot, bool isTrainingDay, IReadOnlyDictionary<Guid, string>? kinds = null) =>
         snapshot.Meals
+            // Recurrence: seed only the meals that apply to this day's training/rest type (EveryDay always).
+            .Where(m => NutritionScheduleRules.Applies(ParseDayApplicability(m.DayApplicability), isTrainingDay))
             .OrderBy(m => m.Order)
             .SelectMany(m => m.Items
                 .OrderBy(i => i.Order)
@@ -64,6 +66,13 @@ internal static class NutritionMapping
                     i.Quantity,
                     i.EnergyKcal, i.ProteinG, i.CarbsG, i.FatG, i.FiberG)))
             .ToList();
+
+    /// <summary>The snapshot stores DayApplicability as a string (forward-tolerant); parse it back for the rule,
+    /// defaulting to EveryDay on any unknown value so a planned meal is never silently dropped.</summary>
+    private static DayApplicability ParseDayApplicability(string value) =>
+        Enum.TryParse<DayApplicability>(value, ignoreCase: true, out var applicability)
+            ? applicability
+            : DayApplicability.EveryDay;
 
     // ── Plan DTOs ─────────────────────────────────────────────────────────
 
@@ -141,6 +150,28 @@ internal static class NutritionMapping
     public static DailyNutritionLogDto EmptyDay(Guid traineeId, DateOnly localDate) =>
         new(null, traineeId, localDate, DailyLogStatus.Open, NutritionSource.Adhoc.ToString(),
             HasPlan: false, AdherencePct: 100, PlannedCount: 0, CompletedCount: 0, Meals: []);
+
+    /// <summary>
+    /// Trainee-facing redaction for the assignment's <c>HideMacroTargets</c> (filter-on-read, the nutrition
+    /// sibling of workout <c>RedactSnapshotTargets</c>): nulls the macro numbers on PLANNED items so the trainee
+    /// sees WHAT to eat (meal, food, serving, quantity) but not the coach's macro TARGETS. The stored items are
+    /// untouched — coach/admin reads and day-close adherence keep the real macros — and ad-hoc items the trainee
+    /// logged themselves keep their macros (their own data, not a target).
+    /// </summary>
+    public static DailyNutritionLogDto RedactPlannedMacros(DailyNutritionLogDto day) =>
+        day with
+        {
+            Meals = day.Meals
+                .Select(m => m with
+                {
+                    Items = m.Items
+                        .Select(i => i.IsPlanned
+                            ? i with { EnergyKcal = null, ProteinG = null, CarbsG = null, FatG = null, FiberG = null }
+                            : i)
+                        .ToList()
+                })
+                .ToList()
+        };
 
     /// <summary>
     /// List projection — computes the planned/adherent counts in SQL via correlated subqueries, so a day

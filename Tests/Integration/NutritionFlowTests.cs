@@ -1,3 +1,4 @@
+using BuildingBlocks.Shared.Nutrition;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Modules.FoodModule.Application.Commands;
@@ -209,16 +210,14 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
     }
 
     [SkippableFact]
-    public async Task Visibility_modes_do_not_redact_trainee_or_coach_reads_as_built()
+    public async Task Hide_macro_targets_redacts_the_trainees_planned_macros_but_never_the_coachs()
     {
         Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
 
-        // AS-BUILT: NutritionVisibilityMode and HideMacroTargets are STORED on the assignment for
-        // forward-compatibility, but NO read-time redaction exists yet (see NutritionVisibilityMode's
-        // xml-doc: "read-time redaction is a later phase ... the trainee currently sees Full").
-        // This test pins that behavior: every mode currently returns full macro data to the trainee,
-        // and the coach read is (and must stay) unfiltered. If redaction is implemented, the trainee
-        // assertions for Guided/Blind below are the ones to flip.
+        // HideMacroTargets is a filter-on-read coaching dial (the nutrition sibling of workout HideSetsReps):
+        // when set, the trainee sees WHAT to eat (meal/food/serving) but not the macro TARGETS; the coach read is
+        // never filtered. VisibilityMode is stored but its coarser plan-structure hiding is a later refinement,
+        // so redaction today keys off the explicit HideMacroTargets flag, independent of mode.
         var modes = new (NutritionVisibilityMode Mode, bool HideMacros, DateOnly Day)[]
         {
             (NutritionVisibilityMode.Full, false, new DateOnly(2026, 5, 1)),
@@ -252,14 +251,23 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
                 mode, hideMacros, DisableTraineeEditing: false));
             Assert.True(assigned.IsSuccess);
 
-            // Trainee day read: macros are present in EVERY mode today (no redaction as-built).
+            // Trainee day read: the planned macro TARGETS are redacted iff HideMacroTargets is set; the
+            // what-to-eat fields are always shown.
             fixture.Principal.Become(fixture.ClientBId, fixture.TenantId);
             var traineeDay = await fixture.SendAsync(new GetMyNutritionTodayQuery(day, "UTC"));
             Assert.True(traineeDay.IsSuccess);
             var traineeItem = Assert.Single(Assert.Single(traineeDay.Value!.Meals).Items);
-            Assert.Equal(300m, traineeItem.EnergyKcal); // would be redacted under Guided+HideMacroTargets/Blind
-            Assert.Equal(10m, traineeItem.ProteinG);
             Assert.Equal("Visibility Oats", traineeItem.FoodName);
+            if (hideMacros)
+            {
+                Assert.Null(traineeItem.EnergyKcal);
+                Assert.Null(traineeItem.ProteinG);
+            }
+            else
+            {
+                Assert.Equal(300m, traineeItem.EnergyKcal);
+                Assert.Equal(10m, traineeItem.ProteinG);
+            }
 
             // Coach day read is never filtered, in any mode.
             fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);

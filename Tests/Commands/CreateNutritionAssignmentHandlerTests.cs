@@ -1,3 +1,4 @@
+using BuildingBlocks.Shared.Nutrition;
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Application.Authorization;
 using BuildingBlocks.Shared.Abstractions;

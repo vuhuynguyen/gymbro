@@ -111,6 +111,13 @@ created lazily by snapshot-on-touch.
   assignment (`Source = FromAssignment`, snapshot + planned `LoggedItem`s) → else, for **off-plan logging with no
   active assignment**, a plan-less **self-logged** day (`Source = NutritionSource.Adhoc`, no snapshot). Off-plan
   logging therefore **no longer requires an active assignment** (the earlier MVP limitation is lifted).
+- **Recurrence (which meals seed):** only the snapshot meals that apply to the date's **training/rest type** are
+  seeded — `BuildingBlocks.Shared.Nutrition.NutritionScheduleRules.Applies(DayApplicability, isTrainingDay)`
+  (`EveryDay` always; `TrainingDay`/`RestDay` gate on the day). "Is it a training day?" is the cross-module
+  `IsTrainingDayQuery` (owned by WorkoutSession: a date is a training day iff a workout session falls on it in the
+  trainee's zone), graceful-defaulting to **rest day** when there is no signal. So a rest day's adherence isn't
+  diluted by training-only meals. No stored instant is rewritten — the snapshot keeps all meals; only the seeded
+  subset varies by day.
 - **Trainee logging is tenant-scoped; the self-logged day is stamped with the active gym.** The four log-write
   commands are `ITenantAuthorizedRequest` (`NutritionLogCreate`) on `api/nutrition/log/*`, requiring `X-Tenant-Id`
   (membership-validated) — mirroring workout sessions. A self-logged day is stamped with the **active gym**

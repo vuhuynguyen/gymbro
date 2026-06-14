@@ -25,8 +25,10 @@ public sealed class AddAdhocNutritionItemHandler(
         // works even without a prescribed plan. currentUser.UserId is the only trainee id used (self-scoped):
         // a nutrition day is unique per (TraineeId, LocalDate) globally, so its TenantId is simply the gym that
         // was active when the day was first created.
+        // Capture the trainee's zone when a write is the FIRST touch of the day (so its LocalDate/ClientTimezone
+        // are correct even if no read opened it first), mirroring the read path.
         var log = await provisioner.GetOrCreateForWriteAsync(
-            currentUser.UserId, request.Date, timezone: null, cancellationToken);
+            currentUser.UserId, request.Date, currentUser.TimeZoneId, cancellationToken);
         if (log == null)
             return Result<Guid>.Failure(Validation(
                 "Tenant",

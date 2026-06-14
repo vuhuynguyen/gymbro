@@ -44,7 +44,8 @@ public sealed class NutritionLogController(IMediator mediator) : ControllerBase
             new AddAdhocNutritionItemCommand(
                 request.Date, request.FoodId, request.Quantity, request.MealName, request.Note,
                 request.CustomName, request.CustomKind, request.ServingLabel,
-                request.EnergyKcal, request.ProteinG, request.CarbsG, request.FatG, request.FiberG), ct);
+                request.EnergyKcal, request.ProteinG, request.CarbsG, request.FatG, request.FiberG,
+                request.ClientItemId), ct);
         return result.IsFailure ? result.ToFailureResult(this) : StatusCode(201, result.Value);
     }
 

@@ -32,3 +32,12 @@ public sealed class SetNutritionAssignmentActiveCommandValidator : AbstractValid
         RuleFor(x => x.AssignmentId).NotEmpty();
     }
 }
+
+public sealed class UpdateNutritionAssignmentToLatestVersionCommandValidator
+    : AbstractValidator<UpdateNutritionAssignmentToLatestVersionCommand>
+{
+    public UpdateNutritionAssignmentToLatestVersionCommandValidator()
+    {
+        RuleFor(x => x.AssignmentId).NotEmpty();
+    }
+}

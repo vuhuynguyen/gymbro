@@ -95,6 +95,10 @@ public sealed class AddAdhocNutritionItemRequest
     public string? MealName { get; set; }
     public string? Note { get; set; }
 
+    /// <summary>Client-generated id for idempotent (retry-/offline-tolerant) creates — a replay returns the
+    /// existing item instead of a duplicate. Optional; null falls back to an ordinary create.</summary>
+    public Guid? ClientItemId { get; set; }
+
     // ── Inline custom food (no catalog entry) ──
     public string? CustomName { get; set; }
     public string? CustomKind { get; set; }

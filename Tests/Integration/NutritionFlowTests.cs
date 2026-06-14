@@ -131,6 +131,45 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
     }
 
     [SkippableFact]
+    public async Task Day_type_recurrence_seeds_only_applicable_meals_on_a_rest_day()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var restDay = new DateOnly(2026, 9, 15); // ClientB logs no workout session on this date → a rest day
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId, isAdmin: true);
+        var foodId = (await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Egg", "Food", "1 large", 50m, 70m, 6m, 0m, 5m, 0m, Brand: null)))).Value;
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var planId = (await fixture.SendAsync(new CreateNutritionPlanCommand("Day-type Plan", null))).Value;
+        var versionId = (await fixture.SendAsync(new ReplaceNutritionPlanStructureCommand(
+            planId, "Day-type Plan", null,
+            new[]
+            {
+                new NutritionPlanMealInput("Breakfast", 1, new TimeOnly(8, 0), DayApplicability.EveryDay,
+                    new[] { new NutritionPlanItemInput(foodId, 1, 1m) }),
+                new NutritionPlanMealInput("Pre-Workout", 2, new TimeOnly(17, 0), DayApplicability.TrainingDay,
+                    new[] { new NutritionPlanItemInput(foodId, 1, 1m) }),
+                new NutritionPlanMealInput("Recovery", 3, new TimeOnly(21, 0), DayApplicability.RestDay,
+                    new[] { new NutritionPlanItemInput(foodId, 1, 1m) }),
+            }))).Value;
+        Assert.True((await fixture.SendAsync(new PublishNutritionPlanCommand(versionId))).IsSuccess);
+        Assert.True((await fixture.SendAsync(new CreateNutritionAssignmentCommand(
+            fixture.ClientBId, versionId, restDay, EndDate: null,
+            NutritionVisibilityMode.Full, HideMacroTargets: false, DisableTraineeEditing: false))).IsSuccess);
+
+        // End-to-end: the real provisioner calls the real IsTrainingDayQuery (no session that date → rest day),
+        // so only EveryDay + RestDay meals seed — the TrainingDay meal is excluded.
+        fixture.Principal.Become(fixture.ClientBId, fixture.TenantId);
+        var day = await fixture.SendAsync(new GetMyNutritionTodayQuery(restDay, "UTC"));
+        Assert.True(day.IsSuccess);
+        var mealNames = day.Value!.Meals.Select(m => m.Name).ToList();
+        Assert.Contains("Breakfast", mealNames);          // EveryDay → always
+        Assert.Contains("Recovery", mealNames);           // RestDay → seeded on a rest day
+        Assert.DoesNotContain("Pre-Workout", mealNames);  // TrainingDay → excluded on a rest day
+    }
+
+    [SkippableFact]
     public async Task Assignment_snapshot_and_seeded_day_survive_a_new_plan_version()
     {
         Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);

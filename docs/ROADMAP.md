@@ -9,15 +9,15 @@
 
 This is the **one home for all deferred design** across the two large feature programs:
 
-- **Part A — Nutrition (future).** The nutrition catalog + plan/assignment/daily-log core loop, the
-  metrics/check-in slice, the assignment lifecycle (archive/pause-resume/apply-latest), and now the
-  **recurrence/day-type engine** (A2) **have shipped** (see the core docs). What remains future: **offline-first
-  logging, reminders + server push**, and the deferred parts of the catalog/metric model. (Analytics & coach
-  dashboards are a separate later effort — intentionally out of scope here.)
-- **Part B — Exercise master-data (future).** The file-based exercise catalog **seed has shipped** (see
-  [SEEDING.md](SEEDING.md)). What remains future: the **commercial-grade master-data model** (richer
-  classification axes, muscle/role modelling, structured localized instructions, media, search, programming/
-  safety reference data) and the **import pipeline** to scale the catalog.
+- **Part A — Nutrition.** The catalog, plan→assignment→daily-log loop, metrics/check-in, assignment lifecycle, the
+  **recurrence/day-type engine**, **macro-target redaction**, the **idempotent-write primitive**, and **local meal
+  reminders** have all shipped (see the core docs). What remains future: the **offline mutation queue**, **server
+  push**, richer recurrence/visibility, and the deferred catalog/metric model. (Analytics & coach dashboards are a
+  separate later effort — intentionally out of scope here.)
+- **Part B — Exercise master-data.** The file-based exercise catalog **seed has shipped** ([SEEDING.md](SEEDING.md)).
+  What remains future: the **commercial-grade master-data model** (richer classification axes, muscle/role
+  modelling, structured localized instructions, media, search, programming/safety reference data) and the **import
+  pipeline** to scale the catalog.
 
 The unifying design principle across both: **closed sets are lookups referenced by ID, open prose/signals are
 typed series, identity is stable, additive over destructive, provenance + license travel per row.** New
@@ -27,85 +27,59 @@ capability lands as new rows, not new schema.
 
 # Part A — Nutrition (future)
 
-The shipped subset is the catalog (`Modules.Food`), the plan→assignment→daily-log spine (`Modules.Nutrition`),
-completion-first logging, and the `MetricEntry` check-in slice. The thesis was *reuse the workout
-plan→assignment→session spine verbatim*, add **two genuinely new subsystems** — **reminders/notifications** and
-**offline-first logging** — and one new catalog. Those two new subsystems, plus the richer reads and deferred
-model, are below.
+A large slice has shipped (see the core docs): the catalog (`Modules.Food`), the plan→assignment→daily-log spine
+(`Modules.Nutrition`), completion-first logging, the `MetricEntry` check-in, assignment lifecycle, the day-type
+**recurrence engine**, **macro-target redaction**, the idempotent-write primitive, and **local reminders**. What
+remains is below: the **offline mutation queue**, **server push**, richer recurrence/visibility, and the deferred model.
 
 ## A1. Offline-first logging (Flutter) — the local mutation queue
 
 Nutrition logging happens in low-signal places (kitchen, commute, gym floor) and a lost "ate it" tap corrupts the
-adherence data the feature exists for, so offline tolerance is a **requirement**, not a nicety (unlike workout
-logging, which is real-time, coach-monitored, and deliberately online-only). The design is the **smallest correct
-primitive**, not a sync framework; the web portal stays online-first.
+adherence data the feature exists for, so offline tolerance is a **requirement** (unlike workout logging, which is
+real-time, coach-monitored, and deliberately online-only). The web portal stays online-first.
 
-**Mechanism.** A local **`drift` (SQLite)** store holds (a) a **mirror of recent days** so "Today" and the last N
-days render offline, and (b) a **pending-mutation queue** — each row is one `LoggedItem`
-create/edit/skip/substitute/metric carrying a **client-generated GUID `clientItemId`** + an **idempotency key** +
-a monotonic local seq. Writes are **optimistic**: local state + queue first (instant UI), network later. On
-connectivity the queue flushes via the batch endpoint below; the server upserts idempotently by `clientItemId`
-(a replay is a no-op success), returns server truth per item, and the client reconciles and clears the queue.
+The **idempotent-write foundation has shipped**: an ad-hoc create carries a client-generated `clientItemId` and a
+replay returns the existing item (unique filtered `(DailyNutritionLogId, ClientItemId)` index; the Flutter client
+sends the id per add), so individual writes are already replay-safe. What remains is the on-device queue:
 
-**Conflict policy: last-write-wins per item** — sufficient because nutrition writes are **single-author and
-append-mostly** (a user edits *their own* day; a coach never writes a trainee's log), which is why no CRDT/merge
-engine is needed.
-
-### The idempotent-write `clientItemId` contract — **the primitive has SHIPPED**
-
-The smallest correct primitive is built: ad-hoc log creates are **idempotent by a client-generated
-`clientItemId` (GUID)**. `LoggedItem.ClientItemId` + a unique filtered `(DailyNutritionLogId, ClientItemId)`
-index back it; `AddAdhocNutritionItemHandler` returns the existing item on a replay (no duplicate), on both the
-normal and day-create-race paths. The Flutter client sends a `clientItemId` per ad-hoc add (generated once,
-outside the call, so a network retry / Dio 401-replay reuses it) — so a flaky "ate it" tap never double-logs.
-Validation is unchanged (FluentValidation still runs; idempotency is about *create semantics*).
-
-**Remaining (the offline queue itself):**
-- A Flutter **`drift` (SQLite)** store: a mirror of recent days (offline read) + a pending-mutation queue
-  (optimistic local write → flush when online). New deps: `drift` (+ `sqlite3_flutter_libs`) + connectivity.
-- **`POST /api/nutrition/log/sync`** — an optional batch endpoint that applies a queue in one round-trip
-  (returns server truth per item). Not strictly required: the queue can flush by replaying the individual
-  idempotent writes, which the shipped `clientItemId` already makes safe.
-- Conflict policy stays **last-write-wins per item** (nutrition writes are single-author, append-mostly).
+- A Flutter **`drift` (SQLite)** store: a **mirror of recent days** (offline read) + a **pending-mutation queue** —
+  optimistic local write first (instant UI), flush when online. New deps: `drift` (+ `sqlite3_flutter_libs`) +
+  connectivity.
+- **`POST /api/nutrition/log/sync`** — an optional batch endpoint that applies a queue in one round-trip (returns
+  server truth per item). Not strictly required: the queue can flush by replaying the individual idempotent writes,
+  which the shipped `clientItemId` already makes safe.
+- **Conflict policy: last-write-wins per item** — sufficient because nutrition writes are single-author and
+  append-mostly (a user edits *their own* day; a coach never writes a trainee's log). MVP = offline **writes** +
+  offline **read** of cached days, one-directional flush; richer two-way reconciliation is a later refinement the
+  `clientItemId` + server-truth-on-ack design already supports.
 
 ## A2. Recurrence & reminders (client-local-first)
 
-### The recurrence rule *(core SHIPPED — per-meal recurrence + day-type evaluation)*
+### Recurrence — richer scheduling
 
-Workouts have only a `frequencyDaysPerWeek` integer; nutrition genuinely recurs **by time-of-day and day-type**,
-so this is the platform's first real recurrence engine. Modelled as **declarative data on the plan, never
-generated rows**.
+The **per-meal recurrence engine has shipped**: each `PlanMeal` carries a `ScheduledTime` + a `DayApplicability`
+(`EveryDay | TrainingDay | RestDay`); `NutritionScheduleRules` filters the daily-log seed by the date's
+training/rest type, via the cross-module `IsTrainingDayQuery`. What remains:
 
-**As-built.** Each `PlanMeal` carries a `ScheduledTime` (local `TimeOnly`) + a `DayApplicability`
-(`EveryDay | TrainingDay | RestDay`, in `BuildingBlocks.Shared.Nutrition`). The evaluation rule —
-`NutritionScheduleRules.Applies(applicability, isTrainingDay)` — lives once in the shared kernel (C#, the server
-source of truth, like `ExerciseTrackingRules`) and drives the daily-log snapshot: when a `DailyNutritionLog`
-opens, only the meals applicable to that date's training/rest type are seeded (so a rest day isn't penalised for
-skipping training-day meals). **"Is today a training day?"** is a read-only MediatR cross-module query
-(`IsTrainingDayQuery`, owned by WorkoutSession — a date is a training day if a workout session falls on it in the
-trainee's zone), with a graceful default (rest day) when absent. Both clients already author + display
-`ScheduledTime`/`DayApplicability`; they render the server-seeded day, so no client-side evaluation is needed yet.
+- An assignment-level `Schedule` (`ScheduleJson` recurrence defaults + per-meal overrides) and an explicit
+  `DaysOfWeek` bitmask beyond the three day-types.
+- A **client-side mirror** of `NutritionScheduleRules` (Flutter `nutrition_schedule.dart` / Angular
+  `nutrition-schedule.ts`, the way `ExerciseTrackingRules` is mirrored) to preview a day + drive reminders without
+  a round-trip — today both clients render the server-seeded day.
+- A more precise **training-day signal** once workout plans encode weekday schedules (today it keys off an
+  actually-logged session, the graceful rest-day default for proactive morning seeding).
 
-**Remaining.** An assignment-level `Schedule` (`ScheduleJson` recurrence defaults + per-meal overrides) and an
-explicit `DaysOfWeek` bitmask beyond the three day-types; a **client-side mirror** of the rule for previewing a
-day + driving local reminders; and a more precise training-day signal once workout plans encode weekday schedules
-(today it keys off an actually-logged session, which is the graceful default for proactive morning seeding).
+*Why declarative, not RRULE/cron/generated-rows:* declarative recurrence is inspectable, editable, reversible, and
+shareable across three runtimes; RRULE has no native training/rest concept; generated rows are rigid and unbounded.
 
-*Why declarative, not RRULE/cron/generated-rows:* declarative recurrence is inspectable, editable, reversible,
-and shareable across three runtimes; RRULE has no native training/rest concept; generated rows are rigid and unbounded.
+### Reminders — polish
 
-### Reminders = scheduled local OS notifications — **MVP SHIPPED (Flutter)**
-
-The day's meal times are **deterministic and known on-device**, so reminders are **local notifications** — no
-server. Flutter adds `flutter_local_notifications`; `NutritionReminders` (re)schedules on every Today load
-(`cancelAll` then `zonedSchedule` each upcoming meal at its planned time in the device zone via
-`AppTimeZone.zonedAt`, `inexactAllowWhileIdle`), titled "{meal} — tap to log". The which-meals-and-when is the
-pure, unit-tested `mealReminders`; permissions are requested at runtime and the whole flow is best-effort (a
-plugin/permission failure can never break logging). Local-first wins on reliability-per-effort (the OS fires it
-even if the app is closed), works offline, is privacy-preserving (the schedule never leaves the device), and ships
-without touching the backend. **Remaining:** quiet hours + per-meal toggles, tap → deep-link to the focused Today
-item, and on-device QA of firing/permission UX (the integration is Android-build- and unit-test-verified, but OS
-firing needs a device). Web reminders stay deferred (a PWA + Web Push folds into the server-push phase).
+The **local-notification MVP has shipped** (Flutter `flutter_local_notifications`; `NutritionReminders`
+(re)schedules each upcoming meal at its planned time in the device zone on every Today load). What remains: quiet
+hours + per-meal toggles, notification **tap → deep-link** to the focused Today item, the **iOS** notification
+permission usage descriptions, and on-device QA of firing/permission UX (the integration is Android-build- and
+unit-test-verified, but OS firing needs a device). Web reminders stay deferred (a PWA + service worker + Web Push
+folds into the server-push phase below).
 
 ### The `DeviceToken` + `INotificationSender` push design *(future-only — designed, deferred, not in schema)*
 
@@ -136,18 +110,9 @@ flowchart LR
   already-raised `DailyLogClosedEvent` → an outbox handler composes the push.
 
 Deferred because it is the single largest new subsystem (device tokens, three transports, tz-aware scheduling,
-quiet-hours, dedupe-with-local-notifications) and local notifications cover the daily-reminder 80%.
-
-### Timezone & day-boundary correctness
-
-The highest-attention correctness area, deliberately isolated to the schedule/day subsystem so it can be tested
-exhaustively (pure-function `NutritionScheduleRules` + day-boundary unit tests). `DailyNutritionLog.LocalDate` is
-computed from the trainee's tz **at open time** and the tz is **stored on the row** (`ClientTimezone`, like
-`WorkoutSession.ClientTimezone`), so travel never retro-relabels past days. Day-close (Planned ⇒ Missed, adherence
-finalize) fires at the trainee's **local** midnight, handled **lazily** on first interaction the next local day
-(no global midnight job); the optional dispatch service can also close stale days for alerts. (The lazy-close +
-`ClientTimezone` capture is **already as-built** for the shipped logging loop; the schedule-driven reminders that
-ride on it are the future part.)
+quiet-hours, dedupe-with-local-notifications) and local notifications cover the daily-reminder 80%. (Timezone &
+day-boundary correctness — `ClientTimezone` capture + lazy local-midnight day-close — is **already as-built**;
+see [BUSINESS_RULES.md](BUSINESS_RULES.md).)
 
 ## A4. Deferred model & client surfaces
 
@@ -156,34 +121,28 @@ ride on it are the future part.)
   `FoodTranslation` tables — headline macros are denormalized onto the `Food` row for now. The full nutrient model
   is **additive axes** (a closed `Nutrient` lookup + `FoodNutrient(FoodId, NutrientId, AmountPer100g)`, headline
   macros denormalized for the hot path), so adding vitamin D / omega-3 later is a new lookup row, not a migration.
-- **`MetricEntry` (full design — the MVP slice is built; the rest deferred):** the built slice is a single numeric
-  value + optional unit, free-form `Type` string, **no `TenantId`** (purely personal, self-scoped), append-only
-  newest-first. Still deferred: the **`MetricType` lookup** (`ValueKind`: numeric / scale-1-5 / duration / text /
-  photo; `AllowMultiplePerDay` flag), **photos** (`PhotoRef` — object storage + signed URLs, stricter than public
-  exercise media because these are private body data), **wearable/AI sources** (`Source = wearable|ai` — an
-  ingestion adapter is a new writer, not a new model), and per-type uniqueness rules. One typed series absorbs the
-  brief's whole open-ended "future expansion" list (body weight/fat/measurements, water, sleep, energy, mood,
-  digestion, HRV, …) as data, not schema. A future enhancement makes it the **canonical weight series**,
-  cross-referencing `WorkoutSession.BodyweightKg`.
-- **Visibility redaction:** **`HideMacroTargets` is now redacted on read** — the trainee's day reads null the
-  planned macro *targets* (filter-on-read, trainee-path only; coach reads keep the full prescription), the
-  nutrition sibling of workout `HideSetsReps`/`RedactSnapshotTargets`. Still future: the coarser
-  `NutritionVisibilityMode` (Guided/Blind) plan-structure hiding and `HideFutureDays`. (`DisableTraineeEditing`
-  must never block logging actuals — recording what you ate is always allowed, mirroring the workout rule.)
-- **Assignment lifecycle + day-type recurrence are BUILT:** plan archive / pause-resume / apply-latest for
-  nutrition assignments, and `DayApplicability` training/rest-day filtering (A2), have shipped.
-- **Client surfaces not built:** the Flutter pure-Dart `nutrition_adherence.dart` / `nutrition_schedule.dart`
-  helpers, the mobile offline queue, and reminders; on web, the per-meal **schedule editor** beyond time +
-  day-type.
+- **`MetricEntry` expansion:** the MVP slice (single numeric value + optional unit, free-form `Type`,
+  self-scoped, append-only) shipped. Deferred: the **`MetricType` lookup** (`ValueKind`: numeric / scale-1-5 /
+  duration / text / photo; `AllowMultiplePerDay`), **photos** (`PhotoRef` — object storage + signed URLs, stricter
+  than public exercise media because these are private body data), **wearable/AI sources** (`Source = wearable|ai`),
+  per-type uniqueness rules, and making it the **canonical weight series** cross-referencing
+  `WorkoutSession.BodyweightKg`. One typed series absorbs the whole open-ended "future expansion" list
+  (weight/fat/measurements, water, sleep, mood, HRV, …) as data, not schema.
+- **Visibility:** `HideMacroTargets` read-time redaction has shipped (trainee planned macro *targets* nulled;
+  coach keeps the full prescription). **Still future:** the coarser `NutritionVisibilityMode` (Guided/Blind)
+  plan-structure hiding and `HideFutureDays`. (`DisableTraineeEditing` must never block logging actuals — recording
+  what you ate is always allowed, mirroring the workout rule.)
+- **Client authoring surfaces:** the **web per-meal schedule editor** — the nutrition-plan builder must render the
+  `ScheduledTime` + `DayApplicability` inputs (the reactive form controls + API serialization already exist, but
+  the inputs aren't in the template, so day-type meals aren't yet authorable via the UI); the Flutter pure-Dart
+  `nutrition_adherence.dart` / `nutrition_schedule.dart` helpers; and the mobile offline queue (A1).
 
-## A5. Domain events (the seam for future consumers)
+## A5. Domain-event consumers (the seams exist)
 
-`DailyLogClosedEvent(traineeId, tenantId, date, adherencePct, missedCount)` is **already raised** through the
-existing transactional outbox at day-close (today log-only, mirroring `SessionCompletedEvent`). The designed
-future consumers — streak recompute, coach digest, AI insight, "you missed X" push — attach to it without new
-eventing infrastructure. `NutritionPlanAssignedEvent(assignmentId, traineeId, tenantId, planId, planVersion,
-startDate, endDate)` is **now also raised** on assignment (drained to the outbox; no consumer yet) — the seam the
-reminders phase (eagerly seed today's log / schedule reminders) attaches to.
+The event seams are already raised through the transactional outbox — `DailyLogClosedEvent` at day-close and
+`NutritionPlanAssignedEvent` on assignment — with **no consumers yet**. The designed future consumers — streak
+recompute, coach digest, AI insight, "you missed X" push (the push consumer rides the `DeviceToken` design above) —
+attach to them without new eventing infrastructure.
 
 ## A6. Sourcing-integrity note (carried)
 

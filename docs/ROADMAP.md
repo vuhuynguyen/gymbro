@@ -94,17 +94,18 @@ day + driving local reminders; and a more precise training-day signal once worko
 *Why declarative, not RRULE/cron/generated-rows:* declarative recurrence is inspectable, editable, reversible,
 and shareable across three runtimes; RRULE has no native training/rest concept; generated rows are rigid and unbounded.
 
-### Reminders = scheduled local OS notifications (MVP of the reminders phase)
+### Reminders = scheduled local OS notifications — **MVP SHIPPED (Flutter)**
 
-Because the day's meal times are **deterministic and known on-device**, the first reminder is a **local
-notification** — no server. Flutter adds `flutter_local_notifications`; on app open / plan change / midnight
-rollover it computes today's (and tomorrow's) meal times from the shared rule set and (re)registers local
-notifications ("Lunch — tap to log"), deep-linking to the focused Today item. Quiet hours + per-meal toggles are
-local user prefs; OS permissions respected, degrade gracefully if denied. Local-first wins on
-reliability-per-effort (the OS fires it even if the app is closed), works offline, is privacy-preserving (the
-schedule never leaves the device), and ships without touching the backend. Web reminders are deferred (the portal
-is a coach/review surface; a PWA + service worker + Web Push is the later path, folded into the server-push
-phase).
+The day's meal times are **deterministic and known on-device**, so reminders are **local notifications** — no
+server. Flutter adds `flutter_local_notifications`; `NutritionReminders` (re)schedules on every Today load
+(`cancelAll` then `zonedSchedule` each upcoming meal at its planned time in the device zone via
+`AppTimeZone.zonedAt`, `inexactAllowWhileIdle`), titled "{meal} — tap to log". The which-meals-and-when is the
+pure, unit-tested `mealReminders`; permissions are requested at runtime and the whole flow is best-effort (a
+plugin/permission failure can never break logging). Local-first wins on reliability-per-effort (the OS fires it
+even if the app is closed), works offline, is privacy-preserving (the schedule never leaves the device), and ships
+without touching the backend. **Remaining:** quiet hours + per-meal toggles, tap → deep-link to the focused Today
+item, and on-device QA of firing/permission UX (the integration is Android-build- and unit-test-verified, but OS
+firing needs a device). Web reminders stay deferred (a PWA + Web Push folds into the server-push phase).
 
 ### The `DeviceToken` + `INotificationSender` push design *(future-only — designed, deferred, not in schema)*
 

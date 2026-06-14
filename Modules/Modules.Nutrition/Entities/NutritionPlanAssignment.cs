@@ -45,7 +45,7 @@ public sealed class NutritionPlanAssignment : AggregateRoot, ITenantEntity, ISof
         if (endDate.HasValue && endDate.Value < startDate)
             throw new DomainException("endDate cannot precede startDate.");
 
-        return new NutritionPlanAssignment
+        var assignment = new NutritionPlanAssignment
         {
             Id = Guid.NewGuid(),
             TenantId = tenantId,
@@ -62,6 +62,12 @@ public sealed class NutritionPlanAssignment : AggregateRoot, ITenantEntity, ISof
             SnapshotJson = string.IsNullOrWhiteSpace(snapshotJson) ? null : snapshotJson.Trim(),
             IsDeleted = false
         };
+
+        // Seam for the reminders/digest phase — drained to the transactional outbox on save (no handler today).
+        assignment.RaiseDomainEvent(new NutritionPlanAssignedEvent(
+            assignment.Id, traineeId, tenantId, planId, planVersion, startDate, endDate, DateTimeOffset.UtcNow));
+
+        return assignment;
     }
 
     /// <summary>True when this assignment governs the given date (active, within [StartDate, EndDate]).</summary>

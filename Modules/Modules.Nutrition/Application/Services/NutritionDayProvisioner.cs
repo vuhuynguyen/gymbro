@@ -1,3 +1,4 @@
+using BuildingBlocks.Application.Messaging;
 using BuildingBlocks.Shared.Abstractions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -63,8 +64,11 @@ public sealed class NutritionDayProvisioner(
         var snapshot = NutritionMapping.DeserializeSnapshot(assignment.SnapshotJson);
         if (snapshot != null)
         {
+            // Recurrence: seed only the meals that apply to THIS day's training/rest type. "Is today a training
+            // day?" is owned by the WorkoutSession module (graceful default: rest day when there is no session).
+            var isTrainingDay = await mediator.Send(new IsTrainingDayQuery(userId, date, timezone), ct);
             var kinds = await ResolveKindsAsync(snapshot, ct);
-            log.SeedPlannedItems(NutritionMapping.ToSeedItems(snapshot, kinds));
+            log.SeedPlannedItems(NutritionMapping.ToSeedItems(snapshot, isTrainingDay, kinds));
         }
 
         await logRepository.AddAsync(log, ct);

@@ -20,6 +20,7 @@ namespace Modules.NutritionModule.Application.Queries.Handlers;
 /// </summary>
 public sealed class GetMyNutritionTodayHandler(
     IDailyNutritionLogRepository logRepository,
+    INutritionPlanAssignmentRepository assignmentRepository,
     INutritionDayProvisioner provisioner,
     IUnitOfWork unitOfWork,
     ICurrentUser currentUser)
@@ -51,10 +52,12 @@ public sealed class GetMyNutritionTodayHandler(
             // Race: a concurrent first-touch created the day (unique TraineeId+LocalDate). Return that one.
             var raced = await logRepository.GetOwnByDateAsync(userId, localDate, cancellationToken);
             if (raced != null)
-                return Result<DailyNutritionLogDto>.Success(NutritionMapping.ToDayDto(raced));
+                return Result<DailyNutritionLogDto>.Success(await NutritionDayVisibility.ApplyAsync(
+                    raced, NutritionMapping.ToDayDto(raced), assignmentRepository, userId, cancellationToken));
             throw;
         }
 
-        return Result<DailyNutritionLogDto>.Success(NutritionMapping.ToDayDto(log));
+        return Result<DailyNutritionLogDto>.Success(await NutritionDayVisibility.ApplyAsync(
+            log, NutritionMapping.ToDayDto(log), assignmentRepository, userId, cancellationToken));
     }
 }

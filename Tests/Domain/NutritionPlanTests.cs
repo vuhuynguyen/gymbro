@@ -1,3 +1,4 @@
+using BuildingBlocks.Shared.Nutrition;
 using BuildingBlocks.Shared.DomainPrimitives;
 using Modules.NutritionModule.Entities;
 using Xunit;

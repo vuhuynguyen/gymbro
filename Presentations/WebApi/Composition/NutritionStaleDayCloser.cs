@@ -61,7 +61,7 @@ public sealed class NutritionStaleDayCloser(
             // SQL candidate filter: any open day on or before UTC-today MIGHT be past in the trainee's zone (zones
             // run up to ~+14h ahead of UTC), so include UTC-today; the per-day zone check below decides. This is a
             // system sweep with no tenant/user context, so the global filters are deliberately ignored.
-            var candidates = await db.DailyNutritionLogs
+            var candidates = await db.Set<DailyNutritionLog>()
                 .IgnoreQueryFilters()
                 .Where(l => !l.IsDeleted && l.Status == DailyLogStatus.Open && l.LocalDate <= utcToday)
                 .Include(l => l.Items)

@@ -24,7 +24,15 @@ using Modules.UserModule;
 using Modules.UserModule.Application.Authorization;
 using Modules.WorkoutPlanModule;
 using Modules.WorkoutSessionModule;
+using Modules.UserModule.Infrastructure.Persistence;
+using Modules.ExerciseModule.Infrastructure.Persistence;
+using Modules.WorkoutPlanModule.Infrastructure.Persistence;
+using Modules.WorkoutSessionModule.Infrastructure.Persistence;
+using Modules.FoodModule.Infrastructure.Persistence;
+using Modules.NutritionModule.Infrastructure.Persistence;
+using BuildingBlocks.Infrastructure.Persistence.Abstractions;
 using WebApi.Composition;
+using WebApi.Persistence;
 using WebApi.HealthChecks;
 using WebApi.Middleware;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -83,6 +91,17 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(Authorization
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PlatformAdminBehavior<,>));
 
 builder.Services.AddPersistence(builder.Configuration);
+// Each feature module contributes its own repositories + model configuration (the inverted "kernel references
+// modules" dependency is gone — see ROADMAP §C1 / ARCHITECTURE).
+builder.Services
+    .AddUserModulePersistence()
+    .AddExerciseModulePersistence()
+    .AddWorkoutPlanModulePersistence()
+    .AddWorkoutSessionModulePersistence()
+    .AddFoodModulePersistence()
+    .AddNutritionModulePersistence();
+// Cross-module FK configs (each references two modules' entities) are contributed from the composition root.
+builder.Services.AddSingleton<IModelConfiguration, CrossModuleModelConfiguration>();
 // Drains the transactional outbox (domain events committed alongside their state change) out-of-band.
 builder.Services.AddOutboxProcessing(builder.Configuration);
 // Read-only safety net: periodically reports drift between the Identity store (AppUser) and the domain

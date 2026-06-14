@@ -28,13 +28,15 @@ public sealed class GetMyNutritionTodayHandler(
     public async Task<Result<DailyNutritionLogDto>> Handle(GetMyNutritionTodayQuery request, CancellationToken cancellationToken)
     {
         var userId = currentUser.UserId;
-        // Day boundaries are the trainee's, not UTC: honour the client-sent date, else derive "today" from the
-        // client's captured zone rather than bare UtcNow.
-        var localDate = request.Date ?? LocalDayResolver.LocalDateOf(DateTimeOffset.UtcNow, request.Timezone);
+        // Day boundaries are the trainee's: resolve their zone server-side from the stored setting (the tz claim),
+        // not a per-request client value (a client-sent zone is only a transitional fallback). "today" derives
+        // from that zone rather than bare UtcNow.
+        var zone = currentUser.TimeZoneId ?? request.Timezone;
+        var localDate = request.Date ?? LocalDayResolver.LocalDateOf(DateTimeOffset.UtcNow, zone);
 
         // Existing day, or lazily create + seed from the active assignment. READS never create a plan-less
         // self-logged row — only WRITES do — so the no-assignment case falls through to a non-persisted EmptyDay.
-        var log = await provisioner.GetOrCreateFromAssignmentAsync(userId, localDate, request.Timezone, cancellationToken);
+        var log = await provisioner.GetOrCreateFromAssignmentAsync(userId, localDate, zone, cancellationToken);
 
         if (log == null)
             return Result<DailyNutritionLogDto>.Success(NutritionMapping.EmptyDay(userId, localDate));

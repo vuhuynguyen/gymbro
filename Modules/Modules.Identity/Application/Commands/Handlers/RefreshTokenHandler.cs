@@ -1,3 +1,4 @@
+using BuildingBlocks.Application.Messaging;
 using BuildingBlocks.Shared.Errors;
 using BuildingBlocks.Shared.Results;
 using MediatR;
@@ -11,7 +12,8 @@ namespace Modules.IdentityModule.Application.Commands.Handlers;
 public class RefreshTokenHandler(
     UserManager<AppUser> userManager,
     TokenService tokenService,
-    RefreshTokenService refreshTokenService)
+    RefreshTokenService refreshTokenService,
+    ISender sender)
     : IRequestHandler<RefreshTokenCommand, Result<TokenPair>>
 {
     public async Task<Result<TokenPair>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
@@ -26,7 +28,9 @@ public class RefreshTokenHandler(
             return Result<TokenPair>.Failure(Error.Validation("Invalid refresh token."));
 
         var rotated = await refreshTokenService.RotateAsync(token, request.Ip, cancellationToken);
-        var accessToken = tokenService.GenerateToken(user);
+        // Re-source the stored zone each rotation so a zone change takes effect without re-login.
+        var timeZoneId = await sender.Send(new GetUserTimeZoneQuery(user.DomainUserId), cancellationToken);
+        var accessToken = tokenService.GenerateToken(user, timeZoneId);
 
         return Result<TokenPair>.Success(new TokenPair(accessToken, rotated.Raw, rotated.ExpiresAtUtc));
     }

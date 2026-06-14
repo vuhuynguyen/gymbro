@@ -54,6 +54,9 @@ internal static class TenantAuthorizationExemptions
                 "Acts on the caller's own identity account; not scoped to any tenant."),
             ["GetMeQuery"] = new(ExemptionKind.AuthenticationOnly,
                 "Returns the caller's own profile/memberships; self-scoped by definition."),
+            ["SetMyTimeZoneCommand"] = new(ExemptionKind.AuthenticationOnly,
+                "Sets the caller's own profile time-zone (currentUser.UserId); self-scoped to their identity, "
+                + "not gated by any tenant role."),
             ["CreateTenantCommand"] = new(ExemptionKind.AuthenticationOnly,
                 "Creates the tenant itself, so no pre-existing tenant role could gate it."),
             ["JoinTenantCommand"] = new(ExemptionKind.AuthenticationOnly,

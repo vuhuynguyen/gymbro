@@ -1080,6 +1080,10 @@ namespace BuildingBlocks.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("TenantId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("TimeZoneId")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Users", (string)null);

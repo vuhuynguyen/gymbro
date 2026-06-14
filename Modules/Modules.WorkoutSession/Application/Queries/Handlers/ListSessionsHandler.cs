@@ -1,8 +1,10 @@
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Time;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using BuildingBlocks.Application.Authorization;
+using BuildingBlocks.Application.Messaging;
 using Modules.WorkoutPlanModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Application.DTOs;
@@ -57,16 +59,28 @@ public sealed class ListSessionsHandler(
         if (request.Status.HasValue)
             query = query.Where(s => s.Status == request.Status.Value);
 
-        if (request.From.HasValue)
+        // From/To are calendar days interpreted in the targeted trainee's stored zone (so a coach in another
+        // country filters by the trainee's local day); with no single trainee targeted, the caller's own zone.
+        // UTC fallback when neither has one. Resolved only when a date filter is present (one extra read).
+        if (request.From.HasValue || request.To.HasValue)
         {
-            var fromUtc = request.From.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-            query = query.Where(s => s.StartedAt >= fromUtc);
-        }
+            var filterZone = effectiveTraineeId.HasValue
+                ? await mediator.Send(new GetUserTimeZoneQuery(effectiveTraineeId.Value), cancellationToken)
+                : currentUser.TimeZoneId;
+            filterZone ??= currentUser.TimeZoneId;
 
-        if (request.To.HasValue)
-        {
-            var toUtc = request.To.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
-            query = query.Where(s => s.StartedAt <= toUtc);
+            if (request.From.HasValue)
+            {
+                var fromUtc = LocalDayResolver.StartOfLocalDayUtc(request.From.Value, filterZone);
+                query = query.Where(s => s.StartedAt >= fromUtc);
+            }
+
+            if (request.To.HasValue)
+            {
+                // Inclusive of the whole To local day → strictly before the next local midnight.
+                var toExclusiveUtc = LocalDayResolver.StartOfLocalDayUtc(request.To.Value.AddDays(1), filterZone);
+                query = query.Where(s => s.StartedAt < toExclusiveUtc);
+            }
         }
 
         var total = await query.CountAsync(cancellationToken);

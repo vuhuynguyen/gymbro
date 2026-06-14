@@ -1,6 +1,7 @@
 using BuildingBlocks.Infrastructure.Persistence;
 using BuildingBlocks.Shared.DomainPrimitives;
 using Microsoft.EntityFrameworkCore;
+using WebApi.Persistence;
 using Xunit;
 
 namespace Gymbro.Tests.Persistence;

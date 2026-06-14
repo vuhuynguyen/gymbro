@@ -14,6 +14,7 @@ public sealed class TestPrincipal : ICurrentUser, ITenantContext
     public Guid UserId { get; private set; }
     public bool IsAdmin { get; private set; }
     public Guid? TenantId { get; private set; }
+    public string? TimeZoneId { get; set; }
 
     /// <summary>Impersonate a tenant member for the next dispatch.</summary>
     public void Become(Guid userId, Guid tenantId, bool isAdmin = false)

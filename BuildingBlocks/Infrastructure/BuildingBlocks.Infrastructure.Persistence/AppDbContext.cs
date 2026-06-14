@@ -1,47 +1,26 @@
 using System.Linq.Expressions;
 using BuildingBlocks.Application.Abstractions;
+using BuildingBlocks.Infrastructure.Persistence.Abstractions;
 using BuildingBlocks.Infrastructure.Persistence.Outbox;
 using BuildingBlocks.Infrastructure.Persistence.Services.Interfaces;
 using BuildingBlocks.Shared.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using BuildingBlocks.Shared.DomainPrimitives;
-using Modules.ExerciseModule.Entities;
-using Modules.FoodModule.Entities;
-using Modules.NutritionModule.Entities;
-using Modules.UserModule.Entities;
-using Modules.WorkoutPlanModule.Entities;
-using Modules.WorkoutSessionModule.Entities;
 
 namespace BuildingBlocks.Infrastructure.Persistence;
 
 public class AppDbContext(
     DbContextOptions<AppDbContext> options,
-    IDbContextServices services)
+    IDbContextServices services,
+    IEnumerable<IModelConfiguration> modelConfigurations)
     : DbContext(options), IUnitOfWork
 {
     public ICurrentUser CurrentUser { get; } = services.CurrentUser;
     public ITenantContext TenantContext { get; } = services.TenantContext;
 
-    public DbSet<Exercise> Exercises { get; set; } = null!;
-    public DbSet<User> Users { get; set; } = null!;
-    public DbSet<Tenant> Tenants { get; set; } = null!;
-    public DbSet<UserTenantRole> UserTenantRoles { get; set; } = null!;
-    public DbSet<Invite> Invites { get; set; } = null!;
-    public DbSet<WorkoutPlan> WorkoutPlans { get; set; } = null!;
-    public DbSet<PlanAssignment> PlanAssignments { get; set; } = null!;
-    public DbSet<WorkoutSession> WorkoutSessions { get; set; } = null!;
-    public DbSet<PerformedExercise> PerformedExercises { get; set; } = null!;
-    public DbSet<PerformedSet> PerformedSets { get; set; } = null!;
-
-    // Nutrition (Food catalog + plans + assignments + daily logs).
-    public DbSet<Food> Foods { get; set; } = null!;
-    public DbSet<NutritionPlan> NutritionPlans { get; set; } = null!;
-    public DbSet<PlanMeal> PlanMeals { get; set; } = null!;
-    public DbSet<PlanMealItem> PlanMealItems { get; set; } = null!;
-    public DbSet<NutritionPlanAssignment> NutritionPlanAssignments { get; set; } = null!;
-    public DbSet<DailyNutritionLog> DailyNutritionLogs { get; set; } = null!;
-    public DbSet<LoggedItem> LoggedItems { get; set; } = null!;
-    public DbSet<MetricEntry> MetricEntries { get; set; } = null!;
+    // The kernel owns NO module DbSets — module entity access goes through Set<T>() (in the module repositories)
+    // and the model is assembled from injected IModelConfiguration contributors. This is what keeps the
+    // persistence kernel free of any reference to a feature module (see OnModelCreating).
 
     // Transactional outbox: domain events are persisted here in the SAME transaction as the changes
     // that raised them (see SaveChangesAsync), then dispatched out-of-band by the OutboxProcessor.
@@ -51,7 +30,12 @@ public class AppDbContext(
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        // The model is CONTRIBUTED, not scanned here: each module supplies an IModelConfiguration (its own
+        // entity configs); the composition root supplies the cross-module FK configs; the kernel supplies its
+        // own (outbox). This is what lets the persistence kernel build the full model without referencing any
+        // module — see CoreModelConfiguration and the per-module/cross-module contributors.
+        foreach (var configuration in modelConfigurations)
+            configuration.Apply(modelBuilder);
 
         ApplyGlobalFilters(modelBuilder);
     }

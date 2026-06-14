@@ -54,9 +54,9 @@ public sealed class CrossStoreTransactionTests
             var appDb = sp.GetRequiredService<AppDbContext>();
             var domainUserId = appUser.DomainUserId;
 
-            Assert.True(await appDb.Users.IgnoreQueryFilters().AnyAsync(u => u.Id == domainUserId));
-            Assert.True(await appDb.Tenants.IgnoreQueryFilters().AnyAsync(t => t.OwnerUserId == domainUserId));
-            Assert.True(await appDb.UserTenantRoles.IgnoreQueryFilters().AnyAsync(r => r.UserId == domainUserId));
+            Assert.True(await appDb.Set<User>().IgnoreQueryFilters().AnyAsync(u => u.Id == domainUserId));
+            Assert.True(await appDb.Set<Tenant>().IgnoreQueryFilters().AnyAsync(t => t.OwnerUserId == domainUserId));
+            Assert.True(await appDb.Set<UserTenantRole>().IgnoreQueryFilters().AnyAsync(r => r.UserId == domainUserId));
         });
     }
 
@@ -92,7 +92,7 @@ public sealed class CrossStoreTransactionTests
         await _fixture.InScopeAsync(async sp =>
         {
             var appDb = sp.GetRequiredService<AppDbContext>();
-            var user = await appDb.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == domainUserId);
+            var user = await appDb.Set<User>().IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == domainUserId);
             Assert.NotNull(user);          // soft-delete keeps the row...
             Assert.True(user!.IsDeleted);  // ...flagged deleted.
         });
@@ -115,7 +115,7 @@ public sealed class CrossStoreTransactionTests
         await _fixture.InScopeAsync(async sp =>
         {
             var appDb = sp.GetRequiredService<AppDbContext>();
-            var user = await appDb.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == domainUserId);
+            var user = await appDb.Set<User>().IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == domainUserId);
             Assert.NotNull(user);
             Assert.False(user!.IsDeleted);
         });
@@ -138,8 +138,8 @@ public sealed class CrossStoreTransactionTests
             var appDb = sp.GetRequiredService<AppDbContext>();
             return (
                 await identityDb.Users.CountAsync(),
-                await appDb.Users.IgnoreQueryFilters().CountAsync(),
-                await appDb.Tenants.IgnoreQueryFilters().CountAsync());
+                await appDb.Set<User>().IgnoreQueryFilters().CountAsync(),
+                await appDb.Set<Tenant>().IgnoreQueryFilters().CountAsync());
         });
 
     private Task<AppUser?> GetAppUser(string email) =>

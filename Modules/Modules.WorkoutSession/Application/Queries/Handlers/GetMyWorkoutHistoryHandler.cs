@@ -1,5 +1,6 @@
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Time;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.WorkoutPlanModule.Application.DTOs;
@@ -35,16 +36,19 @@ public sealed class GetMyWorkoutHistoryHandler(
         if (request.Status.HasValue)
             query = query.Where(s => s.Status == request.Status.Value);
 
+        // From/to are the caller's LOCAL calendar days — convert to UTC instants in their stored zone (the tz
+        // claim, UTC fallback) so an evening session west of UTC isn't excluded/leaked at the range boundary.
         if (request.From.HasValue)
         {
-            var fromUtc = request.From.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            var fromUtc = LocalDayResolver.StartOfLocalDayUtc(request.From.Value, currentUser.TimeZoneId);
             query = query.Where(s => s.StartedAt >= fromUtc);
         }
 
         if (request.To.HasValue)
         {
-            var toUtc = request.To.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
-            query = query.Where(s => s.StartedAt <= toUtc);
+            // Inclusive of the whole To local day → strictly before the next local midnight.
+            var toExclusiveUtc = LocalDayResolver.StartOfLocalDayUtc(request.To.Value.AddDays(1), currentUser.TimeZoneId);
+            query = query.Where(s => s.StartedAt < toExclusiveUtc);
         }
 
         var total = await query.CountAsync(cancellationToken);
@@ -92,7 +96,7 @@ public sealed class GetMyWorkoutHistoryHandler(
                     r.Volume,
                     r.Session.PrCount,
                     ctx?.ProgramName,
-                    ctx is null ? null : SessionMapping.ComputePlanWeek(ctx.StartDate, r.Session.StartedAt, r.Session.ClientTimezone),
+                    ctx is null ? null : SessionMapping.ComputePlanWeek(ctx.StartDate, r.Session.StartedAt, r.Session.ClientTimezone ?? currentUser.TimeZoneId),
                     ctx?.FrequencyDaysPerWeek);
             })
             .ToList();

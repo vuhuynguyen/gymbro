@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Time;
 using MediatR;
 using Modules.NutritionModule.Application.Abstractions;
 using Modules.NutritionModule.Entities;
@@ -17,7 +18,7 @@ public sealed class LogMetricEntryHandler(
 {
     public async Task<Result> Handle(LogMetricEntryCommand request, CancellationToken cancellationToken)
     {
-        var localDate = request.LocalDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var localDate = request.LocalDate ?? LocalDayResolver.LocalDateOf(DateTimeOffset.UtcNow, currentUser.TimeZoneId);
 
         var entry = MetricEntry.Log(currentUser.UserId, request.Type, request.Value, request.Unit, localDate);
 

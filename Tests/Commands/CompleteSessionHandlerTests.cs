@@ -120,7 +120,7 @@ public sealed class CompleteSessionHandlerTests
 
         var session = WorkoutSession.Start(
             traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
-        db.WorkoutSessions.Add(session);
+        db.Set<WorkoutSession>().Add(session);
         await db.SaveChangesAsync();
 
         var sessionRepository = Substitute.For<IWorkoutSessionRepository>();
@@ -129,8 +129,8 @@ public sealed class CompleteSessionHandlerTests
 
         // Query() is backed by EF InMemory so the handler's Include/ToListAsync/ToDictionaryAsync translate.
         sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>()).Returns(session);
-        sessionRepository.Query().Returns(db.WorkoutSessions);
-        exerciseRepository.Query().Returns(db.PerformedExercises);
+        sessionRepository.Query().Returns(db.Set<WorkoutSession>());
+        exerciseRepository.Query().Returns(db.Set<PerformedExercise>());
         unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
 
         var sut = CreateSut(sessionRepository, exerciseRepository, unitOfWork, traineeId);
@@ -157,7 +157,8 @@ public sealed class CompleteSessionHandlerTests
             new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase($"complete-session-{Guid.NewGuid()}")
                 .Options,
-            new StubDbContextServices());
+            new StubDbContextServices(),
+            TestModelConfigurations.All());
 
     /// <summary>Minimal context services for an HTTP-less test: admin so EF global filters never exclude rows.</summary>
     private sealed class StubDbContextServices : IDbContextServices, ICurrentUser, ITenantContext
@@ -166,6 +167,7 @@ public sealed class CompleteSessionHandlerTests
         public ITenantContext TenantContext => this;
         public Guid UserId => Guid.Empty;
         public bool IsAdmin => true;
+        public string? TimeZoneId => null;
         public Guid? TenantId => null;
     }
 }

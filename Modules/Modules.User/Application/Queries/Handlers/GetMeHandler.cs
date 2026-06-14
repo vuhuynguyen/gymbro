@@ -23,6 +23,7 @@ public sealed class GetMeHandler(
                 currentUser.UserId,
                 user.Name,
                 request.EmailFromClaims,
-                currentUser.IsAdmin));
+                currentUser.IsAdmin,
+                user.TimeZoneId));
     }
 }

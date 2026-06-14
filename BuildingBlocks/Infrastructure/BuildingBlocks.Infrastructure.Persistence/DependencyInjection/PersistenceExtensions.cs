@@ -1,22 +1,22 @@
 using BuildingBlocks.Application.Abstractions;
+using BuildingBlocks.Infrastructure.Persistence.Abstractions;
 using BuildingBlocks.Infrastructure.Persistence.Outbox;
-using BuildingBlocks.Infrastructure.Persistence.Repositories;
 using BuildingBlocks.Infrastructure.Persistence.Services;
 using BuildingBlocks.Infrastructure.Persistence.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Modules.ExerciseModule.Application.Abstractions;
-using Modules.FoodModule.Application.Abstractions;
-using Modules.NutritionModule.Application.Abstractions;
-using Modules.UserModule.Application.Abstractions;
-using Modules.WorkoutPlanModule.Application.Abstractions;
-using Modules.WorkoutSessionModule.Application.Abstractions;
 
 namespace BuildingBlocks.Infrastructure.Persistence.DependencyInjection;
 
 public static class PersistenceExtensions
 {
+    /// <summary>
+    /// Registers the persistence KERNEL: the single <c>AppDbContext</c>, the unit of work, audit/tenant
+    /// services, the outbox dispatcher, the generic repository, and the kernel's own model contributor (the
+    /// transactional outbox). Feature repositories and per-module model contributors are registered by each
+    /// module's <c>AddXModulePersistence</c>; the composition root adds the cross-module FK contributor.
+    /// </summary>
     public static IServiceCollection AddPersistence(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -34,30 +34,21 @@ public static class PersistenceExtensions
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
 
+        // Module repositories depend on DbContext (not the concrete app context) so they need not reference the
+        // kernel's concrete project — map DbContext to the single app context here.
+        services.AddScoped<DbContext>(sp => sp.GetRequiredService<AppDbContext>());
+
         services.AddScoped<IDbContextServices, DbContextServices>();
+
+        // The kernel's own model contributor (outbox). Module contributors come from each module's
+        // AddXModulePersistence; the cross-module FK contributor comes from the composition root.
+        services.AddSingleton<IModelConfiguration, CoreModelConfiguration>();
 
         // Transactional-outbox dispatcher (the hosted polling loop lives at the composition root).
         services.AddScoped<OutboxDispatcher>();
 
         // Generic repository
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-
-        // Specific repositories
-        services.AddScoped<IExerciseRepository, ExerciseRepository>();
-        services.AddScoped<IFoodRepository, FoodRepository>();
-        services.AddScoped<INutritionPlanRepository, NutritionPlanRepository>();
-        services.AddScoped<INutritionPlanAssignmentRepository, NutritionPlanAssignmentRepository>();
-        services.AddScoped<IDailyNutritionLogRepository, DailyNutritionLogRepository>();
-        services.AddScoped<IMetricEntryRepository, MetricEntryRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<ITenantRepository, TenantRepository>();
-        services.AddScoped<IUserTenantRoleRepository, UserTenantRoleRepository>();
-        services.AddScoped<IInviteRepository, InviteRepository>();
-        services.AddScoped<IWorkoutPlanRepository, WorkoutPlanRepository>();
-        services.AddScoped<IPlanAssignmentRepository, PlanAssignmentRepository>();
-        services.AddScoped<IWorkoutSessionRepository, WorkoutSessionRepository>();
-        services.AddScoped<IPerformedExerciseRepository, PerformedExerciseRepository>();
-        services.AddScoped<IPerformedSetRepository, PerformedSetRepository>();
 
         return services;
     }

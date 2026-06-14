@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using BuildingBlocks.Infrastructure.Persistence;
 using Modules.ExerciseModule;
 using Modules.FoodModule;
 using Modules.NutritionModule;
@@ -27,13 +28,11 @@ namespace Gymbro.Tests.Persistence;
 /// the owning module's <c>*.Application</c> namespace (as <c>PlanVisibilityMode</c> already is) — not to relax
 /// this test.</para>
 ///
-/// <para><b>Scope (and a known exemption).</b> This guards feature-module ↔ feature-module boundaries. It does
-/// NOT scan <c>BuildingBlocks.Infrastructure.Persistence</c>, which currently owns the EF model (entity
-/// configurations, <c>DbSet</c>s and repositories) and therefore deliberately references every module's
-/// <c>*.Entities</c> — i.e. the persistence kernel depends on the feature modules rather than the reverse. That
-/// inversion is a recognised structural item: were each module to own its own persistence, this test should be
-/// widened to scan the kernel too. The exemption is documented here so the green result is not mistaken for a
-/// guarantee that <i>nothing</i> in the solution references module entities.</para>
+/// <para><b>Kernel scope.</b> A companion fact (<c>The_persistence_kernel_references_no_feature_module</c>)
+/// asserts that <c>BuildingBlocks.Infrastructure.Persistence</c> references NO feature module at all: the EF
+/// model is contributed by each module (<c>IModelConfiguration</c>) plus the composition root, and repositories
+/// live in their owning modules — so the documented "modules → kernel" dependency direction holds. (The former
+/// kernel→module inversion is resolved; see docs/ROADMAP.md §C1.)</para>
 /// </summary>
 public sealed class ModuleBoundaryConventionTests
 {
@@ -96,6 +95,27 @@ public sealed class ModuleBoundaryConventionTests
             "Feature modules must not reference the Identity module (including IdentityDbContext). Identity "
             + "integrates only by publishing the UserRegistered/UserDeleted MediatR notifications, which the "
             + "User module handles. Offending references: " + string.Join(", ", violations.Distinct()));
+    }
+
+    [Fact]
+    public void The_persistence_kernel_references_no_feature_module()
+    {
+        // The EF model is CONTRIBUTED by each module (IModelConfiguration) + the composition root, and the
+        // repositories live in their modules — so the persistence kernel (AppDbContext, migrations, outbox)
+        // references no feature module. This proves the C1 re-architecture's "modules -> kernel" direction.
+        var kernel = typeof(AppDbContext).Assembly;
+
+        var leaks = ReferencedNamespaces(kernel)
+            .Where(ns => ns.StartsWith("Modules.", StringComparison.Ordinal))
+            .Distinct()
+            .ToList();
+
+        Assert.True(
+            leaks.Count == 0,
+            "Persistence-kernel leak: BuildingBlocks.Infrastructure.Persistence references a feature module. "
+            + "The kernel must stay module-free — the model is contributed via IModelConfiguration and "
+            + "repositories live in their modules (docs/ROADMAP.md §C1). Offending references: "
+            + string.Join(", ", leaks));
     }
 
     /// <summary>

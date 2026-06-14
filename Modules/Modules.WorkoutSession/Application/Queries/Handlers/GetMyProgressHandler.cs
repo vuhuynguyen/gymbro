@@ -44,7 +44,8 @@ public sealed class GetMyProgressHandler(
         var completed = sessions.Count(s => s.Status == SessionStatus.Completed);
 
         var weeks = sessions
-            .GroupBy(s => WeekStart(s.StartedAt, s.ClientTimezone))
+            // Per-session captured zone, falling back to the trainee's own stored zone, then UTC.
+            .GroupBy(s => WeekStart(s.StartedAt, s.ClientTimezone ?? currentUser.TimeZoneId))
             .OrderByDescending(g => g.Key)
             .Select(g => new ProgressWeekDto(
                 g.Key,

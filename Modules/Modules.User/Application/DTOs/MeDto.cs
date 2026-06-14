@@ -4,4 +4,5 @@ public sealed record MeDto(
     Guid UserId,
     string Name,
     string? Email,
-    bool IsPlatformAdmin);
+    bool IsPlatformAdmin,
+    string? TimeZoneId);

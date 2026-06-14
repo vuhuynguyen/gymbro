@@ -17,6 +17,7 @@
         <ProjectReference Include="..\..\BuildingBlocks\Application\BuildingBlocks.Application\BuildingBlocks.Application.csproj" />
         <ProjectReference Include="..\..\BuildingBlocks\BuildingBlocks.Shared\BuildingBlocks.Shared.csproj" />
         <ProjectReference Include="..\Modules.Exercise\Modules.Exercise.csproj" />
+        <ProjectReference Include="..\..\BuildingBlocks\Infrastructure\BuildingBlocks.Infrastructure.Persistence.Abstractions\BuildingBlocks.Infrastructure.Persistence.Abstractions.csproj" />
     </ItemGroup>
 
 </Project>

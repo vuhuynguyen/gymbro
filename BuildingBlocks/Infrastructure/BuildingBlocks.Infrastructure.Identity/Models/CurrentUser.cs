@@ -23,6 +23,10 @@ public class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUse
         }
     }
 
+    // Stamped into the access token from the user's stored zone (AppUser.TimeZoneId); null until they set it.
+    public string? TimeZoneId =>
+        httpContextAccessor.HttpContext?.User?.FindFirst("tz")?.Value;
+
     public Guid? TenantId
     {
         get

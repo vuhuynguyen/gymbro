@@ -48,7 +48,7 @@ public sealed class FoodSeedingTests(PostgresFixture fixture)
     private Task<int> CountGlobal(string name) => fixture.InScopeAsync(sp =>
     {
         var db = sp.GetRequiredService<AppDbContext>();
-        return db.Foods
+        return db.Set<Food>()
             .IgnoreQueryFilters()
             .CountAsync(f => f.TenantId == null && !f.IsDeleted && f.Name == name);
     });

@@ -23,7 +23,8 @@ public sealed class OutboxTests
             new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase($"outbox-{Guid.NewGuid()}")
                 .Options,
-            new StubDbContextServices());
+            new StubDbContextServices(),
+            TestModelConfigurations.All());
 
     private static SessionCompletedEvent SampleEvent() =>
         new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UtcNow);
@@ -46,7 +47,7 @@ public sealed class OutboxTests
 
         var session = WorkoutSession.Start(
             Guid.NewGuid(), Guid.NewGuid(), SessionSource.Adhoc, null, null, "Push Day", null, "UTC", null);
-        db.WorkoutSessions.Add(session);
+        db.Set<WorkoutSession>().Add(session);
         await db.SaveChangesAsync();
 
         session.Complete(null, null, null, prCount: 0); // raises SessionCompletedEvent
@@ -174,6 +175,7 @@ public sealed class OutboxTests
         public ITenantContext TenantContext => this;
         public Guid UserId => Guid.Empty;
         public bool IsAdmin => true;
+        public string? TimeZoneId => null;
         public Guid? TenantId => null;
     }
 }

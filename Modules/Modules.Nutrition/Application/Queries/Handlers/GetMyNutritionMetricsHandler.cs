@@ -1,5 +1,6 @@
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Time;
 using MediatR;
 using Modules.NutritionModule.Application.Abstractions;
 using Modules.NutritionModule.Application.DTOs;
@@ -15,7 +16,7 @@ public sealed class GetMyNutritionMetricsHandler(
 {
     public async Task<Result<MetricEntryListDto>> Handle(GetMyNutritionMetricsQuery request, CancellationToken cancellationToken)
     {
-        var localDate = request.Date ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var localDate = request.Date ?? LocalDayResolver.LocalDateOf(DateTimeOffset.UtcNow, currentUser.TimeZoneId);
 
         var entries = await metricRepository.GetOwnForDateAsync(currentUser.UserId, localDate, cancellationToken);
 

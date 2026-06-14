@@ -9,7 +9,7 @@ namespace Modules.IdentityModule.Infrastructure.Services;
 
 public class TokenService(IConfiguration configuration)
 {
-    public string GenerateToken(AppUser user)
+    public string GenerateToken(AppUser user, string? timeZoneId = null)
     {
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!));
@@ -29,6 +29,10 @@ public class TokenService(IConfiguration configuration)
 
         if (!string.IsNullOrEmpty(user.PhoneNumber))
             claims.Add(new Claim("phone", user.PhoneNumber));
+
+        // The caller's stored IANA zone (domain User.TimeZoneId), so handlers resolve day boundaries server-side.
+        if (!string.IsNullOrEmpty(timeZoneId))
+            claims.Add(new Claim("tz", timeZoneId));
 
         var accessMinutes = configuration.GetValue("Jwt:AccessTokenMinutes", 15);
 

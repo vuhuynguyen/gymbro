@@ -105,7 +105,9 @@ public sealed record SessionSummaryDto(
     int PrCount,
     string? ProgramName,
     int? PlanWeek,
-    int? WeeklyGoal);
+    int? WeeklyGoal,
+    // The trainee's IANA zone when the session started — so coach surfaces render it in the trainee's local time.
+    string? ClientTimezone = null);
 
 /// <summary>A working set that established a new estimated-1RM record for its lift in a session.</summary>
 public sealed record SessionPrDto(

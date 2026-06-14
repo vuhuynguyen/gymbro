@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modules.NutritionModule.Application.Commands;
 using Modules.NutritionModule.Application.Queries;
+using Modules.UserModule.Application.Commands;
 using Modules.WorkoutSessionModule.Application.Queries;
 using Modules.WorkoutSessionModule.Entities;
 using WebApi.Http;
@@ -95,5 +96,13 @@ public sealed class MeController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(
             new LogMetricEntryCommand(request.Type, request.Value, request.Unit, request.LocalDate), ct);
         return result.IsFailure ? result.ToFailureResult(this) : Ok(new { logged = true });
+    }
+
+    /// <summary>Sets the caller's IANA time-zone — the authoritative anchor for their day/week boundaries.</summary>
+    [HttpPut("timezone")]
+    public async Task<IActionResult> SetTimeZone([FromBody] SetMyTimeZoneCommand command, CancellationToken ct)
+    {
+        var result = await mediator.Send(command, ct);
+        return result.IsFailure ? result.ToFailureResult(this) : NoContent();
     }
 }

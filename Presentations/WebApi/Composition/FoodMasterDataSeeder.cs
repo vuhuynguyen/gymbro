@@ -49,7 +49,7 @@ public static class FoodMasterDataSeeder
             var names = active.Select(f => f.Name!.Trim()).ToHashSet(StringComparer.OrdinalIgnoreCase);
             return (active, data.Foods.Count - active.Count, names);
         },
-        LoadExistingGlobals: (db, ct) => db.Foods
+        LoadExistingGlobals: (db, ct) => db.Set<Food>()
             .IgnoreQueryFilters()
             .Where(x => x.TenantId == null)
             .ToListAsync(ct),
@@ -67,7 +67,7 @@ public static class FoodMasterDataSeeder
         Create: FoodSeedFactory.Create,
         Apply: FoodSeedFactory.Apply,
         EntityId: f => f.Id,
-        Add: (db, f) => db.Foods.Add(f),
+        Add: (db, f) => db.Set<Food>().Add(f),
         InvalidateSearch: cache.InvalidateSearchAsync,
         InvalidateDetail: cache.InvalidateDetailAsync);
 }

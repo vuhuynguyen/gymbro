@@ -3,7 +3,14 @@ using BuildingBlocks.Application.Behaviors;
 using BuildingBlocks.Application.Messaging;
 using BuildingBlocks.Infrastructure.Identity.DependencyInjection;
 using BuildingBlocks.Infrastructure.Persistence;
+using BuildingBlocks.Infrastructure.Persistence.Abstractions;
 using BuildingBlocks.Infrastructure.Persistence.DependencyInjection;
+using Modules.UserModule.Infrastructure.Persistence;
+using Modules.ExerciseModule.Infrastructure.Persistence;
+using Modules.WorkoutPlanModule.Infrastructure.Persistence;
+using Modules.WorkoutSessionModule.Infrastructure.Persistence;
+using Modules.FoodModule.Infrastructure.Persistence;
+using Modules.NutritionModule.Infrastructure.Persistence;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Authorization;
 using FluentValidation;
@@ -28,6 +35,7 @@ using Modules.WorkoutSessionModule;
 using Modules.WorkoutSessionModule.Entities;
 using Testcontainers.PostgreSql;
 using WebApi.Composition;
+using WebApi.Persistence;
 using Xunit;
 
 namespace Gymbro.Tests.Integration;
@@ -195,6 +203,16 @@ public sealed class PostgresFixture : IAsyncLifetime
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PlatformAdminBehavior<,>));
 
         services.AddPersistence(configuration);
+        // Each feature module contributes its repositories + model configuration (mirrors Program.cs); the
+        // composition root adds the cross-module FK contributor. Without these the runtime model is incomplete.
+        services
+            .AddUserModulePersistence()
+            .AddExerciseModulePersistence()
+            .AddWorkoutPlanModulePersistence()
+            .AddWorkoutSessionModulePersistence()
+            .AddFoodModulePersistence()
+            .AddNutritionModulePersistence();
+        services.AddSingleton<IModelConfiguration, CrossModuleModelConfiguration>();
         services.AddIdentity(configuration);          // HTTP-bound CurrentUser — overridden below
         services.AddIdentityModule(configuration);    // UserManager, TokenService, RefreshTokenService, ICrossStoreTransaction
         services.AddSingleton<IPermissionService, PermissionService>();

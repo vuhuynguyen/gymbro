@@ -45,7 +45,8 @@ public sealed class DeleteWorkoutPlanHandlerTests
             new DbContextOptionsBuilder<AppDbContext>()
                 .UseInMemoryDatabase($"delete-plan-{Guid.NewGuid()}")
                 .Options,
-            new StubDbContextServices());
+            new StubDbContextServices(),
+            TestModelConfigurations.All());
 
     [Fact]
     public async Task Missing_plan_returns_NotFound_and_touches_nothing()
@@ -103,7 +104,7 @@ public sealed class DeleteWorkoutPlanHandlerTests
         var plan = AuthoredPlan(tenantId, authorId);
 
         await using var db = NewDb();
-        db.PlanAssignments.Add(PlanAssignment.Create(
+        db.Set<PlanAssignment>().Add(PlanAssignment.Create(
             tenantId,
             createdBy: authorId,
             traineeId: Guid.NewGuid(),
@@ -124,7 +125,7 @@ public sealed class DeleteWorkoutPlanHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
 
         repository.GetForUpdateAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
-        assignmentRepository.Query().Returns(db.PlanAssignments);
+        assignmentRepository.Query().Returns(db.Set<PlanAssignment>());
 
         var sut = CreateSut(repository, assignmentRepository, unitOfWork, authorId);
 
@@ -154,7 +155,7 @@ public sealed class DeleteWorkoutPlanHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
 
         repository.GetForUpdateAsync(plan.Id, Arg.Any<CancellationToken>()).Returns(plan);
-        assignmentRepository.Query().Returns(db.PlanAssignments);
+        assignmentRepository.Query().Returns(db.Set<PlanAssignment>());
 
         var sut = CreateSut(repository, assignmentRepository, unitOfWork, authorId);
 
@@ -175,6 +176,7 @@ public sealed class DeleteWorkoutPlanHandlerTests
         public ITenantContext TenantContext => this;
         public Guid UserId => Guid.Empty;
         public bool IsAdmin => true;
+        public string? TimeZoneId => null;
         public Guid? TenantId => null;
     }
 }

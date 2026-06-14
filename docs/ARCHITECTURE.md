@@ -45,11 +45,11 @@ audit, transactional outbox).
 gymbro/
 ├── Presentations/WebApi/        # thin controllers, Program.cs (composition root), middleware, health checks, DbSeeder
 ├── Modules/Modules.{Identity,User,Exercise,WorkoutPlan,WorkoutSession}/
-│       Application/ (Commands, Queries, Handlers, Validators, DTOs, Mapping)  ·  Entities/  ·  Infrastructure/ (Identity only)
+│       Application/ (Commands, Queries, Handlers, Validators, DTOs, Mapping)  ·  Entities/  ·  Infrastructure/Persistence/ (each module's EF configs + repositories + IModelConfiguration; Identity also owns its own DbContext)
 └── BuildingBlocks/
         BuildingBlocks.Shared/         # Result/Error, domain primitives, marker interfaces, ICurrentUser/ITenantContext, Permission/TenantRole
         BuildingBlocks.Application/    # MediatR pipeline behaviors + markers, authorization services, IUnitOfWork/IRepository
-        Infrastructure/                # AppDbContext, IdentityDbContext config, repositories, CurrentUser, TokenService, Outbox
+        Infrastructure/                # persistence kernel: AppDbContext (model-free), Repository<T>/IModelConfiguration (…Persistence.Abstractions), IdentityDbContext, CurrentUser, TokenService, Outbox
 ```
 
 ## Module boundary rules (the contract)
@@ -132,7 +132,7 @@ adherence. Trainee logging is self-scoped on `MeController` `/api/me/nutrition/*
 ### BuildingBlocks (shared kernel)
 - **Shared:** `Result`/`Error`, domain primitives (`Entity`/`AggregateRoot`, markers `ITenantEntity`/`ISharedEntity`/`ISoftDelete`), `ICurrentUser`/`ITenantContext`, `Permission`/`TenantRole` enums.
 - **Application:** MediatR pipeline behaviors (`ValidationBehavior`, `AuthorizationBehavior`, `PlatformAdminBehavior`) and their markers, authorization services, `IUnitOfWork`/`IRepository`.
-- **Infrastructure:** `AppDbContext` (filters, soft-delete, audit, transactional-outbox write), repositories, `CurrentUser`, JWT `TokenService`, the `Outbox/` types.
+- **Infrastructure:** the persistence **kernel** — `AppDbContext` (filters, soft-delete, audit, transactional-outbox write; **model-free**, assembled from injected `IModelConfiguration` contributors), plus the generic `Repository<T>` base and the `IModelConfiguration` seam in `…Persistence.Abstractions` (which the modules reference), `CurrentUser`, JWT `TokenService`, the `Outbox/` types. Each feature module owns its EF configs + repositories (`Modules.X/Infrastructure/Persistence/`) and contributes them via its `IModelConfiguration` (registered by `AddXModulePersistence`); the four cross-module FK configs live at the composition root. The kernel references **no feature module** — enforced by `ModuleBoundaryConventionTests`.
 
 ## Cross-module communication
 
@@ -163,7 +163,7 @@ adherence. Trainee logging is self-scoped on `MeController` `/api/me/nutrition/*
 ## Adding a feature (checklist)
 
 1. **Domain** — add/extend the aggregate under `Modules.<Feature>/Entities` (private setters + factory invariants).
-2. **Persistence** — add an `IEntityTypeConfiguration` + `DbSet` in `AppDbContext`; pick the marker (`ITenantEntity`/`ISharedEntity`/`ISoftDelete`); add a migration on the correct context (see [DATABASE.md](DATABASE.md)).
+2. **Persistence** — add an `IEntityTypeConfiguration` in the module's `Infrastructure/Persistence/Configurations/` (its `IModelConfiguration` picks it up by assembly scan — **no `DbSet`**; access via `Set<T>()` or a repository). A config that references **another** module's entity goes in the composition root's cross-module contributor instead. Pick the marker (`ITenantEntity`/`ISharedEntity`/`ISoftDelete`); register any repository in the module's `AddXModulePersistence`; add a migration on the correct context (see [DATABASE.md](DATABASE.md)).
 3. **Application** — add the command/query + handler (returns `Result<T>`) + validator. For a single static tenant permission, implement `ITenantAuthorizedRequest`; otherwise enforce in the handler (see [PERMISSIONS.md](PERMISSIONS.md)).
 4. **API** — add the controller action with a clean route; map `Result` → HTTP.
 5. **Docs** — update the one doc that owns the changed fact.

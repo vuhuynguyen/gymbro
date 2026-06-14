@@ -50,7 +50,7 @@ public static class ExerciseMasterDataSeeder
             var names = active.Select(e => e.Name!.Trim()).ToHashSet(StringComparer.OrdinalIgnoreCase);
             return (active, data.Exercises.Count - active.Count, names);
         },
-        LoadExistingGlobals: (db, ct) => db.Exercises
+        LoadExistingGlobals: (db, ct) => db.Set<Exercise>()
             .IgnoreQueryFilters()
             .Where(x => x.TenantId == null)
             .Include(x => x.Muscles)
@@ -64,7 +64,7 @@ public static class ExerciseMasterDataSeeder
         LoadReferencedIds: async (db, ct) =>
         {
             var ids = new HashSet<Guid>();
-            ids.UnionWith(await db.PerformedExercises
+            ids.UnionWith(await db.Set<PerformedExercise>()
                 .IgnoreQueryFilters().Select(x => x.ExerciseId).Distinct().ToListAsync(ct));
             ids.UnionWith(await db.Set<PlanWorkoutExercise>()
                 .IgnoreQueryFilters().Select(x => x.ExerciseId).Distinct().ToListAsync(ct));
@@ -73,7 +73,7 @@ public static class ExerciseMasterDataSeeder
         Create: ExerciseSeedFactory.Create,
         Apply: ExerciseSeedFactory.Apply,
         EntityId: e => e.Id,
-        Add: (db, e) => db.Exercises.Add(e),
+        Add: (db, e) => db.Set<Exercise>().Add(e),
         InvalidateSearch: cache.InvalidateSearchAsync,
         InvalidateDetail: cache.InvalidateDetailAsync);
 }

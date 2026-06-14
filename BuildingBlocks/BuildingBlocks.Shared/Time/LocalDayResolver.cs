@@ -17,4 +17,19 @@ public static class LocalDayResolver
 
         return DateOnly.FromDateTime(instant.UtcDateTime);
     }
+
+    /// <summary>
+    /// The UTC instant of local midnight on <paramref name="date"/> in <paramref name="ianaZone"/> (UTC midnight if
+    /// the zone is absent/unknown). Use to turn a local-date filter bound into the correct UTC instant, so a
+    /// "June 1–7" range matches the trainee's local days rather than UTC days.
+    /// </summary>
+    public static DateTimeOffset StartOfLocalDayUtc(DateOnly date, string? ianaZone)
+    {
+        var localMidnight = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
+        if (!string.IsNullOrWhiteSpace(ianaZone)
+            && TimeZoneInfo.TryFindSystemTimeZoneById(ianaZone, out var tz))
+            return new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(localMidnight, tz), TimeSpan.Zero);
+
+        return new DateTimeOffset(localMidnight, TimeSpan.Zero);
+    }
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics.Metrics;
+using Modules.UserModule.Entities;
 using BuildingBlocks.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -78,7 +79,7 @@ public sealed class CrossStoreReconciliationService(
 
             // Live domain users (the global filter already excludes soft-deleted; User is not tenant-scoped,
             // so a null-tenant background scope still sees every live user).
-            var liveUserIds = (await appDb.Users
+            var liveUserIds = (await appDb.Set<User>()
                     .Select(u => u.Id)
                     .ToListAsync(stoppingToken))
                 .ToHashSet();

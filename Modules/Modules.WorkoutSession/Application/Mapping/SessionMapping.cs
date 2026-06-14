@@ -313,7 +313,8 @@ internal static class SessionMapping
             prCount,
             programName,
             planWeek,
-            weeklyGoal);
+            weeklyGoal,
+            session.ClientTimezone);
 
     public static SessionListDto ToSessionListDto(
         IReadOnlyList<SessionSummaryDto> items,

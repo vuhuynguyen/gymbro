@@ -45,7 +45,8 @@ public sealed record AddAdhocNutritionItemCommand(
     decimal? ProteinG = null,
     decimal? CarbsG = null,
     decimal? FatG = null,
-    decimal? FiberG = null) : IRequest<Result<Guid>>, ITenantAuthorizedRequest
+    decimal? FiberG = null,
+    Guid? ClientItemId = null) : IRequest<Result<Guid>>, ITenantAuthorizedRequest
 {
     public Permission RequiredPermission => Permission.NutritionLogCreate;
 }

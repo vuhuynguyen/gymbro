@@ -51,26 +51,22 @@ connectivity the queue flushes via the batch endpoint below; the server upserts 
 append-mostly** (a user edits *their own* day; a coach never writes a trainee's log), which is why no CRDT/merge
 engine is needed.
 
-### The idempotent-write `clientItemId` / `/sync` batch contract *(future-only — exists nowhere as-built)*
+### The idempotent-write `clientItemId` contract — **the primitive has SHIPPED**
 
-Shipped nutrition writes are ordinary (non-idempotent). The offline phase makes the write contract idempotent:
+The smallest correct primitive is built: ad-hoc log creates are **idempotent by a client-generated
+`clientItemId` (GUID)**. `LoggedItem.ClientItemId` + a unique filtered `(DailyNutritionLogId, ClientItemId)`
+index back it; `AddAdhocNutritionItemHandler` returns the existing item on a replay (no duplicate), on both the
+normal and day-create-race paths. The Flutter client sends a `clientItemId` per ad-hoc add (generated once,
+outside the call, so a network retry / Dio 401-replay reuses it) — so a flaky "ate it" tap never double-logs.
+Validation is unchanged (FluentValidation still runs; idempotency is about *create semantics*).
 
-- Trainee log writes accept a **client-generated `clientItemId` (GUID)** + an **idempotency key**. The server
-  upserts: a re-sent create with a known `clientItemId` returns the existing item (`200`) instead of creating a
-  duplicate. Backed by a unique `(DailyNutritionLogId, ClientItemId)` index + upsert — the *exact* idempotency
-  posture the platform already runs (at-least-once outbox; the session start-handler tolerates a duplicate-insert
-  race via its unique index). **Validation is unchanged** — FluentValidation still runs; idempotency is about
-  *create semantics*, not skipping validation.
-- **`POST /api/me/nutrition/sync`** — **batch** apply a queue of offline mutations; the server upserts each by
-  `clientItemId` and returns server truth per item for reconciliation. The API stays **stateless and
-  "offline-unaware"** — it just accepts client ids and upserts; nothing bypasses tenant validation or scoping
-  (queued writes carry the user's auth on flush and hit the self-scoped `/api/me` surface).
-
-**Scope discipline:** MVP-of-the-offline-phase = offline **writes** (never lose a logged meal) + offline **read**
-of cached recent days, one-directional flush. Richer two-way reconciliation (e.g. phone + tablet same day) is a
-later refinement the `clientItemId` + server-truth-on-ack design already supports without rework. **Dependency
-cost:** Flutter adds `drift` (+ `sqlite3_flutter_libs`) and `flutter_local_notifications` — a bounded, deliberate
-increase over today's deps, each justified by a brief requirement.
+**Remaining (the offline queue itself):**
+- A Flutter **`drift` (SQLite)** store: a mirror of recent days (offline read) + a pending-mutation queue
+  (optimistic local write → flush when online). New deps: `drift` (+ `sqlite3_flutter_libs`) + connectivity.
+- **`POST /api/nutrition/log/sync`** — an optional batch endpoint that applies a queue in one round-trip
+  (returns server truth per item). Not strictly required: the queue can flush by replaying the individual
+  idempotent writes, which the shipped `clientItemId` already makes safe.
+- Conflict policy stays **last-write-wins per item** (nutrition writes are single-author, append-mostly).
 
 ## A2. Recurrence & reminders (client-local-first)
 

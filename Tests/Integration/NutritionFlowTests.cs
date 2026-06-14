@@ -100,6 +100,37 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
     }
 
     [SkippableFact]
+    public async Task Ad_hoc_logging_is_idempotent_by_client_item_id()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        var day = new DateOnly(2026, 3, 28);
+        var clientItemId = Guid.NewGuid();
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId, isAdmin: true);
+        var foodResult = await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Idempotency Banana", "Food", "1 medium", 120m, 105m, 1m, 27m, 0m, 3m, Brand: null)));
+        Assert.True(foodResult.IsSuccess);
+        var foodId = foodResult.Value;
+
+        // Self-log (Owner has no nutrition assignment, so the day is plain self-logged — deterministic regardless
+        // of other tests' assignments) the SAME ad-hoc item twice with one client id: a flaky retry / offline replay.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var first = await fixture.SendAsync(new AddAdhocNutritionItemCommand(
+            day, foodId, 1m, "Snack", null, ClientItemId: clientItemId));
+        Assert.True(first.IsSuccess);
+        var second = await fixture.SendAsync(new AddAdhocNutritionItemCommand(
+            day, foodId, 1m, "Snack", null, ClientItemId: clientItemId));
+        Assert.True(second.IsSuccess);
+
+        Assert.Equal(first.Value, second.Value); // replay returns the SAME item, never a duplicate
+
+        var today = await fixture.SendAsync(new GetMyNutritionTodayQuery(day, "UTC"));
+        Assert.True(today.IsSuccess);
+        var bananas = today.Value!.Meals.SelectMany(m => m.Items).Count(i => i.FoodName == "Idempotency Banana");
+        Assert.Equal(1, bananas); // exactly one, despite two log calls
+    }
+
+    [SkippableFact]
     public async Task Assignment_snapshot_and_seeded_day_survive_a_new_plan_version()
     {
         Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);

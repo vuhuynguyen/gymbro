@@ -34,6 +34,15 @@ public sealed class AddAdhocNutritionItemHandler(
         if (!log.IsOpen)
             return Result<Guid>.Failure(Conflict("DailyLog.Closed", "This day is closed and can no longer be edited."));
 
+        // Idempotent create: a replayed offline write (same client-generated id) returns the existing item rather
+        // than logging a duplicate — so a flaky retry or an offline-queue flush never double-counts a meal.
+        if (request.ClientItemId is { } clientId && clientId != Guid.Empty)
+        {
+            var existing = log.Items.FirstOrDefault(i => i.ClientItemId == clientId);
+            if (existing != null)
+                return Result<Guid>.Success(existing.Id);
+        }
+
         var mealName = string.IsNullOrWhiteSpace(request.MealName) ? "Off-plan" : request.MealName.Trim();
         LoggedItemData data;
 
@@ -52,7 +61,7 @@ public sealed class AddAdhocNutritionItemHandler(
                 Kind: food.Kind,
                 FoodNameSnapshot: food.Name, ServingLabelSnapshot: food.ServingLabel, Quantity: request.Quantity,
                 EnergyKcal: food.EnergyKcal, ProteinG: food.ProteinG, CarbsG: food.CarbsG,
-                FatG: food.FatG, FiberG: food.FiberG);
+                FatG: food.FatG, FiberG: food.FiberG, ClientItemId: request.ClientItemId);
         }
         else if (!string.IsNullOrWhiteSpace(request.CustomName))
         {
@@ -65,7 +74,7 @@ public sealed class AddAdhocNutritionItemHandler(
                 ServingLabelSnapshot: string.IsNullOrWhiteSpace(request.ServingLabel) ? "1 serving" : request.ServingLabel.Trim(),
                 Quantity: request.Quantity,
                 EnergyKcal: request.EnergyKcal, ProteinG: request.ProteinG, CarbsG: request.CarbsG,
-                FatG: request.FatG, FiberG: request.FiberG);
+                FatG: request.FatG, FiberG: request.FiberG, ClientItemId: request.ClientItemId);
         }
         else
         {
@@ -95,6 +104,14 @@ public sealed class AddAdhocNutritionItemHandler(
             logRepository.Detach(log); // drop our losing insert so the next save only writes the new item
             if (!raced.IsOpen)
                 return Result<Guid>.Failure(Conflict("DailyLog.Closed", "This day is closed and can no longer be edited."));
+
+            // Idempotency holds on the winning day too (a concurrent flush may already have applied this create).
+            if (request.ClientItemId is { } cid && cid != Guid.Empty)
+            {
+                var existingOnRaced = raced.Items.FirstOrDefault(i => i.ClientItemId == cid);
+                if (existingOnRaced != null)
+                    return Result<Guid>.Success(existingOnRaced.Id);
+            }
 
             var retryItem = raced.AddAdhocItem(data, request.Note);
             logRepository.AddItem(retryItem); // raced is loaded (Unchanged) — force the child Added, as above

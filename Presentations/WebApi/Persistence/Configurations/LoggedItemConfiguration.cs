@@ -35,6 +35,9 @@ public sealed class LoggedItemConfiguration : IEntityTypeConfiguration<LoggedIte
         builder.Property(x => x.Status).IsRequired();
         builder.Property(x => x.Note).HasMaxLength(500);
 
+        // Offline idempotency: a client-generated id for ad-hoc creates. Planned/seeded items have none.
+        builder.Property(x => x.ClientItemId);
+
         // Current food: cross-module FK to the catalog (Restrict), mirroring PerformedExercise → Exercise.
         // SubstitutedFromFoodId is an app-enforced soft FK (no DB FK), mirroring SubstitutedFromExerciseId.
         builder.HasOne<Food>()
@@ -49,5 +52,10 @@ public sealed class LoggedItemConfiguration : IEntityTypeConfiguration<LoggedIte
 
         builder.HasIndex(x => new { x.DailyNutritionLogId, x.Order });
         builder.HasIndex(x => new { x.DailyNutritionLogId, x.Status });
+
+        // One row per (day, client id) — the DB backstop for idempotent offline replays.
+        builder.HasIndex(x => new { x.DailyNutritionLogId, x.ClientItemId })
+            .IsUnique()
+            .HasFilter("\"ClientItemId\" IS NOT NULL");
     }
 }

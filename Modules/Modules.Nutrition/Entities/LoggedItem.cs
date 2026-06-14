@@ -24,7 +24,8 @@ public sealed record LoggedItemData(
     decimal? ProteinG,
     decimal? CarbsG,
     decimal? FatG,
-    decimal? FiberG);
+    decimal? FiberG,
+    Guid? ClientItemId = null);
 
 /// <summary>
 /// The unit of nutrition logging: a planned-or-ad-hoc food entry with a planned-vs-actual status and a
@@ -35,6 +36,9 @@ public sealed class LoggedItem : BaseEntity, ITenantEntity
     public Guid DailyNutritionLogId { get; private set; }
     /// <summary>The plan item this fulfils. Null ⇒ ad-hoc / off-plan.</summary>
     public Guid? PlanMealItemId { get; private set; }
+    /// <summary>Client-generated id for idempotent (offline-tolerant) ad-hoc creates: a replay of the same
+    /// create is a no-op success. Unique per day (filtered). Null for planned/snapshot-seeded items.</summary>
+    public Guid? ClientItemId { get; private set; }
     public string MealName { get; private set; } = null!;
     public TimeOnly? ScheduledTime { get; private set; }
     public int Order { get; private set; }
@@ -88,6 +92,7 @@ public sealed class LoggedItem : BaseEntity, ITenantEntity
             TenantId = tenantId,
             DailyNutritionLogId = logId,
             PlanMealItemId = d.PlanMealItemId,
+            ClientItemId = d.ClientItemId,
             MealName = string.IsNullOrWhiteSpace(d.MealName) ? "Meal" : d.MealName.Trim(),
             ScheduledTime = d.ScheduledTime,
             Order = d.Order,

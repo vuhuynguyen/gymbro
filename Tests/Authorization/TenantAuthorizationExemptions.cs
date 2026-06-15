@@ -105,6 +105,10 @@ internal static class TenantAuthorizationExemptions
                 "Per-lift e1RM drill-down computed from QueryOwnAcrossGyms(currentUser.UserId) only; an exercise "
                 + "id is just a filter on the caller's own sessions, so a foreign or never-trained lift returns "
                 + "an empty series, never another trainee's data."),
+            ["GetMyStrengthLiftsQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Full strength-lift list gathered from QueryOwnAcrossGyms(currentUser.UserId) only; the optional "
+                + "muscle filter narrows the caller's own lifts in memory, so it never reaches another trainee's "
+                + "data — a per-user surface, not a tenant permission."),
             ["GetClientRosterQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Coach roster (tenant-scoped, own gym only): the handler gates on "
                 + "tenantAuth.HasPermissionAsync(tenantId, WorkoutLogViewAll) and computes every per-client "
@@ -170,6 +174,9 @@ internal static class TenantAuthorizationExemptions
             ["ResolveExerciseTrackingTypesQuery"] = new(ExemptionKind.InternalLookup,
                 "Internal enrichment: maps exercise ids to tracking modes so the session module can denormalize "
                 + "the mode onto a performed exercise; exposes no tenant-scoped row data of its own."),
+            ["ResolveExerciseMuscleGroupsQuery"] = new(ExemptionKind.InternalLookup,
+                "Internal enrichment: maps exercise ids to their primary muscle group (camelCase string) so the "
+                + "session module can label Progress strength lifts; exposes no tenant-scoped row data of its own."),
             ["ValidateExerciseIdsQuery"] = new(ExemptionKind.InternalLookup,
                 "Internal validation: checks that referenced exercise ids exist; returns no row data and is "
                 + "only invoked by already-authorized create/update handlers."),

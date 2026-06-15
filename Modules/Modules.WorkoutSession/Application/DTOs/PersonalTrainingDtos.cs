@@ -92,6 +92,36 @@ public sealed record ProgressOverviewDto(
     IReadOnlyList<PersonalRecordDto> RecentPrs,
     DateTimeOffset GeneratedAtUtc);
 
+// ── Progress page — full strength-lift list (api/me/exercises/strength-lifts, Phase 2) ──
+
+/// <summary>
+/// One strength lift the caller performed in the window, with its current e1RM, qualifying session count,
+/// primary muscle group (camelCase, resolved cross-module; null when unresolved), and — ONLY when the honesty
+/// gate is met (<see cref="HasTrend"/>, i.e. ≥ 4 qualifying sessions) — its direction/stall/spark trend. When
+/// <see cref="HasTrend"/> is false the trend fields stay at their defaults (Flat/false/0/empty) and the client
+/// shows e1RM + session count only — a thin lift NEVER gets a fabricated direction.
+/// </summary>
+public sealed record StrengthLiftDto(
+    Guid ExerciseId,
+    string? ExerciseName,
+    string? PrimaryMuscleGroup,
+    int SessionCount,
+    decimal CurrentE1rmKg,
+    bool HasTrend,
+    LiftTrendDirection Direction,
+    bool Stalled,
+    int StallSessions,
+    IReadOnlyList<decimal> SparkE1rmKg);
+
+/// <summary>
+/// The full list of strength lifts the caller performed in the selected window (default 12 weeks), sorted by
+/// current e1RM descending. Unlike the overview's top-3 strip this is UNCAPPED — every performed strength lift
+/// appears, even those with too few sessions to trend (their <see cref="StrengthLiftDto.HasTrend"/> is false).
+/// Always returned (empty <see cref="Lifts"/> for a brand-new user) — never a 204.
+/// </summary>
+public sealed record StrengthLiftListDto(
+    IReadOnlyList<StrengthLiftDto> Lifts);
+
 // ── Progress page — per-lift e1RM series (api/me/exercises/{id}/e1rm-series, Phase 2) ──
 
 /// <summary>

@@ -34,15 +34,28 @@ public sealed class GetMyNutritionAdherenceHandlerTests
     // ── handler wiring ──
 
     private static GetMyNutritionAdherenceHandler CreateSut(Guid userId, IEnumerable<DailyNutritionLog> logs)
+        => CreateSut(userId, logs, Array.Empty<NutritionPlanAssignment>());
+
+    /// <summary>
+    /// Wires the handler over in-memory logs and the assignments that govern them. The TargetKcal redaction reads
+    /// each day's governing assignment's <c>HideMacroTargets</c> via <c>QueryOwnAcrossGyms</c>, so tests that
+    /// exercise hiding seed a matching <see cref="NutritionPlanAssignment"/> here.
+    /// </summary>
+    private static GetMyNutritionAdherenceHandler CreateSut(
+        Guid userId, IEnumerable<DailyNutritionLog> logs, IEnumerable<NutritionPlanAssignment> assignments)
     {
         var repo = Substitute.For<IDailyNutritionLogRepository>();
         repo.QueryOwnAcrossGyms(userId).Returns(new TestAsyncEnumerable<DailyNutritionLog>(logs));
+
+        var assignmentRepo = Substitute.For<INutritionPlanAssignmentRepository>();
+        assignmentRepo.QueryOwnAcrossGyms(userId)
+            .Returns(new TestAsyncEnumerable<NutritionPlanAssignment>(assignments));
 
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(userId);
         currentUser.TimeZoneId.Returns("UTC");
 
-        return new GetMyNutritionAdherenceHandler(repo, currentUser);
+        return new GetMyNutritionAdherenceHandler(repo, assignmentRepo, currentUser);
     }
 
     // ── seeding (private setters ⇒ reflection; items seeded through the domain) ──
@@ -51,10 +64,12 @@ public sealed class GetMyNutritionAdherenceHandlerTests
     /// planned items, of which <paramref name="completed"/> are marked Completed. Left Open unless
     /// <paramref name="close"/> (then still-Planned items become Missed and AdherencePct is finalized).</summary>
     private static DailyNutritionLog PlannedDay(
-        Guid traineeId, DateOnly localDate, int planned, int completed, bool close = false)
+        Guid traineeId, DateOnly localDate, int planned, int completed, bool close = false,
+        Guid? assignmentId = null)
     {
         var log = DailyNutritionLog.Open(
-            traineeId, Tenant, localDate, "UTC", NutritionSource.FromAssignment, Guid.NewGuid(), null);
+            traineeId, Tenant, localDate, "UTC", NutritionSource.FromAssignment,
+            assignmentId ?? Guid.NewGuid(), null);
 
         log.SeedPlannedItems(Enumerable.Range(0, planned).Select(i => PlannedItem(i)));
 
@@ -92,6 +107,30 @@ public sealed class GetMyNutritionAdherenceHandlerTests
             Quantity: 1m,
             EnergyKcal: 90m, ProteinG: 1m, CarbsG: 23m, FatG: 0m, FiberG: 3m);
 
+    /// <summary>A governing assignment with a chosen <paramref name="id"/> (so it matches a day's
+    /// <c>NutritionPlanAssignmentId</c>) and the given <paramref name="hideMacroTargets"/>. The factory
+    /// self-generates an Id, so we overwrite it via the AggregateRoot base setter (reflection).</summary>
+    private static NutritionPlanAssignment AssignmentWithId(Guid id, Guid traineeId, bool hideMacroTargets)
+    {
+        var assignment = NutritionPlanAssignment.Create(
+            tenantId: Tenant,
+            createdBy: Guid.NewGuid(),
+            traineeId: traineeId,
+            planId: Guid.NewGuid(),
+            planVersion: 1,
+            startDate: new DateOnly(2026, 1, 1),
+            endDate: null,
+            visibilityMode: NutritionVisibilityMode.Full,
+            hideMacroTargets: hideMacroTargets,
+            disableTraineeEditing: false,
+            snapshotJson: null);
+
+        typeof(NutritionPlanAssignment)
+            .GetProperty(nameof(NutritionPlanAssignment.Id))!
+            .SetValue(assignment, id);
+        return assignment;
+    }
+
     private static LoggedItemData PlannedItem(int order)
         => new(
             PlanMealItemId: Guid.NewGuid(),   // non-null ⇒ IsPlanned
@@ -105,10 +144,14 @@ public sealed class GetMyNutritionAdherenceHandlerTests
             Quantity: 1m,
             EnergyKcal: 300m, ProteinG: 10m, CarbsG: 50m, FatG: 6m, FiberG: 8m);
 
-    private static async Task<Modules.NutritionModule.Application.DTOs.NutritionAdherenceDto> Run(
+    private static Task<Modules.NutritionModule.Application.DTOs.NutritionAdherenceDto> Run(
         Guid userId, IEnumerable<DailyNutritionLog> logs)
+        => Run(userId, logs, Array.Empty<NutritionPlanAssignment>());
+
+    private static async Task<Modules.NutritionModule.Application.DTOs.NutritionAdherenceDto> Run(
+        Guid userId, IEnumerable<DailyNutritionLog> logs, IEnumerable<NutritionPlanAssignment> assignments)
     {
-        var result = await CreateSut(userId, logs).Handle(
+        var result = await CreateSut(userId, logs, assignments).Handle(
             new GetMyNutritionAdherenceQuery(null, null), CancellationToken.None);
         Assert.True(result.IsSuccess);
         return result.Value!;
@@ -314,27 +357,93 @@ public sealed class GetMyNutritionAdherenceHandlerTests
         Assert.True(dto.HasAnyLogging);
     }
 
+    // ── per-day calorie totals (consumedKcal all-source, targetKcal plan-only, honesty gate) ──
+
+    [Fact]
+    public async Task ConsumedKcal_counts_adhoc_items_logged_on_a_planned_day()
+    {
+        var userId = Guid.NewGuid();
+        // A planned day this week: 2 planned items (300 kcal each), 1 completed ⇒ consumed includes that 1
+        // completed planned item (300). Adding an ad-hoc item (90 kcal, created Completed) lifts consumed to 390.
+        var day = PlannedDay(userId, ThisMonday, planned: 2, completed: 1);
+        day.AddAdhocItem(AdhocItem(99), note: null);
+
+        var dto = await Run(userId, new[] { day });
+
+        var d = Assert.Single(dto.Days);
+        // Consumed = 1 completed planned (300) + 1 ad-hoc (90), ALL sources.
+        Assert.Equal(390, d.ConsumedKcal);
+        // Target = sum over the 2 PLANNED items only (2 × 300), ad-hoc never counted toward the target.
+        Assert.Equal(600, d.TargetKcal);
+        // AdherencePct stays plan-only and unchanged: 1 of 2 planned completed ⇒ 50%.
+        Assert.Equal(50, d.AdherencePct);
+    }
+
+    [Fact]
+    public async Task TargetKcal_is_null_when_the_governing_assignment_hides_macro_targets()
+    {
+        var userId = Guid.NewGuid();
+        var assignmentId = Guid.NewGuid();
+        var day = PlannedDay(userId, ThisMonday, planned: 2, completed: 2, assignmentId: assignmentId);
+        var hiding = AssignmentWithId(assignmentId, userId, hideMacroTargets: true);
+
+        var dto = await Run(userId, new[] { day }, new[] { hiding });
+
+        var d = Assert.Single(dto.Days);
+        // Target redacted to null (never fabricated) — but consumed (the trainee's own logged energy) stays.
+        Assert.Null(d.TargetKcal);
+        Assert.Equal(600, d.ConsumedKcal); // 2 completed planned × 300
+        Assert.Equal(100, d.AdherencePct); // adherence unchanged by hiding
+    }
+
+    [Fact]
+    public async Task ConsumedKcal_and_TargetKcal_are_both_correct_on_a_mixed_plan_and_adhoc_day()
+    {
+        var userId = Guid.NewGuid();
+        var assignmentId = Guid.NewGuid();
+        // 3 planned (300 each = 900 target), 2 completed (600), plus 2 ad-hoc items (90 each = 180).
+        var day = PlannedDay(userId, ThisMonday, planned: 3, completed: 2, assignmentId: assignmentId);
+        day.AddAdhocItem(AdhocItem(101), note: null);
+        day.AddAdhocItem(AdhocItem(102), note: null);
+        var visible = AssignmentWithId(assignmentId, userId, hideMacroTargets: false);
+
+        var dto = await Run(userId, new[] { day }, new[] { visible });
+
+        var d = Assert.Single(dto.Days);
+        Assert.Equal(900, d.TargetKcal);                 // 3 planned × 300, plan-only
+        Assert.Equal(2 * 300 + 2 * 90, d.ConsumedKcal);  // 2 completed planned + 2 ad-hoc = 780
+        Assert.Equal(67, d.AdherencePct);                // 2/3 ⇒ 66.67 → 67 (unchanged rounding)
+    }
+
     // ── self-scope / IDOR ──
 
     [Fact]
     public async Task Read_only_queries_the_callers_own_logs()
     {
         var userA = Guid.NewGuid();
+        var assignmentId = Guid.NewGuid();
         var repo = Substitute.For<IDailyNutritionLogRepository>();
         repo.QueryOwnAcrossGyms(userA).Returns(
-            new TestAsyncEnumerable<DailyNutritionLog>(new[] { PlannedDay(userA, ThisMonday, 2, 1) }));
+            new TestAsyncEnumerable<DailyNutritionLog>(
+                new[] { PlannedDay(userA, ThisMonday, 2, 1, assignmentId: assignmentId) }));
+
+        var assignmentRepo = Substitute.For<INutritionPlanAssignmentRepository>();
+        assignmentRepo.QueryOwnAcrossGyms(userA).Returns(
+            new TestAsyncEnumerable<NutritionPlanAssignment>(
+                new[] { AssignmentWithId(assignmentId, userA, hideMacroTargets: false) }));
 
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(userA);
         currentUser.TimeZoneId.Returns("UTC");
-        var sut = new GetMyNutritionAdherenceHandler(repo, currentUser);
+        var sut = new GetMyNutritionAdherenceHandler(repo, assignmentRepo, currentUser);
 
         var result = await sut.Handle(new GetMyNutritionAdherenceQuery(null, null), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        // The repository is only ever asked for the caller's own id — user B's logs are unreachable.
+        // Both repositories are only ever asked for the caller's own id — another user's data is unreachable.
         repo.Received(1).QueryOwnAcrossGyms(userA);
         repo.DidNotReceive().QueryOwnAcrossGyms(Arg.Is<Guid>(id => id != userA));
+        assignmentRepo.DidNotReceive().QueryOwnAcrossGyms(Arg.Is<Guid>(id => id != userA));
     }
 
     // ── explicit window ──

@@ -32,6 +32,7 @@ namespace Modules.NutritionModule.Application.Queries.Handlers;
 /// </summary>
 public sealed class GetMyNutritionAdherenceHandler(
     IDailyNutritionLogRepository logRepository,
+    INutritionPlanAssignmentRepository assignmentRepository,
     ICurrentUser currentUser)
     : IRequestHandler<GetMyNutritionAdherenceQuery, Result<NutritionAdherenceDto>>
 {
@@ -86,10 +87,30 @@ public sealed class GetMyNutritionAdherenceHandler(
             .Select(NutritionMapping.SummaryRowProjection)
             .ToListAsync(cancellationToken);
 
+        // Per-day calorie target respects the governing assignment's HideMacroTargets (the trend's sibling of the
+        // day read's macro redaction). Resolve the flag for just the assignments that govern the window's days —
+        // one bounded, self-scoped lookup of the distinct ids, not a per-row query.
+        var assignmentIds = rows
+            .Where(r => r.NutritionPlanAssignmentId != null)
+            .Select(r => r.NutritionPlanAssignmentId!.Value)
+            .Distinct()
+            .ToList();
+
+        var hideMacroTargetsById = assignmentIds.Count == 0
+            ? new Dictionary<Guid, bool>()
+            : (await assignmentRepository.QueryOwnAcrossGyms(currentUser.UserId)
+                    .AsNoTracking()
+                    .Where(a => assignmentIds.Contains(a.Id))
+                    .Select(a => new { a.Id, a.HideMacroTargets })
+                    .ToListAsync(cancellationToken))
+                .ToDictionary(a => a.Id, a => a.HideMacroTargets);
+
         var days = rows
-            .Select(NutritionMapping.ToSummaryDto)
-            .OrderBy(d => d.LocalDate)
-            .Select(d => new DailyAdherenceDto(d.LocalDate, d.AdherencePct, d.PlannedCount, d.CompletedCount))
+            .OrderBy(r => r.LocalDate)
+            .Select(r => NutritionMapping.ToAdherenceDto(
+                r,
+                hideMacroTargets: r.NutritionPlanAssignmentId is { } id
+                    && hideMacroTargetsById.TryGetValue(id, out var hide) && hide))
             .ToList();
 
         // Current local week (Monday-anchored, in the caller's zone): mean adherence over its planned days.

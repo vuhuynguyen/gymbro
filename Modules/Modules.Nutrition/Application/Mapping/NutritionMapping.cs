@@ -186,6 +186,17 @@ internal static class NutritionMapping
             l.Items.Count(i => i.PlanMealItemId != null
                 && (i.Status == LoggedItemStatus.Completed || i.Status == LoggedItemStatus.Substituted)));
 
+    /// <summary>
+    /// SQL predicate for "this day has at least one actually-logged food item" — any source. An ad-hoc item is
+    /// created already <c>Completed</c> and a planned item the trainee ticked is <c>Completed</c>/<c>Substituted</c>,
+    /// so both count; <c>Planned</c>/<c>Skipped</c>/<c>Missed</c> placeholders do not. Used by the nutrition-adherence
+    /// read's ad-hoc <i>tracking</i> signal (D15) — unlike <see cref="SummaryRowProjection"/>'s CompletedCount it is
+    /// NOT restricted to planned items, so a pure self-logged day registers as "logged".
+    /// </summary>
+    public static Expression<Func<DailyNutritionLog, bool>> HasLoggedItem =>
+        l => l.Items.Any(i =>
+            i.Status == LoggedItemStatus.Completed || i.Status == LoggedItemStatus.Substituted);
+
     // ── Metric entries (daily check-in) ───────────────────────────────────
 
     public static MetricEntryDto ToMetricDto(MetricEntry e) =>

@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Tracking;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modules.WorkoutSessionModule.Application.Abstractions;
@@ -22,15 +23,12 @@ public sealed class CompleteSessionHandler(
         CompleteSessionCommand request,
         CancellationToken cancellationToken)
     {
-        var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
-        if (session == null)
-            return Result<CompleteSessionResultDto>.Failure(NotFound("NotFound", "Session not found."));
-
-        if (session.TraineeId != currentUser.UserId)
-            return Result<CompleteSessionResultDto>.Failure(Unauthorized("Unauthorized", "This session does not belong to you."));
-
-        if (session.Status != SessionStatus.InProgress)
-            return Result<CompleteSessionResultDto>.Failure(Conflict("Conflict", "Session is already completed or abandoned."));
+        var load = await SessionGuard.LoadOwnedInProgressAsync(
+            sessionRepository, currentUser, request.SessionId, cancellationToken,
+            SessionGuard.TerminalStateMessage);
+        if (load.IsFailure)
+            return Result<CompleteSessionResultDto>.Failure(load.Error);
+        var session = load.Value!;
 
         var exercises = await exerciseRepository.Query()
             .Include(e => e.Sets)
@@ -65,10 +63,12 @@ public sealed class CompleteSessionHandler(
         IReadOnlyCollection<PerformedExercise> exercises,
         CancellationToken cancellationToken)
     {
-        // Session-best e1RM per exercise, from the working sets just logged (already in memory).
+        // Session-best e1RM per PR-eligible lift, from the working sets just logged (already in memory).
+        // Eligibility (working set, strength/bodyweight, reps ≤ 12, e1RM present) is single-sourced in
+        // SessionPrRules so the list count, the detail view and the Progress page agree.
         var sessionBest = exercises
             .SelectMany(e => e.Sets
-                .Where(s => s.SetType == PerformedSetType.Working && s.EstimatedOneRepMaxKg != null)
+                .Where(s => SessionPrRules.IsPrEligibleSet(e.TrackingType, s))
                 .Select(s => new { e.ExerciseId, E1 = s.EstimatedOneRepMaxKg!.Value }))
             .GroupBy(x => x.ExerciseId)
             .ToDictionary(g => g.Key, g => g.Max(x => x.E1));
@@ -82,15 +82,19 @@ public sealed class CompleteSessionHandler(
         // becomes a read hotspot for long-tenured users. Result is identical.
         var prExerciseIds = sessionBest.Keys.ToList();
 
-        // Prior best e1RM per exercise across sessions started before this one, aggregated in SQL so
-        // only one row per exercise is materialized (mirrors GetSessionByIdHandler's priorBest).
-        var priorBest = await sessionRepository.Query()
-            .Where(s => s.TraineeId == session.TraineeId
-                && s.Id != session.Id
-                && s.StartedAt < session.StartedAt)
+        // Prior best e1RM per exercise across sessions started before this one, aggregated in SQL so only
+        // one row per exercise is materialized. Read the trainee's own LIFETIME history across all gyms
+        // (QueryOwnAcrossGyms) — matching the detail view and the documented "all earlier sessions"
+        // semantics — so a multi-gym trainee's stored PrCount can't disagree with the recomputed detail.
+        // The eligibility predicate mirrors SessionPrRules (not callable in a SQL projection).
+        var priorBest = await sessionRepository.QueryOwnAcrossGyms(session.TraineeId)
+            .Where(s => s.Id != session.Id && s.StartedAt < session.StartedAt)
             .SelectMany(s => s.Exercises)
-            .SelectMany(e => e.Sets.Select(set => new { e.ExerciseId, set.SetType, set.EstimatedOneRepMaxKg }))
+            .Where(e => e.TrackingType == ExerciseTrackingType.Strength
+                || e.TrackingType == ExerciseTrackingType.Bodyweight)
+            .SelectMany(e => e.Sets.Select(set => new { e.ExerciseId, set.SetType, set.Reps, set.EstimatedOneRepMaxKg }))
             .Where(x => x.SetType == PerformedSetType.Working && x.EstimatedOneRepMaxKg != null
+                && x.Reps != null && x.Reps <= SessionPrRules.MaxPrReps
                 && prExerciseIds.Contains(x.ExerciseId))
             .GroupBy(x => x.ExerciseId)
             .Select(g => new { ExerciseId = g.Key, Best = g.Max(x => x.EstimatedOneRepMaxKg!.Value) })

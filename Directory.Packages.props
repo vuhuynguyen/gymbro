@@ -21,7 +21,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.5" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5" />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
 
     <!-- ASP.NET Core / Identity / auth -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
@@ -43,7 +43,10 @@
     <!-- API docs -->
     <PackageVersion Include="Scalar.AspNetCore" Version="2.13.19" />
 
-    <!-- Observability (OpenTelemetry) — 1.12.0 patches the NU1902 advisories flagged in 1.10.x. -->
+    <!-- Observability (OpenTelemetry) — pinned to 1.12.0 (restores + builds). A 1.15.3 bump (to clear
+         advisories GHSA-4625-4j76-fww9 / GHSA-g94r-2vxg-569j) was reverted: 1.15.3 of the
+         .Instrumentation.* packages does not exist (Http tops out at 1.15.1) — they version
+         independently of the core, so a real advisory bump must use per-package latest versions. -->
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />

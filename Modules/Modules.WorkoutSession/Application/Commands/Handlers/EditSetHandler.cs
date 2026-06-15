@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
+using BuildingBlocks.Shared.Tracking;
 using MediatR;
 using Modules.WorkoutSessionModule.Application.Abstractions;
 using Modules.WorkoutSessionModule.Entities;
@@ -18,15 +19,11 @@ public sealed class EditSetHandler(
 {
     public async Task<Result> Handle(EditSetCommand request, CancellationToken cancellationToken)
     {
-        var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
-        if (session == null)
-            return Result.Failure(NotFound("NotFound", "Session not found."));
-
-        if (session.TraineeId != currentUser.UserId)
-            return Result.Failure(Unauthorized("Unauthorized", "This session does not belong to you."));
-
-        if (session.Status != SessionStatus.InProgress)
-            return Result.Failure(Conflict("Conflict", "Session is not in progress."));
+        var load = await SessionGuard.LoadOwnedInProgressAsync(
+            sessionRepository, currentUser, request.SessionId, cancellationToken);
+        if (load.IsFailure)
+            return Result.Failure(load.Error);
+        var session = load.Value!;
 
         var exercise = await exerciseRepository.GetByIdAsync(request.ExerciseId, cancellationToken);
         if (exercise == null || exercise.SessionId != session.Id)
@@ -35,6 +32,20 @@ public sealed class EditSetHandler(
         var set = await setRepository.GetByIdAsync(request.SetId, cancellationToken);
         if (set == null || set.PerformedExerciseId != exercise.Id)
             return Result.Failure(NotFound("NotFound", "Set not found in this exercise."));
+
+        // Re-run the mode-aware required-metric rule against the POST-edit state (a null field in the
+        // request means "keep existing"), matching LogSet so an edit can't leave a set mode-incoherent.
+        // (Audit finding 18.)
+        if (!ExerciseTrackingRules.HasRequiredMetric(
+                exercise.TrackingType,
+                request.Reps ?? set.Reps,
+                request.WeightKg ?? set.WeightKg,
+                request.DurationSeconds ?? set.DurationSeconds,
+                request.DistanceM ?? set.DistanceM,
+                request.Rounds ?? set.Rounds,
+                request.IsCompleted ?? set.IsCompleted))
+            return Result.Failure(
+                Validation("Validation", ExerciseTrackingRules.RequiredMetricMessage(exercise.TrackingType)));
 
         set.Edit(
             request.Reps,

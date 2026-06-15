@@ -207,20 +207,8 @@ leaderboards (documented harm: session-deletion gaming, body-image pressure).
 
 ---
 
-## Open questions
+## Resolved decisions
 
-These are genuine ambiguities the spec leaves under-specified; flagged here rather than resolved silently against it.
-
-1. **Adherence denominator for multi-gym / multi-assignment trainees.** `FrequencyDaysPerWeek` lives on
-   `PlanAssignment`, but the self-scoped `/api/me/progress` aggregates sessions across all gyms via
-   `QueryOwnAcrossGyms`, and a trainee can hold multiple active assignments. The spec says "use the active assignment
-   in the most-trained gym" — make that binding and deterministic: pick the active assignment with the most completed
-   sessions this week, tie-broken by latest `StartDate`, and surface it explicitly as `ProgressWeekDto.WeeklyGoal`
-   rather than re-deriving client-side. Confirm this tie-break is the product intent (audit R1).
-2. **PR "timeline" wording.** The spec uses "PR timeline" for two different things — the records *list* (current best
-   per lift, from `/api/me/records`) and the PR *markers on the trend line* (derived from the e1RM series). They come
-   from different sources; this catalogue splits them (section 2). Confirm the home teaser pulls from
-   `/api/me/records` and the on-line markers from the series, not vice-versa (audit R3).
-3. **Bodyweight trend sequencing.** It is tagged P2 because it is endpoint-blocked, yet its blocker (a `MetricEntry`
-   range query) is a one-method, no-migration addition of the same class that enables P0 strength reads. Worth
-   confirming whether it should be pulled forward, given the low cost and high value (audit R9).
+The ambiguities this catalogue surfaced are now resolved in the central register — [IMPLEMENTATION.md §2](IMPLEMENTATION.md):
+the multi-gym adherence denominator (**D1**), the PR teaser/records vs. trend-line-markers split (**D2**), and
+bodyweight-trend sequencing (**D3** — Phase 2/3, hidden until its range endpoint ships). No open items remain here.

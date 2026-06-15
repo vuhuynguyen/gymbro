@@ -29,6 +29,12 @@ public static class IdentityModuleExtensions
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequireUppercase = true;
                 options.Password.RequireLowercase = true;
+
+                // Account lockout: throttle per-account brute force even from rotating IPs (the IP rate
+                // limit alone can't). LoginHandler counts failed attempts via AccessFailedAsync. (Audit finding 8.)
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                options.Lockout.AllowedForNewUsers = true;
             })
             .AddEntityFrameworkStores<IdentityDbContext>()
             .AddDefaultTokenProviders();

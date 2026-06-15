@@ -20,6 +20,14 @@ public class SearchExercisesHandler(
         SearchExercisesQuery request,
         CancellationToken cancellationToken)
     {
+        // Clamp pagination before it reaches the cache key / reader — an unbounded pageSize would both
+        // blow up cache-key cardinality and force a huge materialization. (Audit finding 3.)
+        request = request with
+        {
+            Page = Math.Max(request.Page, 1),
+            PageSize = Math.Clamp(request.PageSize, 1, 100)
+        };
+
         if (!currentUser.IsAdmin)
         {
             if (!tenantContext.TenantId.HasValue)

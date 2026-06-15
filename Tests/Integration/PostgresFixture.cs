@@ -1,3 +1,4 @@
+using System.Reflection;
 using BuildingBlocks.Application.Authorization;
 using BuildingBlocks.Application.Behaviors;
 using BuildingBlocks.Application.Messaging;
@@ -18,12 +19,15 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using BuildingBlocks.Shared.Tracking;
 using Modules.ExerciseModule;
 using Modules.ExerciseModule.Application.Caching;
+using Modules.ExerciseModule.Entities;
 using Modules.FoodModule;
 using Modules.NutritionModule;
 using Modules.NutritionModule.Application.Abstractions;
 using Modules.NutritionModule.Application.Services;
+using Modules.NutritionModule.Entities;
 using Modules.IdentityModule;
 using Modules.IdentityModule.DependencyInjection;
 using Modules.IdentityModule.Infrastructure.Identity;
@@ -71,8 +75,29 @@ public sealed class PostgresFixture : IAsyncLifetime
     public Guid OwnerId { get; private set; }       // Owner role in TenantId -> WorkoutLogViewAll
     public Guid ClientAId { get; private set; }      // Client role -> WorkoutLogViewOwn only
     public Guid ClientBId { get; private set; }      // Client role -> WorkoutLogViewOwn only
-    public Guid SessionAId { get; private set; }     // owned by ClientA
-    public Guid SessionBId { get; private set; }     // owned by ClientB
+    public Guid SessionAId { get; private set; }     // owned by ClientA (the original in-progress session)
+    public Guid SessionBId { get; private set; }     // owned by ClientB (the original in-progress session)
+
+    // --- M2 / L1: real completed-session data so the EF→SQL overview projection runs against Postgres ---
+    // ClientA gets 4 completed bench sessions (one per recent week) so the lift clears the ≥4-session top-lift
+    // bar; ClientB gets a DIFFERENT number of completed sessions, all this week, so the two callers have
+    // distinct current-week completed counts (a real IDOR discriminator, not 0 == 0).
+    public Guid BenchExerciseId { get; private set; }            // the strength lift ClientA performs
+    public const int ClientACompletedThisWeek = 1;              // 1 of ClientA's 4 sessions lands this week
+    public const int ClientBCompletedThisWeek = 2;              // ClientB's two completed sessions are both this week
+    // Per session: a 5×100 working set (e1RM 116.7) + a heavier 3×120 working set (e1RM 132.0 = MAX) + a Drop
+    // stage (null e1RM). The overview must surface 132.0 as CurrentE1rmKg, proving the nested Where + Max over
+    // e.Sets translated and ran correctly, and that the drop cluster neither raised nor suppressed the value.
+    public const decimal ExpectedBenchCurrentE1rmKg = 132.0m;
+
+    // --- Phase 2: body-metric series (MetricEntry) so the GetMyMetricSeriesQuery read runs against Postgres ---
+    // ClientA logs "weight" on two recent local days; the EARLIER day has TWO entries so latest-per-day is
+    // exercised (the later check-in must win). ClientB logs nothing of that type, so the IDOR assertion
+    // discriminates (A has a series, B is empty) rather than 0 == 0.
+    public static readonly DateOnly MetricDayOld = DateOnly.FromDateTime(DateTimeOffset.UtcNow.UtcDateTime).AddDays(-2);
+    public static readonly DateOnly MetricDayNew = DateOnly.FromDateTime(DateTimeOffset.UtcNow.UtcDateTime).AddDays(-1);
+    public const decimal MetricOldDayLatestKg = 81.0m;   // the later of the two old-day check-ins
+    public const decimal MetricNewDayKg = 80.4m;
 
     public Guid OtherTenantId { get; private set; }
     public Guid OtherOwnerId { get; private set; }   // Owner in OtherTenantId
@@ -273,11 +298,106 @@ public sealed class PostgresFixture : IAsyncLifetime
             ClientBId, TenantId, SessionSource.Adhoc, null, null, "Pull Day", null, "UTC", null);
         db.Set<WorkoutSession>().AddRange(sessionA, sessionB);
 
+        // A real catalog Exercise so the PerformedExercise FK (OnDelete.Restrict to Exercises) is satisfiable.
+        var bench = Exercise.CreateGlobal(
+            "Barbell Bench Press", "", "", ExerciseType.Strength, MovementType.Compound,
+            DifficultyLevel.Intermediate, Equipment.Barbell, null, null,
+            new[] { (MuscleGroup.Chest, true) }, ExerciseTrackingType.Strength);
+        db.Set<Exercise>().Add(bench);
+        BenchExerciseId = bench.Id;
+
+        // ClientA: 4 completed bench sessions, one per recent week (weeks 0..3 back from this Monday), each
+        // with a qualifying Working set + a heavier Working set (the MAX) + a Drop stage. Spreading them one
+        // per week clears the ≥4-session top-lift bar; exactly one (week 0) lands in the current week.
+        var thisMonday = MondayOfUtcWeek(DateTimeOffset.UtcNow);
+        for (var weeksAgo = 0; weeksAgo < 4; weeksAgo++)
+        {
+            var startedAt = new DateTimeOffset(
+                thisMonday.Year, thisMonday.Month, thisMonday.Day, 9, 0, 0, TimeSpan.Zero).AddDays(-7 * weeksAgo);
+            db.Set<WorkoutSession>().Add(CompletedBenchSession(ClientAId, startedAt));
+        }
+
+        // ClientB: a DIFFERENT count (2) of completed sessions, both in the current week, with no qualifying
+        // strength sets — so its current-week completed count (2) differs from ClientA's (1), and its TopLifts
+        // stay empty. The differing counts are what make the IDOR assertion discriminate rather than 0 == 0.
+        for (var i = 0; i < ClientBCompletedThisWeek; i++)
+        {
+            var startedAt = new DateTimeOffset(
+                thisMonday.Year, thisMonday.Month, thisMonday.Day, 9, 0, 0, TimeSpan.Zero).AddDays(i);
+            db.Set<WorkoutSession>().Add(CompletedSession(ClientBId, startedAt));
+        }
+
+        // ClientA's body-metric ("weight") check-ins: two on MetricDayOld (the later one, 81.0, is the day's
+        // "latest") + one on MetricDayNew. ClientB logs none, so the series IDOR check discriminates.
+        var oldEarly = MetricEntry.Log(ClientAId, "weight", 82.0m, "kg", MetricDayOld);
+        var oldLate = MetricEntry.Log(ClientAId, "weight", MetricOldDayLatestKg, "kg", MetricDayOld);
+        var newest = MetricEntry.Log(ClientAId, "weight", MetricNewDayKg, "kg", MetricDayNew);
+        // Force a deterministic LoggedAtUtc ordering so the later old-day entry wins latest-per-day.
+        SetProp(oldEarly, nameof(MetricEntry.LoggedAtUtc), DateTimeOffset.UtcNow.AddHours(-6));
+        SetProp(oldLate, nameof(MetricEntry.LoggedAtUtc), DateTimeOffset.UtcNow.AddHours(-1));
+        SetProp(newest, nameof(MetricEntry.LoggedAtUtc), DateTimeOffset.UtcNow);
+        db.Set<MetricEntry>().AddRange(oldEarly, oldLate, newest);
+
         await db.SaveChangesAsync();
 
         SessionAId = sessionA.Id;
         SessionBId = sessionB.Id;
     }
+
+    // ── completed-session graph seeding (entities have private setters + UtcNow stamps ⇒ reflection) ──
+
+    /// <summary>Monday-anchored start of the UTC week containing the instant — the rule the overview handler uses.</summary>
+    private static DateOnly MondayOfUtcWeek(DateTimeOffset instant)
+    {
+        var date = DateOnly.FromDateTime(instant.UtcDateTime);
+        var offsetFromMonday = ((int)date.DayOfWeek + 6) % 7;
+        return date.AddDays(-offsetFromMonday);
+    }
+
+    /// <summary>A Completed session with one strength exercise carrying a Working set, a heavier Working set
+    /// (the MAX e1RM), and a Drop stage (null e1RM) — exercises the nested Where + Max over e.Sets in SQL.</summary>
+    private WorkoutSession CompletedBenchSession(Guid traineeId, DateTimeOffset startedAt)
+    {
+        var session = CompletedSession(traineeId, startedAt);
+
+        var exercise = PerformedExercise.Create(
+            session.Id, TenantId, BenchExerciseId, null, 0, "Barbell Bench Press", ExerciseTrackingType.Strength);
+
+        var lead = WorkingSet(exercise.Id, 1, 5, 100m);     // e1RM 116.7
+        var heavier = WorkingSet(exercise.Id, 2, 3, 120m);  // e1RM 132.0 ← MAX
+        var dropStage = DropStage(exercise.Id, 3, 8, 60m, parentSetId: lead.Id);   // null e1RM
+        Backing<PerformedSet>(exercise, "_sets").AddRange(new[] { lead, heavier, dropStage });
+
+        Backing<PerformedExercise>(session, "_exercises").Add(exercise);
+        return session;
+    }
+
+    private WorkoutSession CompletedSession(Guid traineeId, DateTimeOffset startedAt)
+    {
+        var session = WorkoutSession.Start(
+            traineeId, TenantId, SessionSource.Adhoc, null, null, "Lift", null, "UTC", null);
+        SetProp(session, "StartedAt", startedAt);
+        SetProp(session, "Status", SessionStatus.Completed);
+        return session;
+    }
+
+    private PerformedSet WorkingSet(Guid performedExerciseId, int setNumber, int reps, decimal weightKg)
+        => PerformedSet.Log(performedExerciseId, TenantId, null, setNumber, PerformedSetType.Working,
+            reps, weightKg, null, null, null, null, true);
+
+    private PerformedSet DropStage(Guid performedExerciseId, int setNumber, int reps, decimal weightKg, Guid parentSetId)
+        => PerformedSet.Log(performedExerciseId, TenantId, null, setNumber, PerformedSetType.Drop,
+            reps, weightKg, null, null, null, null, true, parentSetId: parentSetId);
+
+    private static void SetProp(object target, string name, object value)
+        => target.GetType()
+            .GetProperty(name, BindingFlags.Public | BindingFlags.Instance)!
+            .SetValue(target, value);
+
+    private static List<T> Backing<T>(object target, string field)
+        => (List<T>)target.GetType()
+            .GetField(field, BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetValue(target)!;
 }
 
 [CollectionDefinition(PostgresCollection.Name)]

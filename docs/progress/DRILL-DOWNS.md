@@ -259,14 +259,9 @@ ACWR ratio) and per-lift PR detail (the lift, never a bare count).
 
 ---
 
-## Open questions
+## Resolved decisions
 
-1. **PR markers vs. records list — two sources, one mental model.** Per-lift detail (screen 1) derives PR markers from
-   the e1RM *series*, while the PR/Records page (screen 2) reads `/api/me/records` (current best per lift only). These
-   can momentarily disagree at the edges (a just-logged PR not yet reflected in a cached records read). The spec treats
-   both as "the PR timeline" — confirm we present them as one consistent story and reconcile cache eviction on
-   `SessionCompletedEvent`.
-2. **Coach trend depth vs. the 20-session page cap.** Screens 1/4/6 on the coach side assume 6–8 week (and 28-day
-   acute/chronic) windows, but the existing coach monitor pages **20 sessions** — a 4–6×/week client exceeds that in
-   ~3–5 weeks. Coach drill-downs need their own date-bounded query, not the 20-row monitor page, or these windows
-   silently truncate.
+Both items are resolved in [IMPLEMENTATION.md §2](IMPLEMENTATION.md): the two PR sources — teaser/records vs.
+trend-line markers — under **D2** (and, since Phase 1 is un-cached, no edge-of-cache disagreement exists); and coach
+trend depth vs. the 20-session cap under **D5** (coach endpoints get their own `from`/`to`-windowed query). No open
+items remain here.

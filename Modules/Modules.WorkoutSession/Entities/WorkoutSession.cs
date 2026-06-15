@@ -89,7 +89,13 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
         if (prCount < 0)
             throw new DomainException("prCount is out of range.");
 
-        var now = completedAt ?? DateTimeOffset.UtcNow;
+        // DurationSeconds is a server-derived fact. A client-supplied CompletedAt that predates the start
+        // would yield a negative duration — clamp it to the server clock (entity-level backstop). A
+        // future CompletedAt is rejected earlier by CompleteSessionCommandValidator. (Audit finding 6.)
+        var serverNow = DateTimeOffset.UtcNow;
+        var now = completedAt ?? serverNow;
+        if (now < StartedAt)
+            now = serverNow;
         Status = SessionStatus.Completed;
         CompletedAt = now;
         DurationSeconds = (int)(now - StartedAt).TotalSeconds;

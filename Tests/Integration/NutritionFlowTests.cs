@@ -605,4 +605,131 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
         Assert.True(result.IsSuccess);
         Assert.DoesNotContain(result.Value!.Items, d => d.LocalDate == Day);
     }
+
+    // ── Phase 3: self-scoped nutrition-adherence read + goal-weight (MetricEntry, no migration) ──
+
+    [SkippableFact]
+    public async Task Nutrition_adherence_reads_the_planned_days_adherence_self_scoped()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        // Distinct local days well away from the other tests' fixtures; the read uses an EXPLICIT from/to so a
+        // shared DB (other tests' assignments) can never contaminate the assertion. ClientB is the subject.
+        var d1 = new DateOnly(2026, 11, 9);   // a Monday — anchors a clean local week
+        var d2 = new DateOnly(2026, 11, 10);  // the next day, same week
+
+        // 1. Admin seeds a food; coach authors + publishes a 2-item plan and assigns it to ClientB over the window.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId, isAdmin: true);
+        var foodId = (await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Adherence Oats", "Food", "1 bowl", 60m, 300m, 10m, 50m, 6m, 8m, Brand: null)))).Value;
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var planId = (await fixture.SendAsync(new CreateNutritionPlanCommand("Adherence Plan", null))).Value;
+        var versionId = (await fixture.SendAsync(new ReplaceNutritionPlanStructureCommand(
+            planId, "Adherence Plan", null,
+            new[]
+            {
+                new NutritionPlanMealInput("Breakfast", 1, new TimeOnly(8, 0), DayApplicability.EveryDay,
+                    new[]
+                    {
+                        new NutritionPlanItemInput(foodId, 1, 1m),
+                        new NutritionPlanItemInput(foodId, 2, 1m),
+                    })
+            }))).Value;
+        Assert.True((await fixture.SendAsync(new PublishNutritionPlanCommand(versionId))).IsSuccess);
+        Assert.True((await fixture.SendAsync(new CreateNutritionAssignmentCommand(
+            fixture.ClientBId, versionId, d1, EndDate: d2,
+            NutritionVisibilityMode.Full, HideMacroTargets: false, DisableTraineeEditing: false))).IsSuccess);
+
+        // 2. ClientB touches both days (snapshot-on-touch seeds 2 planned items each) and completes one item on d1.
+        fixture.Principal.Become(fixture.ClientBId, fixture.TenantId);
+        var day1 = await fixture.SendAsync(new GetMyNutritionTodayQuery(d1, "UTC"));
+        Assert.True(day1.IsSuccess);
+        Assert.Equal(2, day1.Value!.PlannedCount);
+        var firstItem = day1.Value.Meals.SelectMany(m => m.Items).First();
+        Assert.True((await fixture.SendAsync(
+            new SetNutritionItemStatusCommand(d1, firstItem.Id, LoggedItemStatus.Completed, "ate it"))).IsSuccess);
+        Assert.True((await fixture.SendAsync(new GetMyNutritionTodayQuery(d2, "UTC"))).IsSuccess); // seed d2, none completed
+
+        // 3. Self-scoped adherence read, bounded to the seeded window only.
+        var adherence = await fixture.SendAsync(new GetMyNutritionAdherenceQuery(d1, d2));
+        Assert.True(adherence.IsSuccess);
+        Assert.True(adherence.Value!.HasPlan);
+
+        // d1: 1 of 2 planned completed ⇒ 50%; d2: 0 of 2 ⇒ 0%. Both planned days present, oldest first.
+        var day1Adh = Assert.Single(adherence.Value.Days, d => d.LocalDate == d1);
+        Assert.Equal(2, day1Adh.PlannedCount);
+        Assert.Equal(1, day1Adh.CompletedCount);
+        Assert.Equal(50, day1Adh.AdherencePct);
+        var day2Adh = Assert.Single(adherence.Value.Days, d => d.LocalDate == d2);
+        Assert.Equal(0, day2Adh.CompletedCount);
+        Assert.Equal(0, day2Adh.AdherencePct);
+    }
+
+    [SkippableFact]
+    public async Task Nutrition_adherence_is_self_scoped_and_never_reads_another_users_days()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        // ClientA seeds a planned day in a private window; ClientB (querying the SAME window) must see none of
+        // it — a discriminating IDOR check (A has a planned day, B has none, so it isn't a 0==0 tautology).
+        var d1 = new DateOnly(2026, 11, 23);
+        var d2 = new DateOnly(2026, 11, 24);
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId, isAdmin: true);
+        var foodId = (await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Idor Oats", "Food", "1 bowl", 60m, 300m, 10m, 50m, 6m, 8m, Brand: null)))).Value;
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var planId = (await fixture.SendAsync(new CreateNutritionPlanCommand("Idor Plan", null))).Value;
+        var versionId = (await fixture.SendAsync(new ReplaceNutritionPlanStructureCommand(
+            planId, "Idor Plan", null,
+            new[]
+            {
+                new NutritionPlanMealInput("Breakfast", 1, new TimeOnly(8, 0), DayApplicability.EveryDay,
+                    new[] { new NutritionPlanItemInput(foodId, 1, 1m) })
+            }))).Value;
+        Assert.True((await fixture.SendAsync(new PublishNutritionPlanCommand(versionId))).IsSuccess);
+        Assert.True((await fixture.SendAsync(new CreateNutritionAssignmentCommand(
+            fixture.ClientAId, versionId, d1, EndDate: d2,
+            NutritionVisibilityMode.Full, HideMacroTargets: false, DisableTraineeEditing: false))).IsSuccess);
+
+        // ClientA materializes a planned day in the window.
+        fixture.Principal.Become(fixture.ClientAId, fixture.TenantId);
+        Assert.True((await fixture.SendAsync(new GetMyNutritionTodayQuery(d1, "UTC"))).IsSuccess);
+        var mine = await fixture.SendAsync(new GetMyNutritionAdherenceQuery(d1, d2));
+        Assert.True(mine.IsSuccess);
+        Assert.Contains(mine.Value!.Days, d => d.LocalDate == d1); // A sees its own planned day
+
+        // ClientB, querying the SAME window, sees none of ClientA's planned days.
+        fixture.Principal.Become(fixture.ClientBId, fixture.TenantId);
+        var theirs = await fixture.SendAsync(new GetMyNutritionAdherenceQuery(d1, d2));
+        Assert.True(theirs.IsSuccess);
+        Assert.DoesNotContain(theirs.Value!.Days, d => d.LocalDate == d1 || d.LocalDate == d2);
+    }
+
+    [SkippableFact]
+    public async Task Goal_weight_round_trips_through_LogMetricEntry_and_GetMyMetricSeries_with_no_migration()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        // D12: goal-weight is just a free-text MetricEntry type — written via the existing LogMetricEntryCommand,
+        // read via the existing GetMyMetricSeriesQuery. NO new endpoint, NO migration. A private day/value pair
+        // keeps this independent of the metric-series fixture seeding (which only logs "weight").
+        var day = new DateOnly(2026, 11, 12);
+
+        fixture.Principal.Become(fixture.ClientBId, fixture.TenantId);
+        var write = await fixture.SendAsync(new LogMetricEntryCommand("goal_weight", 73.5m, "kg", day));
+        Assert.True(write.IsSuccess); // the free-text type genuinely persists — no validator rejection
+
+        var series = await fixture.SendAsync(new GetMyMetricSeriesQuery("goal_weight", day, day));
+        Assert.True(series.IsSuccess);
+        Assert.Equal("goal_weight", series.Value!.Type);
+        var point = Assert.Single(series.Value.Points);
+        Assert.Equal(day, point.LocalDate);
+        Assert.Equal(73.5m, point.Value);
+
+        // A different user reading "goal_weight" for that day sees nothing — the personal series is self-scoped.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var theirs = await fixture.SendAsync(new GetMyMetricSeriesQuery("goal_weight", day, day));
+        Assert.True(theirs.IsSuccess);
+        Assert.Empty(theirs.Value!.Points);
+    }
 }

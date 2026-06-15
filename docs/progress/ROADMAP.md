@@ -20,7 +20,7 @@ hold across **every** phase and are architectural, not negotiable — trainee re
 
 | Phase | Theme | Migration? | Net-new backend surface | Unlocks |
 |---|---|---|---|---|
-| **1** | P0 trainee dashboard from data we already have | **None** | 1 new read query (e1RM series) + reuse 3 existing endpoints | "Am I on track / getting stronger" answered in 5s |
+| **1** | P0 trainee dashboard from data we already have | **None** | 1 new read query (`/api/me/progress/overview`) | "Am I on track / getting stronger" answered in 5s |
 | **2** | P1 diagnostics + minimal new queries | **None** (queries only) | e1RM full-chart/stall, muscle-balance join, bodyweight range endpoint, coach roster | Stall localization, balance, weight trend, coach triage |
 | **3** | Body & nutrition integration | **Yes** (nutrition macro rollup + target) | Daily macro aggregation + target entity, bodyweight↔strength cross-refs | "Is my body trending the way my goal needs" |
 | **4** | Coach insights & motivation layer | **Some** (read-model for roster stall) | Roster stall precompute, kudos graph, acute/chronic | Management-by-exception + relatedness loop |
@@ -42,23 +42,21 @@ in this phase; no body or nutrition cards.
 | **Consistency heatmap + forgiving %** | Completed `StartedAt` bucketed per day/week; % = weeks-hitting-goal ÷ weeks-observed | Re-engage after a gap / protect a building routine |
 | **Latest PR teaser** (real lift + weight×reps + relative date) | `/api/me/records` (`PersonalRecordDto`) — **already returns this exact data** | Reinforce effort; which lift is climbing |
 
-**Data prerequisites.**
-- **One genuinely new read query:** the e1RM **series** per lift, self-scoped via `QueryOwnAcrossGyms`. No endpoint
-  returns a series today (`/api/me/records` is single lifetime-best per lift). **Bound to the top 3–6
-  most-trained lifts** — resolve them with a cheap `COUNT(*) GROUP BY ExerciseId` first, then series only for
-  those. This is the single most important cost control ([FEASIBILITY.md §3a](FEASIBILITY.md)). New endpoint:
-  `GET /api/me/progress/strength?lifts=top&take=6`; `204` when no e1RM-bearing working set exists.
-- **Honesty gates enforced server-side in the query** (not just hidden in UI): suppress e1RM for `Reps > 12`
-  (Epley breaks down), emit only `TrackingType ∈ {Strength, Bodyweight}`, require both `Reps` and `WeightKg`
-  non-null. The client adds the **≥4-data-point gate** before drawing a line ([FEASIBILITY.md R8](FEASIBILITY.md)).
-- **Reuse, do not rebuild:** `/api/me/progress` (weekly `Sessions` + `TotalVolumeKg` already computed),
-  `/api/me/records` (PR teaser), `/api/me/sessions` (feeds the heatmap via `StartedAt`).
-- **Adherence denominator must be made authoritative.** A trainee can hold multiple active assignments across gyms;
-  there is no single cross-gym goal. Pick one deterministically (active assignment with the most completed sessions
-  this week, tie-broken by latest `StartDate`) and surface it as `ProgressWeekDto.WeeklyGoal`. Ad-hoc users with no
-  active assignment: **hide the ring** (never render `0/0`), show raw frequency only ([FEASIBILITY.md R1](FEASIBILITY.md)).
-- **No new column, table, or migration.** Caching per [FEASIBILITY.md §4](FEASIBILITY.md): `me:e1rm:{userId}:{exerciseId}`,
-  `me:records:{userId}`, `me:progress:{userId}`, all evicted on `SessionCompletedEvent`.
+**Data prerequisites.** *(Frozen — see [PHASE-1.md](PHASE-1.md) + [API-CONTRACTS.md §1](API-CONTRACTS.md).)*
+- **One genuinely new read query — `GET /api/me/progress/overview`** (self-scoped, `QueryOwnAcrossGyms`). It returns
+  the whole home in one call: completed-only weekly adherence, daily consistency, top-lift e1RM direction, and the PR
+  teaser. **No endpoint serves adherence today** — `ProgressWeekDto.Sessions` counts **all** statuses (incl.
+  Abandoned) and carries no goal, so it **must not** be reused for the ring/heatmap (architecture-audit correction).
+- **Honesty gate enforced server-side in the query** (not the UI): only `SetType=Working`, `Reps ≤ 12`,
+  `TrackingType ∈ {Strength, Bodyweight}`, non-null `Reps`/`WeightKg`. The top-lift series is **bound to the top 3**
+  most-trained lifts with **≥4 sessions** ([FEASIBILITY.md §3a, R8](FEASIBILITY.md)).
+- **Reuse internally:** the overview folds in the existing `GetMyPersonalRecordsQuery` (PR teaser). The `/api/me/progress`
+  volume drill-down and the full per-lift series are **Phase 2**, not Phase 1.
+- **Adherence denominator is authoritative (D1):** active assignment with the most completed sessions this week,
+  tie-broken by latest `StartDate`; no active assignment → `Goal: null`, **hide the ring** (never `0/0`), show raw
+  count ([IMPLEMENTATION.md §2](IMPLEMENTATION.md)).
+- **No new column, table, migration — and no caching** (Phase 1 matches the un-cached self-scoped convention; caching
+  is a deferred optimization, [IMPLEMENTATION.md D8](IMPLEMENTATION.md)). Empty result = `200` + empty DTO, not `204` (**D9**).
 
 **User value unlocked.** The trainee's three core questions are answered on the glance layer with no tap:
 *am I on track this week* (ring), *am I getting stronger and on which lift* (e1RM strip), *is my routine holding*
@@ -222,26 +220,10 @@ so the page never shows a number the backend can't stand behind.
 
 ---
 
-## Open questions
+## Resolved decisions
 
-These are sequencing ambiguities surfaced while aligning the phases to the spec and audit — flagged here rather than
-resolved silently against the SPEC.
-
-1. **Bodyweight trend priority vs phase.** The spec lists smoothed bodyweight as **P2**, but the audit notes its
-   blocker (a `MetricEntry` range query) is the same *class* of work as a P0/P1 enabler — a one-method repo
-   addition, no migration ([FEASIBILITY.md R9, §2](FEASIBILITY.md)). It is placed in **Phase 2** here (with the
-   other no-migration queries) rather than deferred to Phase 3, so the trainee gets a real weight line before the
-   heavier goal-weight/nutrition migrations land. The card stays an empty-state invite until the endpoint ships —
-   consistent with the spec. Confirm this placement is acceptable, or pull it forward into Phase 1 if the range
-   query is cheap enough to bundle with the e1RM series.
-2. **Coach roster as P0 vs its build cost.** The matrix rates the needs-attention roster **coach P0**
-   ([PRIORITY-MATRIX.md §C2](PRIORITY-MATRIX.md)), but today the coach pages one client at a time — the roster is a
-   *new* tenant-scoped aggregate, not a reuse. It lands in **Phase 2**, not Phase 1, because Phase 1 is
-   trainee-only. If a coach-first launch is wanted, the roster (cheap signals only) and per-client adherence could
-   be pulled into a Phase 1b with no extra migration — the only constraint is the separate-handler isolation rule
-   ([FEASIBILITY.md R2](FEASIBILITY.md)).
-3. **e1RM-series read model (precompute) trigger.** The spec and audit both say compute-on-read for v1 and add a
-   `PrCount`-style precomputed series only **if measured slow** ([FEASIBILITY.md §2, §3a](FEASIBILITY.md)). That
-   precompute is a migration; it is provisionally slotted in Phase 4 alongside the roster-stall read model, but its
-   real trigger is a measurement, not a phase. Treat the Phase-4 placement as "no earlier than," contingent on
-   observed query cost.
+The sequencing items previously open here are resolved in the central register — [IMPLEMENTATION.md §2](IMPLEMENTATION.md):
+bodyweight-trend placement (**D3** — Phase 2/3, hidden until its range endpoint ships), coach-roster phase/cost (**D4**
+— Phase 2, cheap signals only, "Stalled" on client-open), and the e1RM precompute trigger (**D6** — compute-on-read
+for v1; the `PrCount`-style precompute deferred to Phase 4, "no earlier than," contingent on a measurement). No open
+items remain.

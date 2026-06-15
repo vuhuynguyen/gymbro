@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Modules.NutritionModule.Application.Abstractions;
 using Modules.NutritionModule.Application.Mapping;
 using static BuildingBlocks.Shared.Errors.Error;
@@ -49,7 +50,18 @@ public sealed class UpdateNutritionAssignmentToLatestVersionHandler(
         var snapshotJson = NutritionMapping.SerializeSnapshot(NutritionMapping.BuildSnapshot(latestWithStructure));
 
         assignment.ApplyNewVersion(latest.Id, latest.Version, snapshotJson);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Collides with an existing live assignment of the same template at the target version
+            // (the (TenantId,TraineeId,PlanId) unique index) — 409, not 500. (Audit finding 7.)
+            return Result<bool>.Failure(
+                Conflict("Conflict", "The trainee already has a live assignment of this plan version."));
+        }
 
         return Result<bool>.Success(true);
     }

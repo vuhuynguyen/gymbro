@@ -19,6 +19,19 @@ public static class LocalDayResolver
     }
 
     /// <summary>
+    /// The Monday-anchored start of the week containing <paramref name="date"/>. The single home for the
+    /// week-bucketing math the Progress reads share (ISO weeks start Monday).
+    /// </summary>
+    public static DateOnly MondayOf(DateOnly date) => date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
+
+    /// <summary>
+    /// The Monday-anchored start of the week containing <paramref name="instant"/>, resolved in
+    /// <paramref name="ianaZone"/> (UTC fallback). Equivalent to <c>MondayOf(LocalDateOf(instant, ianaZone))</c>.
+    /// </summary>
+    public static DateOnly WeekStartOf(DateTimeOffset instant, string? ianaZone)
+        => MondayOf(LocalDateOf(instant, ianaZone));
+
+    /// <summary>
     /// The UTC instant of local midnight on <paramref name="date"/> in <paramref name="ianaZone"/> (UTC midnight if
     /// the zone is absent/unknown). Use to turn a local-date filter bound into the correct UTC instant, so a
     /// "June 1–7" range matches the trainee's local days rather than UTC days.

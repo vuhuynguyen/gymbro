@@ -125,7 +125,9 @@ A short list of failure modes, each a direct consequence of the constraints abov
 
 ---
 
-## Open questions
+## Resolved decisions
 
-1. **Coach trend depth vs. the 20-session page cap (audit R5).** The coach client panel is fed by `ListSessionsHandler` at `pageSize: 20`. A 4–6×/week client exceeds 20 sessions in ~3–5 weeks, so an *"8-week compliance trend"* and the *28-day chronic* leg of acute-vs-chronic silently truncate if they piggyback that page. The coach progress endpoints should get their **own date-windowed / weekly-rollup query** (`from`/`to` bounds, server-side weekly aggregation) rather than client-side grouping of 20 rows. Flagged as a sequencing decision, not a contradiction of the spec.
-2. **Multi-assignment adherence denominator (audit R1).** `FrequencyDaysPerWeek` lives on `PlanAssignment`; a client may hold multiple active assignments. The coach roster is **own-gym**, so it should bind to the **active in-gym assignment** (tie-broken by latest `StartDate`) — but this should be stated explicitly server-side rather than re-derived per client, to avoid two surfaces disagreeing on the goal.
+Both are resolved in [IMPLEMENTATION.md §2](IMPLEMENTATION.md): coach trend depth vs. the 20-session cap under **D5**
+(coach progress endpoints get their own `from`/`to`-windowed weekly-rollup query), and the multi-assignment adherence
+denominator under **D1** (the own-gym roster binds to the active in-gym assignment, stated explicitly server-side). No
+open items remain here.

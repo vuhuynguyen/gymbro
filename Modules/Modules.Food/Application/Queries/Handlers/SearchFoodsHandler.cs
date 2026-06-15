@@ -17,6 +17,13 @@ public sealed class SearchFoodsHandler(
 {
     public async Task<Result<FoodListDto>> Handle(SearchFoodsQuery request, CancellationToken cancellationToken)
     {
+        // Clamp pagination before it reaches the cache key / reader (DoS + cache-key cardinality). (Audit finding 3.)
+        request = request with
+        {
+            Page = Math.Max(request.Page, 1),
+            PageSize = Math.Clamp(request.PageSize, 1, 100)
+        };
+
         // Admin reads the whole catalog; otherwise the caller needs a validated tenant + PlanView.
         if (!currentUser.IsAdmin)
         {

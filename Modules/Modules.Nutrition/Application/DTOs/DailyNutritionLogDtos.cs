@@ -53,3 +53,25 @@ public sealed record DailyNutritionLogListDto(
     int Page,
     int PageSize,
     int TotalCount);
+
+// ── Progress page — nutrition-adherence trend (api/me/progress/nutrition-adherence, Phase 3) ──
+
+/// <summary>
+/// The caller's nutrition-plan adherence over a short window (default 4 weeks). <see cref="HasPlan"/> is
+/// false (with empty <see cref="Days"/> and a null <see cref="CurrentWeekAvgPct"/>) when the user has never
+/// had a planned nutrition day. <see cref="Days"/> lists only days that have a logged plan day in range, one
+/// per local date. <see cref="CurrentWeekAvgPct"/> is the mean <c>AdherencePct</c> over the current local
+/// week's planned days (null when none). Query-only — rides the existing <c>DailyNutritionLog.AdherencePct</c>,
+/// no new entity, no migration.
+/// </summary>
+public sealed record NutritionAdherenceDto(
+    bool HasPlan,
+    IReadOnlyList<DailyAdherenceDto> Days,
+    int? CurrentWeekAvgPct);
+
+/// <summary>One day's nutrition-plan adherence (planned-item count, completed/substituted count, %).</summary>
+public sealed record DailyAdherenceDto(
+    DateOnly LocalDate,
+    int AdherencePct,
+    int PlannedCount,
+    int CompletedCount);

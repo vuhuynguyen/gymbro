@@ -23,9 +23,23 @@ public class LoginHandler(
         if (user == null)
             return Result<TokenPair>.Failure(Error.Validation("Invalid credentials"));
 
+        // A locked-out account is rejected before the password is even checked. The generic message keeps
+        // the response enumeration-safe (identical to wrong-password/unknown-user). (Audit finding 8.)
+        if (userManager.SupportsUserLockout && await userManager.IsLockedOutAsync(user))
+            return Result<TokenPair>.Failure(Error.Validation("Invalid credentials"));
+
         var valid = await userManager.CheckPasswordAsync(user, request.Password);
         if (!valid)
+        {
+            // Count the failure; AccessFailedAsync auto-locks once MaxFailedAccessAttempts is reached.
+            if (userManager.SupportsUserLockout)
+                await userManager.AccessFailedAsync(user);
             return Result<TokenPair>.Failure(Error.Validation("Invalid credentials"));
+        }
+
+        // Successful login clears the failed-attempt counter.
+        if (userManager.SupportsUserLockout && await userManager.GetAccessFailedCountAsync(user) > 0)
+            await userManager.ResetAccessFailedCountAsync(user);
 
         // Stamp the caller's stored zone (the domain User's authoritative TimeZoneId) into the access token so
         // handlers resolve their day boundaries server-side without a per-request parameter.

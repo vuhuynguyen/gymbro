@@ -80,7 +80,7 @@ public class AuthController(IMediator mediator) : ControllerBase
     {
         var result = await mediator.Send(new RequestPasswordResetCommand(request.Email));
         if (result.IsFailure)
-            return BadRequest(result.Error.Message);
+            return result.ToFailureResult(this);
         return Ok(new { success = true });
     }
 
@@ -90,7 +90,7 @@ public class AuthController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(
             new ResetPasswordCommand(request.Email, request.Token, request.NewPassword));
         if (result.IsFailure)
-            return BadRequest(result.Error.Message);
+            return result.ToFailureResult(this);
         return NoContent();
     }
 

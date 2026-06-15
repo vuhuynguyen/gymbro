@@ -30,15 +30,14 @@ public class GetMyTenantsHandler(
             .Where(t => tenantIds.Contains(t.Id) && !t.IsDeleted)
             .ToDictionaryAsync(t => t.Id, cancellationToken);
 
-        // member counts for owned tenants
-        var allRolesForTenants = await roleRepository.Query()
+        // Member counts per tenant, aggregated in SQL (GROUP BY) — previously every membership row of
+        // every tenant the caller belongs to was materialized just to be counted in memory. (Audit finding 11.)
+        var memberCounts = await roleRepository.Query()
             .AsNoTracking()
             .Where(r => tenantIds.Contains(r.TenantId!.Value))
-            .ToListAsync(cancellationToken);
-
-        var memberCounts = allRolesForTenants
             .GroupBy(r => r.TenantId!.Value)
-            .ToDictionary(g => g.Key, g => g.Count());
+            .Select(g => new { TenantId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.TenantId, x => x.Count, cancellationToken);
 
         // owner names for tenants the user joined as Client
         var ownerUserIds = tenants.Values.Select(t => t.OwnerUserId).Distinct().ToList();

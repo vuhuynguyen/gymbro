@@ -72,7 +72,7 @@ headline.
 
 | Metric | Why it sits here |
 |---|---|
-| **Needs-attention triage chip + sortable roster** | The entire reason a busy coach opens the view: *who do I message today.* The chip is the verdict (below-band adherence **OR** no session in N days **OR** stalled key lift); the sorted roster is management-by-exception made glanceable. |
+| **Needs-attention triage chip + sortable roster** | The entire reason a busy coach opens the view: *who do I message today.* The chip is the verdict from **cheap signals only** — below-band adherence **OR** no session in N days; *stalled key lift* is resolved on **client-open**, not per roster row ([D4](IMPLEMENTATION.md)). The sorted roster is management-by-exception made glanceable. |
 | **Last-active / "quiet" flag** | `now − MAX(StartedAt)` is the cheapest, earliest churn indicator — one glance per client tells the coach *who has gone silent.* It needs no per-lift computation, so it can drive the roster row without an N-client fan-out. |
 
 ### P1 — very valuable
@@ -131,20 +131,8 @@ trend,"* not a line drawn through noise. The honest absence is the design — se
 
 ---
 
-## Open questions
+## Resolved decisions
 
-These are genuine inconsistencies surfaced against the spec — flagged here rather than silently resolved in the matrix.
-
-1. **Bodyweight trend is P2 but its blocker is a P0-class enabler.** The metric is ranked P2 for the trainee, yet its
-   only obstacle is a missing `MetricEntry` range query — the same *new-query-not-new-schema* class as the P0 e1RM
-   series. The priority is correct (value is real but conditional on the endpoint); the sequencing note is that it
-   should not be treated as "far off" — it is one repo method away. See [Feasibility audit §2/§R9](FEASIBILITY.md).
-2. **"Stalled key lift" appears in the coach P0 chip but is an N×M fan-out.** The roster chip lists *stalled* as a
-   trigger, while the per-client e1RM stall is explicitly *computed lazily on opening a client.* These can't both hold
-   at roster scale without precomputation. Binding resolution: the **roster chip uses only cheap signals**
-   (adherence below band + last-active gap); "Stalled" is promoted to the chip only after the client is opened, or via
-   a deferred per-trainee read model. See [Feasibility audit §R6](FEASIBILITY.md).
-3. **Per-lift PR timeline vs. PR markers on the trend line are two different sources.** `/api/me/records` returns the
-   *current best per lift*, not the history of successive PRs. The P1 "PR timeline" card and teaser come from
-   `/api/me/records`; the PR *markers pinned on the e1RM line* must be derived from the new e1RM series, not from
-   `/api/me/records`. Stated here so the two are not implemented as one endpoint. See [Feasibility audit §R3](FEASIBILITY.md).
+The three items this matrix surfaced are resolved in the central register — [IMPLEMENTATION.md §2](IMPLEMENTATION.md):
+bodyweight-trend sequencing (**D3**), the coach roster "Stalled" fan-out (**D4** — roster uses cheap signals only,
+"Stalled" on client-open), and the PR teaser/records vs. trend-line-markers split (**D2**). No open items remain here.

@@ -55,6 +55,44 @@ public sealed class MeController(IMediator mediator) : ControllerBase
         return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
     }
 
+    /// <summary>The single-call trainee Progress home: adherence, consistency, top-lift direction, PR teaser.</summary>
+    [HttpGet("progress/overview")]
+    public async Task<IActionResult> ProgressOverview(CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetMyProgressOverviewQuery(), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
+    /// <summary>The caller's own per-lift e1RM series + PR markers + strength summary (the strength
+    /// drill-down behind the home sparkline). Self-scoped, cross-gym; 200 + empty Points for an unknown lift.</summary>
+    [HttpGet("exercises/{exerciseId:guid}/e1rm-series")]
+    public async Task<IActionResult> ExerciseE1rmSeries(
+        Guid exerciseId, [FromQuery] DateOnly? from, [FromQuery] DateOnly? to, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetMyExerciseE1rmSeriesQuery(exerciseId, from, to), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
+    /// <summary>The caller's own body-metric trend (latest-per-day) for one metric type (e.g. weight).
+    /// Self-scoped; case-insensitive type; 200 + empty Points when nothing is logged in range.</summary>
+    [HttpGet("progress/metrics/series")]
+    public async Task<IActionResult> MetricSeries(
+        [FromQuery] string type, [FromQuery] DateOnly? from, [FromQuery] DateOnly? to, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetMyMetricSeriesQuery(type, from, to), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
+    /// <summary>The caller's own nutrition-plan adherence trend (default trailing 4 weeks) for the Progress
+    /// Body section. Self-scoped, cross-gym; 200 + HasPlan=false/empty when the caller has never had a plan.</summary>
+    [HttpGet("progress/nutrition-adherence")]
+    public async Task<IActionResult> NutritionAdherence(
+        [FromQuery] DateOnly? from, [FromQuery] DateOnly? to, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetMyNutritionAdherenceQuery(from, to), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
     // ── Nutrition reads + personal metrics (self-scoped, cross-gym) ───────
     // Trainee nutrition WRITES (item status/substitute/ad-hoc/remove) are tenant-scoped and live on
     // NutritionLogController (api/nutrition/log). Reads below and the personal metric series stay self-scoped.

@@ -71,7 +71,7 @@ public class UserController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetMyTenantsQuery());
 
         if (result.IsFailure)
-            return BadRequest(result.Error.Message);
+            return result.ToFailureResult(this);
 
         return Ok(result.Value);
     }

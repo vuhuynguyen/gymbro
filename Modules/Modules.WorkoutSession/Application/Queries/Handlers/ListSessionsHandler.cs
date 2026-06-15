@@ -44,7 +44,13 @@ public sealed class ListSessionsHandler(
                 tenantAuth, tenantId, requestedTraineeId, tenantId, cancellationToken))
             return Result<SessionListDto>.Failure(Unauthorized("Unauthorized", "You cannot view these workout logs."));
 
-        var query = sessionRepository.Query();
+        // Clamp pagination — an unbounded pageSize would force a huge materialization + per-page aggregate
+        // sub-queries (DoS). Mirrors every other list handler. (Audit finding 3.)
+        var page = Math.Max(request.Page, 1);
+        var pageSize = Math.Clamp(request.PageSize, 1, 100);
+
+        // Read-only list: no change tracking needed (matches the /api/me history twin). (Audit finding 12.)
+        var query = sessionRepository.Query().AsNoTracking();
 
         // Scope to current user unless they have ViewAll permission
         var effectiveTraineeId = canViewAll ? request.TraineeId : currentUser.UserId;
@@ -87,8 +93,8 @@ public sealed class ListSessionsHandler(
 
         var sessions = await query
             .OrderByDescending(s => s.StartedAt)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
 
         var sessionIds = sessions.Select(s => s.Id).ToList();
@@ -142,7 +148,7 @@ public sealed class ListSessionsHandler(
             .ToList();
 
         return Result<SessionListDto>.Success(
-            SessionMapping.ToSessionListDto(items, request.Page, request.PageSize, total));
+            SessionMapping.ToSessionListDto(items, page, pageSize, total));
     }
 
     private async Task<IReadOnlyDictionary<Guid, Modules.WorkoutPlanModule.Application.DTOs.PlanContextDto>>

@@ -18,8 +18,12 @@ public sealed class ResolveExerciseTrackingTypesHandler(IExerciseRepository repo
             return Result<IReadOnlyDictionary<Guid, ExerciseTrackingType>>.Success(
                 new Dictionary<Guid, ExerciseTrackingType>());
 
+        // Project to (Id, TrackingType) and read untracked — avoids materializing full tracked Exercise
+        // rows just to build the map (ToDictionaryAsync is a client operator). (Audit finding 17.)
         var map = await repository.Query()
+            .AsNoTracking()
             .Where(e => ids.Contains(e.Id))
+            .Select(e => new { e.Id, e.TrackingType })
             .ToDictionaryAsync(e => e.Id, e => e.TrackingType, cancellationToken);
 
         return Result<IReadOnlyDictionary<Guid, ExerciseTrackingType>>.Success(map);

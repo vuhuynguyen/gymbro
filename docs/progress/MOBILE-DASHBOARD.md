@@ -212,12 +212,9 @@ of invented points.
 
 ---
 
-## Open questions
+## Resolved decisions
 
-1. **Multi-gym adherence denominator.** The ring is `completed / FrequencyDaysPerWeek`, but `FrequencyDaysPerWeek`
-   lives on `PlanAssignment`, and the self-scoped `/api/me/*` path aggregates sessions across **all** gyms while a
-   trainee can hold multiple active assignments. There is no single cross-gym goal. The spec says "use the active
-   assignment in the most-trained gym" but does not pin the tie-break. **Proposed resolution (does not contradict the
-   spec, sharpens it):** pick the active assignment with the most completed sessions this week, tie-broken by latest
-   `StartDate`, and surface that goal explicitly on the week rollup rather than re-deriving it client-side. Confirm
-   before build — this is the one denominator ambiguity on the glance layer.
+The multi-gym adherence denominator is resolved as **D1** in [IMPLEMENTATION.md §2](IMPLEMENTATION.md): the
+authoritative goal is the active assignment with the most completed sessions this week, tie-broken by latest
+`StartDate`, computed server-side in `GET /api/me/progress/overview`; no active plan → hide the ring, show the raw
+count. No open items remain here.

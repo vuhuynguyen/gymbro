@@ -159,9 +159,10 @@ GROUP BY em.Muscle, week_bucket(ws.StartedAt);   -- only 6 MuscleGroup values
 
 ### 3.3 Adherence (trainee + coach)
 
-Reuse `GetMyProgressHandler`'s per-week `Sessions` count. Adherence = `Sessions ÷ FrequencyDaysPerWeek`. The
-only new work is **plumbing `FrequencyDaysPerWeek` into the week rollup** (today it is on the assignment, not
-`ProgressWeekDto`). On-read, trivially cheap. Goal selection is [R1](#r1--adherence-denominator-is-ambiguous-for-multi-gym-trainees).
+**Correction (architecture audit):** `ProgressWeekDto.Sessions` counts **all** statuses (incl. Abandoned/InProgress)
+and carries no goal, so it **cannot** feed adherence. Phase 1 ships a dedicated `GET /api/me/progress/overview` query
+computing **completed-only** weekly counts + the authoritative goal ([D1](IMPLEMENTATION.md)) + daily consistency
+buckets server-side. Cheap on-read; shape in [API-CONTRACTS §1](API-CONTRACTS.md). Goal selection is [R1](#r1--adherence-denominator-is-ambiguous-for-multi-gym-trainees).
 
 ### 3.4 PR timeline
 
@@ -177,6 +178,11 @@ uses only cheap signals (last-active + adherence) to avoid an N×lifts fan-out (
 ---
 
 ## 4. Caching strategy (against the existing `Cache` abstraction)
+
+> **Phase 1 ships with NO caching** ([D8](IMPLEMENTATION.md)). Self-scoped Progress reads are un-cached today
+> (verified: `GetMyProgress` / `GetMyPersonalRecords` use no cache), and the `overview` query is bounded and cheap.
+> The table below is a **deferred optimization** — introduce it only if profiling shows need, using `IDistributedCache`
+> with event-driven eviction. It is not a Phase-1 requirement.
 
 Fit the existing `Cache:Provider` abstraction (Memory or Redis; the in-process fallback boots with no Redis).
 TTLs are all short — progress data tolerates minutes of staleness, and the only failure mode (a just-finished
@@ -204,9 +210,13 @@ session not yet on the chart) is benign.
 
 ## 5. Proposed API structure
 
+> **Endpoint shapes are now frozen in [API-CONTRACTS.md](API-CONTRACTS.md) — that file is authoritative.** This
+> section is the rationale. Phase 1's home is a **single `GET /api/me/progress/overview`** call, not the `/strength`
+> sketch below (which is the Phase-2 fuller per-lift series).
+
 Versioning via the **`X-Api-Version`** header (clean URLs, **no `/v1` in path**), matching `ApiVersionMiddleware`.
-**`204 No Content`** for empty, per the existing convention (e.g. `/sessions/active`). All new reads return
-`Result<T>`; controllers map to HTTP.
+Empty results return **`200 OK` with an empty-but-valid DTO** — `MeController` reads do **not** use `204` (that is a
+different controller's convention; corrected from an earlier draft). All new reads return `Result<T>`; controllers map to HTTP.
 
 ### 5.1 Trainee — self-scoped (`/api/me/*`, no `X-Tenant-Id`, `QueryOwnAcrossGyms`)
 
@@ -220,13 +230,13 @@ GET /api/me/progress/strength?lifts=top&take=6&from=&to=
       DeltaKgVsTrailing4w, Direction,      // Up | Flat | Down
       Stalled, StallSessions
     } ] }
-→ 204  if no e1RM-bearing working sets exist at all
+→ 200  StrengthProgressDto { Lifts: [] }  if no e1RM-bearing working sets exist
 ```
 
 ```http
 GET /api/me/progress/metrics/series?type=weight&from=&to=
 → 200 MetricSeriesDto { Type, Unit, Points: [ { LocalDate, Value } ] }   // latest-per-day
-→ 204  if no entries in range
+→ 200  MetricSeriesDto { Points: [] }  if no entries in range
 ```
 
 Requires the new repo method (§2). Match `Type` **case-insensitively / normalized** — it is unvalidated free
@@ -254,7 +264,7 @@ GET /api/clients/progress/roster
       CompletedThisWeek, WeeklyGoal, AdherencePct,
       Status                               // OnTrack | Drifting | Quiet | Stalled
     } ] }                                  // 'Stalled' may be omitted at roster level (R6)
-→ 204  if the gym has no members with sessions
+→ 200  RosterDto { Items: [] }  if the gym has no members with sessions
 ```
 
 The "this gym only" caption is a **UI obligation, not a field** — cross-gym training is invisible by design.
@@ -347,15 +357,9 @@ and density stay drill-down / Not-Computable.
 
 ---
 
-## 7. Open questions
+## 7. Resolved decisions
 
-These are genuine ambiguities the spec leaves implicit; flagged here rather than silently resolved.
-
-1. **Authoritative cross-gym goal (R1).** The spec says "use the active assignment in the most-trained gym" but
-   does not define the tiebreak when two gyms are trained equally this week. This doc proposes *most completed
-   sessions this week, then latest `StartDate`* — confirm this is the intended rule before shipping the ring.
-2. **Roster "Stalled" status surfacing (R6).** The [Priority matrix](PRIORITY-MATRIX.md) lists the
-   needs-attention chip (with a Stalled state) at **P0**, but per-lift stall is too expensive at roster scale.
-   Either the roster chip ships with **three** cheap states (OnTrack / Drifting / Quiet) and Stalled appears
-   only on client-open, **or** a `lastE1rmAdvanceAt` read model (a migration) is pulled forward. The matrix and
-   this doc should agree which before build.
+Both items previously open here are resolved in the central register — [IMPLEMENTATION.md §2](IMPLEMENTATION.md):
+the cross-gym goal tie-break (**D1** — most completed sessions this week, then latest `StartDate`) and the roster
+"Stalled" surfacing (**D4** — three cheap states OnTrack/Drifting/Quiet, "Stalled" only on client-open; the
+`lastE1rmAdvanceAt` precompute is deferred to Phase 4). No open items remain.

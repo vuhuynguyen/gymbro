@@ -140,13 +140,11 @@ and the standing rule for each:
 
 ---
 
-## Open questions
+## Resolved decisions
 
-- **§G lists a bullet graph for "actual vs. target vs. bands," but the spec's strongest real bullet candidate
-  (trailing adherence %) has only a target, no qualitative bands** (the only band-bearing metrics — MEV/MAV/MRV,
-  calorie targets — are explicitly Not-Computable). So in practice the bullet degrades to a ring/sparkline almost
-  everywhere. Worth confirming whether any v1 metric genuinely warrants the bullet's band machinery, or whether
-  "bullet" should be documented as a future-only viz pending a real banded target.
+Resolved as **D7** in [IMPLEMENTATION.md §2](IMPLEMENTATION.md): the bullet graph is **dropped from v1** — no
+band-bearing metric is computable, so it degrades to a ring/sparkline everywhere. Documented as a future-only viz
+pending a real banded target. No open items remain here.
 
 ---
 

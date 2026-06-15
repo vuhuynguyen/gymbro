@@ -18,4 +18,24 @@ public sealed class MetricEntryRepository(DbContext context) : IMetricEntryRepos
             .Where(e => e.TraineeId == traineeId && e.LocalDate == localDate)
             .OrderByDescending(e => e.LoggedAtUtc)
             .ToListAsync(cancellationToken);
+
+    // Own-scoped series read for the Progress body-metric trend. Type is matched case-insensitively (it is
+    // unvalidated free text). IgnoreQueryFilters + the explicit TraineeId scope + the explicit !IsDeleted
+    // predicate mirror the cross-gym own-scoped pattern (and keep the soft-delete guarantee under the bypass).
+    public async Task<IReadOnlyList<MetricEntry>> GetOwnSeriesAsync(
+        Guid traineeId, string type, DateOnly from, DateOnly to, CancellationToken cancellationToken = default)
+    {
+        var normalized = (type ?? string.Empty).Trim().ToLowerInvariant();
+        return await context.Set<MetricEntry>()
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .Where(e => !e.IsDeleted
+                && e.TraineeId == traineeId
+                && e.Type.ToLower() == normalized
+                && e.LocalDate >= from
+                && e.LocalDate <= to)
+            .OrderBy(e => e.LocalDate)
+            .ThenBy(e => e.LoggedAtUtc)
+            .ToListAsync(cancellationToken);
+    }
 }

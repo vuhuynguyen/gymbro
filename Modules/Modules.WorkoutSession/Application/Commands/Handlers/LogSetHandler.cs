@@ -24,15 +24,11 @@ public sealed class LogSetHandler(
     {
         var tenantId = tenantContext.TenantId!.Value;
 
-        var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
-        if (session == null)
-            return Result<PerformedSetDto>.Failure(NotFound("NotFound", "Session not found."));
-
-        if (session.TraineeId != currentUser.UserId)
-            return Result<PerformedSetDto>.Failure(Unauthorized("Unauthorized", "This session does not belong to you."));
-
-        if (session.Status != SessionStatus.InProgress)
-            return Result<PerformedSetDto>.Failure(Conflict("Conflict", "Session is not in progress."));
+        var load = await SessionGuard.LoadOwnedInProgressAsync(
+            sessionRepository, currentUser, request.SessionId, cancellationToken);
+        if (load.IsFailure)
+            return Result<PerformedSetDto>.Failure(load.Error);
+        var session = load.Value!;
 
         var exercise = await exerciseRepository.GetByIdAsync(request.ExerciseId, cancellationToken);
         if (exercise == null || exercise.SessionId != session.Id)

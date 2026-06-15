@@ -1,11 +1,14 @@
 # Progress Page — Product Discovery & Redesign
 
-> **Status:** Research + architecture proposal. **No code yet** — this folder is the design source of truth for a
-> Progress-page rebuild, in the same spirit as [`../nutrition/`](../nutrition/) and [`../master-data/`](../master-data/).
-> Every metric here is grounded in real GymBro fields (verified against the schema); anything not computable from
-> current data is flagged, not faked. Scope boundaries (cross-gym self-scoped trainee vs. own-gym tenant-scoped coach;
-> no coach body-metric endpoint) come from [`../PERMISSIONS.md`](../PERMISSIONS.md) and are architectural constraints,
-> not preferences.
+> **Status:** **Phases 1–4 implemented and test-verified** (backend + Flutter; uncommitted; **zero migrations**;
+> 529 backend + 151 frontend tests green; redundancy/optimization pass applied). Phase 5+ (readiness/TDEE) is
+> data-gated — documented, not built ([IMPLEMENTATION.md §11](IMPLEMENTATION.md)). This folder is the design +
+> execution source of truth for the Progress-page rebuild; **[IMPLEMENTATION.md](IMPLEMENTATION.md) is the live
+> tracker** (readiness, decisions, progress, rollout). In the same spirit as [`../nutrition/`](../nutrition/) and
+> [`../master-data/`](../master-data/). Every metric here is grounded in real GymBro fields (verified against the
+> schema); anything not computable is flagged, not faked. Scope boundaries (cross-gym self-scoped trainee vs. own-gym
+> tenant-scoped coach; no coach body-metric endpoint) come from [`../PERMISSIONS.md`](../PERMISSIONS.md) and are
+> architectural constraints, not preferences.
 
 ---
 
@@ -86,6 +89,9 @@ never contradict it.
 
 | Doc | Owns | Read it to know… |
 |---|---|---|
+| **[IMPLEMENTATION.md](IMPLEMENTATION.md)** | The execution tracker — readiness, decisions, tasks, tests, rollout | …what's done, what's next, and how to resume after a context reset |
+| **[PHASE-1.md](PHASE-1.md)** | Frozen Phase 1 — scope, cards, IA, flow, states | …exactly what to build first, without interpreting the design |
+| **[API-CONTRACTS.md](API-CONTRACTS.md)** | Frozen endpoint contracts | …request/response/DTO/auth/perf/query for each endpoint |
 | **[SPEC.md](SPEC.md)** | The canonical spec (thesis, catalogue, matrix, IA, drill-downs, coach/trainee, viz) | …the authoritative, internally-consistent whole in one file |
 | [METRICS-CATALOGUE.md](METRICS-CATALOGUE.md) | Every candidate metric, categorized | …the exact formula, decision and feasibility tag for each metric |
 | [PRIORITY-MATRIX.md](PRIORITY-MATRIX.md) | P0–P3 for trainee and coach | …what shows every day vs. what lives one tap down, and why |
@@ -95,6 +101,8 @@ never contradict it.
 | [VISUALIZATION.md](VISUALIZATION.md) | Chart choices | …which viz fits each metric, the pitfalls, and the Flutter mapping |
 | [FEASIBILITY.md](FEASIBILITY.md) | Technical feasibility | …per-metric verdicts, queries/indexes, caching, and API structure |
 | [ROADMAP.md](ROADMAP.md) | Phased rollout | …what ships in Phase 1 (no migration) through wearables (deferred) |
+| [MARKET-BENCHMARK.md](MARKET-BENCHMARK.md) | Competitive benchmark + code-verified feasibility | …how GymBro's reporting compares to ~45 products, and what each gap costs to close |
+| [AI-NARRATIVE.md](AI-NARRATIVE.md) | Design proposal (not frozen) | …the LLM weekly-narrative lane — writer-not-calculator, span-checked, fallback-guarded |
 
 ## What changes on day one (Phase 1, no migration)
 

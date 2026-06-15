@@ -168,12 +168,11 @@ internal static class SessionMapping
         var prSetIds = new HashSet<Guid>();
         var prs = new List<SessionPrDto>();
 
+        // PR eligibility (working set, strength/bodyweight, reps ≤ 12, e1RM present) is single-sourced in
+        // SessionPrRules so the detail view agrees with the session-list PrCount and the Progress page.
         var byExercise = exercises
-            .SelectMany(e => e.Sets.Select(s => (e.ExerciseId, Set: s)))
-            .Where(x => x.Set.SetType == PerformedSetType.Working
-                && x.Set.EstimatedOneRepMaxKg.HasValue
-                && x.Set.WeightKg.HasValue
-                && x.Set.Reps.HasValue)
+            .SelectMany(e => e.Sets.Select(s => (e.ExerciseId, e.TrackingType, Set: s)))
+            .Where(x => SessionPrRules.IsPrEligibleSet(x.TrackingType, x.Set))
             .GroupBy(x => x.ExerciseId);
 
         foreach (var group in byExercise)

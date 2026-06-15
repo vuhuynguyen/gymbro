@@ -45,7 +45,7 @@ public sealed class GetMyProgressHandler(
 
         var weeks = sessions
             // Per-session captured zone, falling back to the trainee's own stored zone, then UTC.
-            .GroupBy(s => WeekStart(s.StartedAt, s.ClientTimezone ?? currentUser.TimeZoneId))
+            .GroupBy(s => LocalDayResolver.WeekStartOf(s.StartedAt, s.ClientTimezone ?? currentUser.TimeZoneId))
             .OrderByDescending(g => g.Key)
             .Select(g => new ProgressWeekDto(
                 g.Key,
@@ -56,13 +56,5 @@ public sealed class GetMyProgressHandler(
 
         return Result<ProgressDto>.Success(
             new ProgressDto(sessions.Count, completed, totalVolume, totalSets, weeks));
-    }
-
-    // Monday-anchored start of the week containing the given instant, in the trainee's captured zone (UTC fallback).
-    private static DateOnly WeekStart(DateTimeOffset startedAt, string? ianaZone)
-    {
-        var date = LocalDayResolver.LocalDateOf(startedAt, ianaZone);
-        var offsetFromMonday = ((int)date.DayOfWeek + 6) % 7;
-        return date.AddDays(-offsetFromMonday);
     }
 }

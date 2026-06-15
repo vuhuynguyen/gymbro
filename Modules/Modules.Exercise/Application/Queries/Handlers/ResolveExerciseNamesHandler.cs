@@ -16,8 +16,12 @@ public sealed class ResolveExerciseNamesHandler(IExerciseRepository repository)
         if (ids.Count == 0)
             return Result<IReadOnlyDictionary<Guid, string>>.Success(new Dictionary<Guid, string>());
 
+        // Project to (Id, Name) and read untracked — ToDictionaryAsync is a client operator, so without an
+        // explicit Select EF materializes full tracked Exercise rows just to build the map. (Audit finding 17.)
         var names = await repository.Query()
+            .AsNoTracking()
             .Where(e => ids.Contains(e.Id))
+            .Select(e => new { e.Id, e.DefaultName })
             .ToDictionaryAsync(e => e.Id, e => e.DefaultName, cancellationToken);
 
         return Result<IReadOnlyDictionary<Guid, string>>.Success(names);

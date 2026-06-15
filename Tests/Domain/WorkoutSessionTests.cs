@@ -98,6 +98,19 @@ public sealed class WorkoutSessionTests
     }
 
     [Fact]
+    public void Complete_clamps_to_server_clock_when_completedAt_predates_start()
+    {
+        var session = CreateInProgress();
+        var beforeStart = session.StartedAt.AddMinutes(-30);
+
+        session.Complete(null, null, beforeStart, prCount: 0);
+
+        // A CompletedAt earlier than StartedAt must never produce a negative duration.
+        Assert.True(session.DurationSeconds >= 0);
+        Assert.True(session.CompletedAt >= session.StartedAt);
+    }
+
+    [Fact]
     public void Complete_raises_SessionCompletedEvent()
     {
         var session = CreateInProgress();

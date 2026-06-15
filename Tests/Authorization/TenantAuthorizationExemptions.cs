@@ -97,6 +97,27 @@ internal static class TenantAuthorizationExemptions
             ["GetMyProgressQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Personal analytics aggregated from QueryOwnAcrossGyms(currentUser.UserId) only; the caller's "
                 + "own volume/frequency across all gyms, never another trainee's data."),
+            ["GetMyProgressOverviewQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Progress-home overview (adherence/consistency/strength/PR teaser) aggregated from "
+                + "QueryOwnAcrossGyms(currentUser.UserId) only; the goal lookup is likewise scoped to "
+                + "currentUser.UserId, so it never reads another trainee's data."),
+            ["GetMyExerciseE1rmSeriesQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Per-lift e1RM drill-down computed from QueryOwnAcrossGyms(currentUser.UserId) only; an exercise "
+                + "id is just a filter on the caller's own sessions, so a foreign or never-trained lift returns "
+                + "an empty series, never another trainee's data."),
+            ["GetClientRosterQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Coach roster (tenant-scoped, own gym only): the handler gates on "
+                + "tenantAuth.HasPermissionAsync(tenantId, WorkoutLogViewAll) and computes every per-client "
+                + "signal over the TENANT-FILTERED session query (EF filter ON) — never QueryOwnAcrossGyms (R2)."),
+            ["GetClientStrengthQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Coach per-client e1RM trends (tenant-scoped, own gym only): ResourceAccessGuard gates the "
+                + "caller to their own gym and the handler verifies the trainee is a member of the active "
+                + "tenant (404 otherwise); reads the TENANT-FILTERED session query, NEVER QueryOwnAcrossGyms (R2)."),
+            ["GetClientLoadQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Coach per-client acute-vs-chronic load (tenant-scoped, own gym only): ResourceAccessGuard gates "
+                + "the caller to their own gym and the handler verifies the trainee is a member of the active "
+                + "tenant (404 otherwise); 7-/28-day volume is summed over the TENANT-FILTERED session query, "
+                + "NEVER QueryOwnAcrossGyms (R2)."),
             ["GetTenantMembersQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Handler gates on Permission.ClientView and filters the member list by the caller's role."),
             ["RemoveMemberCommand"] = new(ExemptionKind.ImperativeGuarded,
@@ -126,12 +147,18 @@ internal static class TenantAuthorizationExemptions
                 "Self-scoped day read keyed on currentUser.UserId; a foreign date/user resolves to NotFound."),
             ["GetMyNutritionHistoryQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Personal nutrition history via QueryOwnAcrossGyms(currentUser.UserId) only; no cross-user surface."),
+            ["GetMyNutritionAdherenceQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Personal nutrition-plan adherence trend via QueryOwnAcrossGyms(currentUser.UserId) only; the "
+                + "caller's own planned daily logs across all gyms, never another trainee's data."),
             ["LogMetricEntryCommand"] = new(ExemptionKind.ImperativeGuarded,
                 "Self-scoped daily check-in append: the handler stamps owner = currentUser.UserId and never "
                 + "accepts a client-supplied trainee id; the personal metric series has no tenant context."),
             ["GetMyNutritionMetricsQuery"] = new(ExemptionKind.ImperativeGuarded,
                 "Self-scoped metric read via GetOwnForDateAsync(currentUser.UserId) only; the personal "
                 + "check-in series is cross-gym and exposes no other user's rows."),
+            ["GetMyMetricSeriesQuery"] = new(ExemptionKind.ImperativeGuarded,
+                "Self-scoped body-metric trend via GetOwnSeriesAsync(currentUser.UserId) only; the personal "
+                + "check-in series is cross-gym (MetricEntry is not ITenantEntity) and exposes no other user's rows."),
 
             // --- InternalLookup: no caller-facing auth; only reached behind a guarded handler in-process ---
             ["GetWorkoutForSnapshotQuery"] = new(ExemptionKind.InternalLookup,
@@ -152,6 +179,14 @@ internal static class TenantAuthorizationExemptions
             ["ValidateFoodIdsQuery"] = new(ExemptionKind.InternalLookup,
                 "Internal validation: checks that referenced food ids exist; returns no row data and is only "
                 + "invoked by already-authorized plan/log handlers."),
+            ["ResolveTenantMemberNamesQuery"] = new(ExemptionKind.InternalLookup,
+                "Internal enrichment: maps a tenant's Client members to display names for the coach roster; "
+                + "reached only from GetClientRosterHandler AFTER it has gated on WorkoutLogViewAll for the "
+                + "active tenant, and never dispatched from a controller."),
+            ["ResolveActiveAssignmentGoalsQuery"] = new(ExemptionKind.InternalLookup,
+                "Internal lookup: resolves the in-gym active-assignment weekly goal per trainee for the coach "
+                + "roster, tenant-filtered (filter ON, own gym only). Reached only from GetClientRosterHandler "
+                + "after its WorkoutLogViewAll gate, and never dispatched from a controller."),
         };
 
     public static bool IsExempt(string requestTypeName) => Entries.ContainsKey(requestTypeName);

@@ -114,7 +114,6 @@ public sealed class CompleteSessionHandlerTests
     {
         var traineeId = Guid.NewGuid();
         var tenantId = Guid.NewGuid();
-        var completedAt = DateTimeOffset.UtcNow;
 
         await using var db = NewDb();
 
@@ -122,6 +121,10 @@ public sealed class CompleteSessionHandlerTests
             traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
         db.Set<WorkoutSession>().Add(session);
         await db.SaveChangesAsync();
+
+        // A realistic completion timestamp is after the session started (45-minute session); the entity
+        // only clamps a CompletedAt that would predate StartedAt.
+        var completedAt = session.StartedAt.AddMinutes(45);
 
         var sessionRepository = Substitute.For<IWorkoutSessionRepository>();
         var exerciseRepository = Substitute.For<IPerformedExerciseRepository>();

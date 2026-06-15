@@ -28,15 +28,11 @@ public sealed class AddPerformedExerciseHandler(
     {
         var tenantId = tenantContext.TenantId!.Value;
 
-        var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
-        if (session == null)
-            return Result<PerformedExerciseDto>.Failure(NotFound("NotFound", "Session not found."));
-
-        if (session.TraineeId != currentUser.UserId)
-            return Result<PerformedExerciseDto>.Failure(Unauthorized("Unauthorized", "This session does not belong to you."));
-
-        if (session.Status != SessionStatus.InProgress)
-            return Result<PerformedExerciseDto>.Failure(Conflict("Conflict", "Session is not in progress."));
+        var load = await SessionGuard.LoadOwnedInProgressAsync(
+            sessionRepository, currentUser, request.SessionId, cancellationToken);
+        if (load.IsFailure)
+            return Result<PerformedExerciseDto>.Failure(load.Error);
+        var session = load.Value!;
 
         // DisableTraineeEditing: a locked assignment forbids adding ad-hoc exercises. Ad-hoc
         // sessions (no assignment) and deleted assignments impose no restriction.

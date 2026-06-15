@@ -1,6 +1,7 @@
 using BuildingBlocks.Application.Abstractions;
 using BuildingBlocks.Shared.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Modules.WorkoutPlanModule.Application.Abstractions;
 using static BuildingBlocks.Shared.Errors.Error;
 
@@ -45,7 +46,19 @@ public sealed class UpdatePlanAssignmentToLatestVersionHandler(
             : request.SnapshotJson;
 
         assignment.ApplyNewVersion(latest.Id, latest.Version, snapshotJson);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Re-pointing to the latest version would collide with an existing live assignment of the same
+            // template at that version (the (TenantId,TraineeId,PlanId) unique index). Surface a clean 409
+            // instead of a 500, consistent with create/publish. (Audit finding 7.)
+            return Result<bool>.Failure(
+                Conflict("Conflict", "The trainee already has a live assignment of this plan version."));
+        }
 
         return Result<bool>.Success(true);
     }

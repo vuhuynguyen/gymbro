@@ -54,11 +54,12 @@ public sealed class CanAccessResourceTenantScopingTests
     }
 
     [Fact]
-    public async Task ViewAll_caller_with_unknown_resource_tenant_keeps_legacy_behavior()
+    public async Task ViewAll_caller_with_unknown_resource_tenant_is_denied_fail_closed()
     {
-        // Null resource tenant = caller didn't supply it; the EF tenant filter still scopes the load.
+        // Null resource tenant = caller didn't supply it; the guard now fails CLOSED rather than relying
+        // on the EF filter alone, so a future caller that forgets the tenant can't leak cross-gym data.
         var svc = Build(TenantRole.Owner);
-        Assert.True(await AccessAsync(svc, resourceUserId: Guid.NewGuid(), resourceTenantId: null));
+        Assert.False(await AccessAsync(svc, resourceUserId: Guid.NewGuid(), resourceTenantId: null));
     }
 
     [Fact]

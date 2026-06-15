@@ -18,15 +18,11 @@ public sealed class DeletePerformedExerciseHandler(
 {
     public async Task<Result> Handle(DeletePerformedExerciseCommand request, CancellationToken cancellationToken)
     {
-        var session = await sessionRepository.GetByIdAsync(request.SessionId, cancellationToken);
-        if (session == null)
-            return Result.Failure(NotFound("NotFound", "Session not found."));
-
-        if (session.TraineeId != currentUser.UserId)
-            return Result.Failure(Unauthorized("Unauthorized", "This session does not belong to you."));
-
-        if (session.Status != SessionStatus.InProgress)
-            return Result.Failure(Conflict("Conflict", "Session is not in progress."));
+        var load = await SessionGuard.LoadOwnedInProgressAsync(
+            sessionRepository, currentUser, request.SessionId, cancellationToken);
+        if (load.IsFailure)
+            return Result.Failure(load.Error);
+        var session = load.Value!;
 
         // DisableTraineeEditing: a locked assignment forbids removing planned exercises (same rule as
         // skip/substitute). Ad-hoc sessions and deleted assignments impose no restriction.

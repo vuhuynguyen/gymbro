@@ -31,10 +31,11 @@ public class TenantAuthorizationService(
         if (!role.HasValue) return false;
 
         // ViewAll (coach/owner) is bounded to the caller's OWN gym: a tenant-wide permission must never
-        // reach a resource that lives in another tenant. When the resource's tenant is unknown (null),
-        // fall back to the legacy permissive behavior — the EF tenant filter still scopes the load there.
+        // reach a resource that lives in another tenant. Fail closed when the resource's tenant is unknown
+        // (null) — a caller that forgets to pass it is denied, never silently granted cross-gym. All current
+        // callers pass it; this prevents a future caller from re-introducing a tenant leak. (Audit finding 15.)
         if (permissionService.HasPermission(role.Value, allPermission))
-            return resourceTenantId is null || resourceTenantId == tenantId;
+            return resourceTenantId == tenantId;
 
         // Own access: the resource belongs to the caller regardless of which gym it lives in.
         return permissionService.HasPermission(role.Value, ownPermission)

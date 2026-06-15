@@ -9,7 +9,10 @@
       "category": "chest",
       "type": "Strength",
       "primaryMuscle": "Chest",
-      "secondaryMuscles": ["Shoulders", "Arms"],
+      "secondaryMuscles": [
+        "Shoulders",
+        "Arms"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Intermediate",
@@ -30,8 +33,16 @@
         "Flaring the elbows to 90° and stressing the shoulders.",
         "Lifting the hips off the bench to cheat the press."
       ],
-      "aliases": ["bench", "flat bench press", "barbell bench"],
-      "tags": ["push", "upper", "powerlifting"],
+      "aliases": [
+        "bench",
+        "flat bench press",
+        "barbell bench"
+      ],
+      "tags": [
+        "push",
+        "upper",
+        "powerlifting"
+      ],
       "isActive": true
     },
     {
@@ -41,7 +52,10 @@
       "category": "chest",
       "type": "Strength",
       "primaryMuscle": "Chest",
-      "secondaryMuscles": ["Shoulders", "Arms"],
+      "secondaryMuscles": [
+        "Shoulders",
+        "Arms"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Intermediate",
@@ -61,8 +75,14 @@
         "Setting the incline too steep and turning it into an overhead press.",
         "Letting the bar drift toward the chin."
       ],
-      "aliases": ["incline bench", "incline barbell press"],
-      "tags": ["push", "upper"],
+      "aliases": [
+        "incline bench",
+        "incline barbell press"
+      ],
+      "tags": [
+        "push",
+        "upper"
+      ],
       "isActive": true
     },
     {
@@ -72,7 +92,9 @@
       "category": "chest",
       "type": "Strength",
       "primaryMuscle": "Chest",
-      "secondaryMuscles": ["Shoulders"],
+      "secondaryMuscles": [
+        "Shoulders"
+      ],
       "equipment": "Dumbbell",
       "equipmentDetail": "Dumbbell",
       "difficulty": "Intermediate",
@@ -92,8 +114,14 @@
         "Clashing the dumbbells together at the top and losing tension.",
         "Bouncing out of the bottom."
       ],
-      "aliases": ["incline db press", "incline dumbbell bench"],
-      "tags": ["push", "upper"],
+      "aliases": [
+        "incline db press",
+        "incline dumbbell bench"
+      ],
+      "tags": [
+        "push",
+        "upper"
+      ],
       "isActive": true
     },
     {
@@ -103,7 +131,10 @@
       "category": "chest",
       "type": "Strength",
       "primaryMuscle": "Chest",
-      "secondaryMuscles": ["Shoulders", "Arms"],
+      "secondaryMuscles": [
+        "Shoulders",
+        "Arms"
+      ],
       "equipment": "Dumbbell",
       "equipmentDetail": "Dumbbell",
       "difficulty": "Beginner",
@@ -123,8 +154,14 @@
         "Letting the elbows flare straight out to the sides.",
         "Using momentum instead of a controlled tempo."
       ],
-      "aliases": ["flat db press", "dumbbell bench"],
-      "tags": ["push", "upper"],
+      "aliases": [
+        "flat db press",
+        "dumbbell bench"
+      ],
+      "tags": [
+        "push",
+        "upper"
+      ],
       "isActive": true
     },
     {
@@ -134,7 +171,11 @@
       "category": "chest",
       "type": "Strength",
       "primaryMuscle": "Chest",
-      "secondaryMuscles": ["Shoulders", "Arms", "Core"],
+      "secondaryMuscles": [
+        "Shoulders",
+        "Arms",
+        "Core"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Bodyweight",
       "difficulty": "Beginner",
@@ -154,8 +195,15 @@
         "Sagging or piking the hips instead of holding a rigid plank.",
         "Only doing partial-depth reps."
       ],
-      "aliases": ["pushup", "press-up"],
-      "tags": ["push", "upper", "calisthenics"],
+      "aliases": [
+        "pushup",
+        "press-up"
+      ],
+      "tags": [
+        "push",
+        "upper",
+        "calisthenics"
+      ],
       "isActive": true
     },
     {
@@ -165,7 +213,9 @@
       "category": "chest",
       "type": "Strength",
       "primaryMuscle": "Chest",
-      "secondaryMuscles": ["Shoulders"],
+      "secondaryMuscles": [
+        "Shoulders"
+      ],
       "equipment": "Machine",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
@@ -185,8 +235,15 @@
         "Turning it into a press by bending and extending the elbows.",
         "Using too much weight and recruiting the front delts."
       ],
-      "aliases": ["cable fly", "crossover", "cable chest fly"],
-      "tags": ["isolation", "upper"],
+      "aliases": [
+        "cable fly",
+        "crossover",
+        "cable chest fly"
+      ],
+      "tags": [
+        "isolation",
+        "upper"
+      ],
       "isActive": true
     },
     {
@@ -216,8 +273,16 @@
         "Jerking the weight closed and letting it slam back.",
         "Shrugging the shoulders to assist."
       ],
-      "aliases": ["pec deck", "machine fly", "butterfly"],
-      "tags": ["isolation", "machine", "upper"],
+      "aliases": [
+        "pec deck",
+        "machine fly",
+        "butterfly"
+      ],
+      "tags": [
+        "isolation",
+        "machine",
+        "upper"
+      ],
       "isActive": true
     },
     {
@@ -227,7 +292,10 @@
       "category": "back",
       "type": "Strength",
       "primaryMuscle": "Back",
-      "secondaryMuscles": ["Arms", "Core"],
+      "secondaryMuscles": [
+        "Arms",
+        "Core"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Pull-Up Bar",
       "difficulty": "Advanced",
@@ -247,8 +315,15 @@
         "Kipping or swinging to generate momentum.",
         "Stopping short of a full hang at the bottom."
       ],
-      "aliases": ["pullup", "pull up"],
-      "tags": ["pull", "upper", "calisthenics"],
+      "aliases": [
+        "pullup",
+        "pull up"
+      ],
+      "tags": [
+        "pull",
+        "upper",
+        "calisthenics"
+      ],
       "isActive": true
     },
     {
@@ -258,7 +333,9 @@
       "category": "back",
       "type": "Strength",
       "primaryMuscle": "Back",
-      "secondaryMuscles": ["Arms"],
+      "secondaryMuscles": [
+        "Arms"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Pull-Up Bar",
       "difficulty": "Intermediate",
@@ -278,8 +355,15 @@
         "Swinging the legs to cheat the rep.",
         "Not reaching full extension at the bottom."
       ],
-      "aliases": ["chinup", "underhand pull-up"],
-      "tags": ["pull", "upper", "calisthenics"],
+      "aliases": [
+        "chinup",
+        "underhand pull-up"
+      ],
+      "tags": [
+        "pull",
+        "upper",
+        "calisthenics"
+      ],
       "isActive": true
     },
     {
@@ -289,7 +373,9 @@
       "category": "back",
       "type": "Strength",
       "primaryMuscle": "Back",
-      "secondaryMuscles": ["Arms"],
+      "secondaryMuscles": [
+        "Arms"
+      ],
       "equipment": "Machine",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
@@ -309,8 +395,15 @@
         "Using body sway and momentum to move the stack.",
         "Pulling with the arms instead of initiating from the lats."
       ],
-      "aliases": ["pulldown", "lat pull down"],
-      "tags": ["pull", "upper", "machine"],
+      "aliases": [
+        "pulldown",
+        "lat pull down"
+      ],
+      "tags": [
+        "pull",
+        "upper",
+        "machine"
+      ],
       "isActive": true
     },
     {
@@ -320,7 +413,10 @@
       "category": "back",
       "type": "Strength",
       "primaryMuscle": "Back",
-      "secondaryMuscles": ["Arms", "Core"],
+      "secondaryMuscles": [
+        "Arms",
+        "Core"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Intermediate",
@@ -340,8 +436,16 @@
         "Standing up too tall and turning it into a shrug.",
         "Jerking the bar with the lower back."
       ],
-      "aliases": ["barbell row", "bent over row", "bb row"],
-      "tags": ["pull", "upper", "hinge"],
+      "aliases": [
+        "barbell row",
+        "bent over row",
+        "bb row"
+      ],
+      "tags": [
+        "pull",
+        "upper",
+        "hinge"
+      ],
       "isActive": true
     },
     {
@@ -351,7 +455,9 @@
       "category": "back",
       "type": "Strength",
       "primaryMuscle": "Back",
-      "secondaryMuscles": ["Arms"],
+      "secondaryMuscles": [
+        "Arms"
+      ],
       "equipment": "Dumbbell",
       "equipmentDetail": "Dumbbell",
       "difficulty": "Beginner",
@@ -371,8 +477,16 @@
         "Twisting the torso for momentum.",
         "Shrugging instead of driving the elbow back."
       ],
-      "aliases": ["one arm row", "db row", "single arm row"],
-      "tags": ["pull", "upper", "unilateral"],
+      "aliases": [
+        "one arm row",
+        "db row",
+        "single arm row"
+      ],
+      "tags": [
+        "pull",
+        "upper",
+        "unilateral"
+      ],
       "isActive": true
     },
     {
@@ -382,7 +496,9 @@
       "category": "back",
       "type": "Strength",
       "primaryMuscle": "Back",
-      "secondaryMuscles": ["Arms"],
+      "secondaryMuscles": [
+        "Arms"
+      ],
       "equipment": "Machine",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
@@ -402,8 +518,15 @@
         "Heaving with the lower back.",
         "Letting the shoulders round at the end of the eccentric."
       ],
-      "aliases": ["cable row", "seated row"],
-      "tags": ["pull", "upper", "machine"],
+      "aliases": [
+        "cable row",
+        "seated row"
+      ],
+      "tags": [
+        "pull",
+        "upper",
+        "machine"
+      ],
       "isActive": true
     },
     {
@@ -413,7 +536,10 @@
       "category": "shoulders",
       "type": "Strength",
       "primaryMuscle": "Shoulders",
-      "secondaryMuscles": ["Arms", "Core"],
+      "secondaryMuscles": [
+        "Arms",
+        "Core"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Intermediate",
@@ -433,8 +559,15 @@
         "Leaning back into a standing incline press.",
         "Failing to move the head 'through' at lockout."
       ],
-      "aliases": ["ohp", "military press", "shoulder press"],
-      "tags": ["push", "vertical"],
+      "aliases": [
+        "ohp",
+        "military press",
+        "shoulder press"
+      ],
+      "tags": [
+        "push",
+        "vertical"
+      ],
       "isActive": true
     },
     {
@@ -444,7 +577,9 @@
       "category": "shoulders",
       "type": "Strength",
       "primaryMuscle": "Shoulders",
-      "secondaryMuscles": ["Arms"],
+      "secondaryMuscles": [
+        "Arms"
+      ],
       "equipment": "Dumbbell",
       "equipmentDetail": "Dumbbell",
       "difficulty": "Beginner",
@@ -464,8 +599,14 @@
         "Clashing the dumbbells overhead.",
         "Bouncing out of the bottom with momentum."
       ],
-      "aliases": ["seated db press", "dumbbell shoulder press"],
-      "tags": ["push", "vertical"],
+      "aliases": [
+        "seated db press",
+        "dumbbell shoulder press"
+      ],
+      "tags": [
+        "push",
+        "vertical"
+      ],
       "isActive": true
     },
     {
@@ -495,8 +636,16 @@
         "Swinging the weights up with the whole body.",
         "Shrugging the traps at the top."
       ],
-      "aliases": ["lateral raise", "side raise", "lat raise"],
-      "tags": ["isolation", "shoulders", "accessory"],
+      "aliases": [
+        "lateral raise",
+        "side raise",
+        "lat raise"
+      ],
+      "tags": [
+        "isolation",
+        "shoulders",
+        "accessory"
+      ],
       "isActive": true
     },
     {
@@ -506,7 +655,9 @@
       "category": "shoulders",
       "type": "Strength",
       "primaryMuscle": "Shoulders",
-      "secondaryMuscles": ["Back"],
+      "secondaryMuscles": [
+        "Back"
+      ],
       "equipment": "Machine",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
@@ -526,8 +677,16 @@
         "Using too much weight and rowing instead of externally rotating.",
         "Letting the elbows drop below the shoulders."
       ],
-      "aliases": ["rope face pull", "cable face pull"],
-      "tags": ["pull", "rear-delt", "health", "prehab"],
+      "aliases": [
+        "rope face pull",
+        "cable face pull"
+      ],
+      "tags": [
+        "pull",
+        "rear-delt",
+        "health",
+        "prehab"
+      ],
       "isActive": true
     },
     {
@@ -537,7 +696,9 @@
       "category": "shoulders",
       "type": "Strength",
       "primaryMuscle": "Shoulders",
-      "secondaryMuscles": ["Back"],
+      "secondaryMuscles": [
+        "Back"
+      ],
       "equipment": "Dumbbell",
       "equipmentDetail": "Dumbbell",
       "difficulty": "Beginner",
@@ -557,8 +718,16 @@
         "Using momentum and shrugging.",
         "Turning it into an upright row by leading with the hands."
       ],
-      "aliases": ["reverse fly", "rear delt fly", "bent over fly"],
-      "tags": ["isolation", "rear-delt", "posture"],
+      "aliases": [
+        "reverse fly",
+        "rear delt fly",
+        "bent over fly"
+      ],
+      "tags": [
+        "isolation",
+        "rear-delt",
+        "posture"
+      ],
       "isActive": true
     },
     {
@@ -568,7 +737,9 @@
       "category": "shoulders",
       "type": "Strength",
       "primaryMuscle": "Back",
-      "secondaryMuscles": ["Shoulders"],
+      "secondaryMuscles": [
+        "Shoulders"
+      ],
       "equipment": "ResistanceBand",
       "equipmentDetail": "Resistance Band",
       "difficulty": "Beginner",
@@ -588,8 +759,16 @@
         "Bending the elbows to cheat the movement.",
         "Shrugging the shoulders up toward the ears."
       ],
-      "aliases": ["band pull apart", "pull-apart"],
-      "tags": ["warm-up", "band", "upper-back", "prehab"],
+      "aliases": [
+        "band pull apart",
+        "pull-apart"
+      ],
+      "tags": [
+        "warm-up",
+        "band",
+        "upper-back",
+        "prehab"
+      ],
       "isActive": true
     },
     {
@@ -619,8 +798,15 @@
         "Swinging the hips and torso to move the bar.",
         "Letting the elbows drift forward at the top."
       ],
-      "aliases": ["bb curl", "biceps curl"],
-      "tags": ["isolation", "arms", "biceps"],
+      "aliases": [
+        "bb curl",
+        "biceps curl"
+      ],
+      "tags": [
+        "isolation",
+        "arms",
+        "biceps"
+      ],
       "isActive": true
     },
     {
@@ -650,8 +836,15 @@
         "Swinging the dumbbells with body english.",
         "Cutting the range short at the bottom."
       ],
-      "aliases": ["db curl", "dumbbell curl"],
-      "tags": ["isolation", "arms", "biceps"],
+      "aliases": [
+        "db curl",
+        "dumbbell curl"
+      ],
+      "tags": [
+        "isolation",
+        "arms",
+        "biceps"
+      ],
       "isActive": true
     },
     {
@@ -681,8 +874,16 @@
         "Rotating the wrists into a standard curl.",
         "Using momentum from the shoulders."
       ],
-      "aliases": ["hammer curls", "neutral grip curl"],
-      "tags": ["isolation", "arms", "biceps", "forearms"],
+      "aliases": [
+        "hammer curls",
+        "neutral grip curl"
+      ],
+      "tags": [
+        "isolation",
+        "arms",
+        "biceps",
+        "forearms"
+      ],
       "isActive": true
     },
     {
@@ -712,8 +913,17 @@
         "Letting the elbows flare and drift forward.",
         "Leaning over the rope to push with bodyweight."
       ],
-      "aliases": ["rope pushdown", "triceps pushdown", "cable pushdown"],
-      "tags": ["isolation", "arms", "triceps", "cable"],
+      "aliases": [
+        "rope pushdown",
+        "triceps pushdown",
+        "cable pushdown"
+      ],
+      "tags": [
+        "isolation",
+        "arms",
+        "triceps",
+        "cable"
+      ],
       "isActive": true
     },
     {
@@ -743,8 +953,16 @@
         "Flaring the elbows out to the sides.",
         "Using the shoulders to press the weight up."
       ],
-      "aliases": ["overhead extension", "french press", "skull crusher (overhead)"],
-      "tags": ["isolation", "arms", "triceps"],
+      "aliases": [
+        "overhead extension",
+        "french press",
+        "skull crusher (overhead)"
+      ],
+      "tags": [
+        "isolation",
+        "arms",
+        "triceps"
+      ],
       "isActive": true
     },
     {
@@ -754,7 +972,10 @@
       "category": "triceps",
       "type": "Strength",
       "primaryMuscle": "Arms",
-      "secondaryMuscles": ["Chest", "Shoulders"],
+      "secondaryMuscles": [
+        "Chest",
+        "Shoulders"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Intermediate",
@@ -774,8 +995,15 @@
         "Gripping too narrow and straining the wrists.",
         "Flaring the elbows and losing the triceps emphasis."
       ],
-      "aliases": ["cgbp", "close grip bench"],
-      "tags": ["push", "arms", "triceps"],
+      "aliases": [
+        "cgbp",
+        "close grip bench"
+      ],
+      "tags": [
+        "push",
+        "arms",
+        "triceps"
+      ],
       "isActive": true
     },
     {
@@ -785,7 +1013,10 @@
       "category": "triceps",
       "type": "Strength",
       "primaryMuscle": "Arms",
-      "secondaryMuscles": ["Chest", "Shoulders"],
+      "secondaryMuscles": [
+        "Chest",
+        "Shoulders"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Bodyweight",
       "difficulty": "Beginner",
@@ -805,8 +1036,16 @@
         "Letting the shoulders shrug up toward the ears.",
         "Going too deep and straining the shoulder."
       ],
-      "aliases": ["tricep dip", "bench dips"],
-      "tags": ["push", "arms", "triceps", "calisthenics"],
+      "aliases": [
+        "tricep dip",
+        "bench dips"
+      ],
+      "tags": [
+        "push",
+        "arms",
+        "triceps",
+        "calisthenics"
+      ],
       "isActive": true
     },
     {
@@ -816,7 +1055,9 @@
       "category": "quadriceps",
       "type": "Strength",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Intermediate",
@@ -836,8 +1077,16 @@
         "Knees caving inward on the way up.",
         "Rounding the lower back at the bottom ('butt wink')."
       ],
-      "aliases": ["back squat", "barbell squat", "squat"],
-      "tags": ["lower", "squat", "powerlifting"],
+      "aliases": [
+        "back squat",
+        "barbell squat",
+        "squat"
+      ],
+      "tags": [
+        "lower",
+        "squat",
+        "powerlifting"
+      ],
       "isActive": true
     },
     {
@@ -847,7 +1096,9 @@
       "category": "quadriceps",
       "type": "Strength",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Advanced",
@@ -867,8 +1118,14 @@
         "Letting the elbows drop and the chest cave.",
         "Rising hips-first and folding forward."
       ],
-      "aliases": ["front squats", "barbell front squat"],
-      "tags": ["lower", "squat"],
+      "aliases": [
+        "front squats",
+        "barbell front squat"
+      ],
+      "tags": [
+        "lower",
+        "squat"
+      ],
       "isActive": true
     },
     {
@@ -898,8 +1155,14 @@
         "Lowering so deep the hips curl off the seat.",
         "Locking the knees aggressively at the top."
       ],
-      "aliases": ["leg press machine"],
-      "tags": ["lower", "machine", "quads"],
+      "aliases": [
+        "leg press machine"
+      ],
+      "tags": [
+        "lower",
+        "machine",
+        "quads"
+      ],
       "isActive": true
     },
     {
@@ -909,7 +1172,9 @@
       "category": "quadriceps",
       "type": "Strength",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Dumbbell",
       "equipmentDetail": "Dumbbell",
       "difficulty": "Beginner",
@@ -929,8 +1194,15 @@
         "Heels rising off the floor.",
         "Rounding forward as depth increases."
       ],
-      "aliases": ["goblet squats", "kettlebell goblet squat"],
-      "tags": ["lower", "squat", "patterning"],
+      "aliases": [
+        "goblet squats",
+        "kettlebell goblet squat"
+      ],
+      "tags": [
+        "lower",
+        "squat",
+        "patterning"
+      ],
       "isActive": true
     },
     {
@@ -960,8 +1232,15 @@
         "Using momentum to kick the weight up.",
         "Letting the weight stack slam down on the eccentric."
       ],
-      "aliases": ["leg extensions", "knee extension"],
-      "tags": ["isolation", "machine", "quads"],
+      "aliases": [
+        "leg extensions",
+        "knee extension"
+      ],
+      "tags": [
+        "isolation",
+        "machine",
+        "quads"
+      ],
       "isActive": true
     },
     {
@@ -971,7 +1250,9 @@
       "category": "quadriceps",
       "type": "Strength",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Bodyweight",
       "difficulty": "Beginner",
@@ -991,8 +1272,15 @@
         "Taking too short a step so the knee shoots past the toes.",
         "Leaning the torso forward over the front leg."
       ],
-      "aliases": ["walking lunges", "lunge"],
-      "tags": ["lower", "unilateral", "legs"],
+      "aliases": [
+        "walking lunges",
+        "lunge"
+      ],
+      "tags": [
+        "lower",
+        "unilateral",
+        "legs"
+      ],
       "isActive": true
     },
     {
@@ -1002,7 +1290,9 @@
       "category": "quadriceps",
       "type": "Strength",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Dumbbell",
       "equipmentDetail": "Dumbbell",
       "difficulty": "Intermediate",
@@ -1022,8 +1312,16 @@
         "Front foot too close, pushing the knee well past the toes.",
         "Putting weight on the back foot instead of the front leg."
       ],
-      "aliases": ["bulgarian split squats", "rear foot elevated split squat", "bss"],
-      "tags": ["lower", "unilateral", "legs"],
+      "aliases": [
+        "bulgarian split squats",
+        "rear foot elevated split squat",
+        "bss"
+      ],
+      "tags": [
+        "lower",
+        "unilateral",
+        "legs"
+      ],
       "isActive": true
     },
     {
@@ -1034,7 +1332,9 @@
       "type": "Strength",
       "trackingType": "Timed",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Bodyweight",
       "difficulty": "Beginner",
@@ -1054,8 +1354,15 @@
         "Sitting too low so the knees pass far over the toes.",
         "Holding the breath instead of breathing steadily."
       ],
-      "aliases": ["wall squat", "wall sit hold"],
-      "tags": ["timed", "isometric", "legs"],
+      "aliases": [
+        "wall squat",
+        "wall sit hold"
+      ],
+      "tags": [
+        "timed",
+        "isometric",
+        "legs"
+      ],
       "isActive": true
     },
     {
@@ -1065,7 +1372,9 @@
       "category": "hamstrings",
       "type": "Strength",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Back"],
+      "secondaryMuscles": [
+        "Back"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Intermediate",
@@ -1085,8 +1394,17 @@
         "Turning it into a squat by bending the knees too much.",
         "Rounding the back to reach lower."
       ],
-      "aliases": ["rdl", "romanian deadlifts", "stiff-leg deadlift"],
-      "tags": ["lower", "hinge", "hamstrings", "posterior-chain"],
+      "aliases": [
+        "rdl",
+        "romanian deadlifts",
+        "stiff-leg deadlift"
+      ],
+      "tags": [
+        "lower",
+        "hinge",
+        "hamstrings",
+        "posterior-chain"
+      ],
       "isActive": true
     },
     {
@@ -1096,7 +1414,10 @@
       "category": "hamstrings",
       "type": "Strength",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Back", "Core"],
+      "secondaryMuscles": [
+        "Back",
+        "Core"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Advanced",
@@ -1116,8 +1437,16 @@
         "Rounding the lower back to start the pull.",
         "Letting the bar drift away from the shins."
       ],
-      "aliases": ["deadlift", "conventional dl"],
-      "tags": ["lower", "hinge", "posterior-chain", "powerlifting"],
+      "aliases": [
+        "deadlift",
+        "conventional dl"
+      ],
+      "tags": [
+        "lower",
+        "hinge",
+        "posterior-chain",
+        "powerlifting"
+      ],
       "isActive": true
     },
     {
@@ -1147,8 +1476,16 @@
         "Jerking the hips up to assist the curl.",
         "Using a partial range of motion."
       ],
-      "aliases": ["leg curl", "hamstring curl", "prone leg curl"],
-      "tags": ["isolation", "machine", "hamstrings"],
+      "aliases": [
+        "leg curl",
+        "hamstring curl",
+        "prone leg curl"
+      ],
+      "tags": [
+        "isolation",
+        "machine",
+        "hamstrings"
+      ],
       "isActive": true
     },
     {
@@ -1158,7 +1495,9 @@
       "category": "glutes",
       "type": "Strength",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Barbell",
       "equipmentDetail": "Barbell",
       "difficulty": "Intermediate",
@@ -1178,8 +1517,15 @@
         "Overextending the lumbar spine instead of the hips at the top.",
         "Pushing through the toes rather than the heels."
       ],
-      "aliases": ["hip thrust", "barbell glute bridge"],
-      "tags": ["lower", "hinge", "glutes"],
+      "aliases": [
+        "hip thrust",
+        "barbell glute bridge"
+      ],
+      "tags": [
+        "lower",
+        "hinge",
+        "glutes"
+      ],
       "isActive": true
     },
     {
@@ -1189,7 +1535,9 @@
       "category": "glutes",
       "type": "Strength",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Bodyweight",
       "difficulty": "Beginner",
@@ -1209,8 +1557,15 @@
         "Arching the lower back instead of squeezing the glutes.",
         "Letting the knees cave inward."
       ],
-      "aliases": ["glute bridges", "hip bridge"],
-      "tags": ["lower", "glutes", "activation"],
+      "aliases": [
+        "glute bridges",
+        "hip bridge"
+      ],
+      "tags": [
+        "lower",
+        "glutes",
+        "activation"
+      ],
       "isActive": true
     },
     {
@@ -1240,8 +1595,14 @@
         "Using a tiny, bouncy range of motion.",
         "Bending the knees to cheat the raise."
       ],
-      "aliases": ["calf raise", "standing calf raises"],
-      "tags": ["isolation", "calves"],
+      "aliases": [
+        "calf raise",
+        "standing calf raises"
+      ],
+      "tags": [
+        "isolation",
+        "calves"
+      ],
       "isActive": true
     },
     {
@@ -1271,8 +1632,14 @@
         "Short, fast partial reps.",
         "Skipping the bottom stretch."
       ],
-      "aliases": ["seated calf raises", "soleus raise"],
-      "tags": ["isolation", "calves"],
+      "aliases": [
+        "seated calf raises",
+        "soleus raise"
+      ],
+      "tags": [
+        "isolation",
+        "calves"
+      ],
       "isActive": true
     },
     {
@@ -1283,7 +1650,9 @@
       "type": "Strength",
       "trackingType": "Timed",
       "primaryMuscle": "Core",
-      "secondaryMuscles": ["Shoulders"],
+      "secondaryMuscles": [
+        "Shoulders"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Bodyweight",
       "difficulty": "Beginner",
@@ -1303,8 +1672,15 @@
         "Letting the hips sag or pike up.",
         "Holding the breath."
       ],
-      "aliases": ["front plank", "forearm plank"],
-      "tags": ["core", "anti-extension", "isometric"],
+      "aliases": [
+        "front plank",
+        "forearm plank"
+      ],
+      "tags": [
+        "core",
+        "anti-extension",
+        "isometric"
+      ],
       "isActive": true
     },
     {
@@ -1314,7 +1690,9 @@
       "category": "abs",
       "type": "Strength",
       "primaryMuscle": "Core",
-      "secondaryMuscles": ["Arms"],
+      "secondaryMuscles": [
+        "Arms"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Pull-Up Bar",
       "difficulty": "Intermediate",
@@ -1334,8 +1712,15 @@
         "Using a big kip/swing to throw the knees up.",
         "Only raising the knees a few inches."
       ],
-      "aliases": ["knee raise", "hanging knee raises"],
-      "tags": ["core", "abs", "hanging"],
+      "aliases": [
+        "knee raise",
+        "hanging knee raises"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "hanging"
+      ],
       "isActive": true
     },
     {
@@ -1365,8 +1750,15 @@
         "Pulling with the arms instead of crunching the abs.",
         "Turning it into a hip hinge with a rigid spine."
       ],
-      "aliases": ["kneeling cable crunch", "rope crunch"],
-      "tags": ["core", "abs", "cable"],
+      "aliases": [
+        "kneeling cable crunch",
+        "rope crunch"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "cable"
+      ],
       "isActive": true
     },
     {
@@ -1396,8 +1788,15 @@
         "Moving only the arms while the torso stays still.",
         "Rounding and collapsing the lower back."
       ],
-      "aliases": ["russian twists", "seated twist"],
-      "tags": ["core", "obliques", "rotation"],
+      "aliases": [
+        "russian twists",
+        "seated twist"
+      ],
+      "tags": [
+        "core",
+        "obliques",
+        "rotation"
+      ],
       "isActive": true
     },
     {
@@ -1427,8 +1826,15 @@
         "Letting the lower back arch off the floor.",
         "Moving too fast and losing the brace."
       ],
-      "aliases": ["deadbug", "dead bugs"],
-      "tags": ["core", "anti-extension", "rehab"],
+      "aliases": [
+        "deadbug",
+        "dead bugs"
+      ],
+      "tags": [
+        "core",
+        "anti-extension",
+        "rehab"
+      ],
       "isActive": true
     },
     {
@@ -1439,7 +1845,11 @@
       "type": "Strength",
       "trackingType": "Custom",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Back", "Core", "Shoulders"],
+      "secondaryMuscles": [
+        "Back",
+        "Core",
+        "Shoulders"
+      ],
       "equipment": "Dumbbell",
       "equipmentDetail": "Kettlebell",
       "difficulty": "Intermediate",
@@ -1459,8 +1869,18 @@
         "Squatting the bell up instead of hinging.",
         "Lifting with the arms/shoulders rather than the hips."
       ],
-      "aliases": ["kb swing", "kettlebell swings", "two-hand swing"],
-      "tags": ["full-body", "hinge", "kettlebell", "conditioning", "power"],
+      "aliases": [
+        "kb swing",
+        "kettlebell swings",
+        "two-hand swing"
+      ],
+      "tags": [
+        "full-body",
+        "hinge",
+        "kettlebell",
+        "conditioning",
+        "power"
+      ],
       "isActive": true
     },
     {
@@ -1471,7 +1891,11 @@
       "type": "Strength",
       "trackingType": "Custom",
       "primaryMuscle": "Core",
-      "secondaryMuscles": ["Arms", "Back", "Legs"],
+      "secondaryMuscles": [
+        "Arms",
+        "Back",
+        "Legs"
+      ],
       "equipment": "Dumbbell",
       "equipmentDetail": "Dumbbell",
       "difficulty": "Intermediate",
@@ -1491,8 +1915,17 @@
         "Leaning to one side under uneven load.",
         "Shuffling with a rounded upper back."
       ],
-      "aliases": ["farmer carry", "farmers walk", "loaded carry"],
-      "tags": ["full-body", "carry", "grip", "conditioning"],
+      "aliases": [
+        "farmer carry",
+        "farmers walk",
+        "loaded carry"
+      ],
+      "tags": [
+        "full-body",
+        "carry",
+        "grip",
+        "conditioning"
+      ],
       "isActive": true
     },
     {
@@ -1503,7 +1936,9 @@
       "type": "Strength",
       "trackingType": "Custom",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Machine",
       "equipmentDetail": "Sled",
       "difficulty": "Intermediate",
@@ -1523,8 +1958,16 @@
         "Standing too upright and losing drive.",
         "Taking tiny steps instead of powerful strides."
       ],
-      "aliases": ["prowler push", "sled drive"],
-      "tags": ["full-body", "conditioning", "power", "legs"],
+      "aliases": [
+        "prowler push",
+        "sled drive"
+      ],
+      "tags": [
+        "full-body",
+        "conditioning",
+        "power",
+        "legs"
+      ],
       "isActive": true
     },
     {
@@ -1535,7 +1978,11 @@
       "type": "Cardio",
       "trackingType": "Hiit",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Chest", "Core", "Shoulders"],
+      "secondaryMuscles": [
+        "Chest",
+        "Core",
+        "Shoulders"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Bodyweight",
       "difficulty": "Advanced",
@@ -1555,8 +2002,17 @@
         "Letting the lower back sag in the plank/push-up phase.",
         "Going so fast that landings become uncontrolled."
       ],
-      "aliases": ["burpees", "burpee circuit", "hiit burpees"],
-      "tags": ["hiit", "intervals", "conditioning", "full-body"],
+      "aliases": [
+        "burpees",
+        "burpee circuit",
+        "hiit burpees"
+      ],
+      "tags": [
+        "hiit",
+        "intervals",
+        "conditioning",
+        "full-body"
+      ],
       "isActive": true
     },
     {
@@ -1566,7 +2022,10 @@
       "category": "cardio",
       "type": "Cardio",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Arms", "Core"],
+      "secondaryMuscles": [
+        "Arms",
+        "Core"
+      ],
       "equipment": "Machine",
       "equipmentDetail": "Cardio Machine",
       "difficulty": "Intermediate",
@@ -1586,8 +2045,16 @@
         "Going out too hot and fading during intervals.",
         "Only pushing with the legs and ignoring the arms."
       ],
-      "aliases": ["air bike", "assault bike", "fan bike"],
-      "tags": ["cardio", "conditioning", "intervals"],
+      "aliases": [
+        "air bike",
+        "assault bike",
+        "fan bike"
+      ],
+      "tags": [
+        "cardio",
+        "conditioning",
+        "intervals"
+      ],
       "isActive": true
     },
     {
@@ -1597,7 +2064,9 @@
       "category": "cardio",
       "type": "Cardio",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Machine",
       "equipmentDetail": "Cardio Machine",
       "difficulty": "Beginner",
@@ -1617,8 +2086,16 @@
         "Overstriding and heel-striking hard.",
         "Holding the handrails, which alters running mechanics."
       ],
-      "aliases": ["treadmill run", "easy run", "jog"],
-      "tags": ["cardio", "running", "aerobic"],
+      "aliases": [
+        "treadmill run",
+        "easy run",
+        "jog"
+      ],
+      "tags": [
+        "cardio",
+        "running",
+        "aerobic"
+      ],
       "isActive": true
     },
     {
@@ -1628,7 +2105,11 @@
       "category": "cardio",
       "type": "Cardio",
       "primaryMuscle": "Back",
-      "secondaryMuscles": ["Legs", "Arms", "Core"],
+      "secondaryMuscles": [
+        "Legs",
+        "Arms",
+        "Core"
+      ],
       "equipment": "Machine",
       "equipmentDetail": "Cardio Machine",
       "difficulty": "Beginner",
@@ -1648,8 +2129,16 @@
         "Breaking the arms early before the legs finish driving.",
         "Rounding the back at the catch."
       ],
-      "aliases": ["erg", "indoor rower", "concept2"],
-      "tags": ["cardio", "rowing", "conditioning"],
+      "aliases": [
+        "erg",
+        "indoor rower",
+        "concept2"
+      ],
+      "tags": [
+        "cardio",
+        "rowing",
+        "conditioning"
+      ],
       "isActive": true
     },
     {
@@ -1660,7 +2149,10 @@
       "type": "Cardio",
       "trackingType": "Hiit",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core", "Arms"],
+      "secondaryMuscles": [
+        "Core",
+        "Arms"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Jump Rope",
       "difficulty": "Beginner",
@@ -1680,8 +2172,17 @@
         "Jumping too high and landing heavily.",
         "Swinging from the shoulders instead of the wrists."
       ],
-      "aliases": ["skipping", "jump rope intervals", "speed rope"],
-      "tags": ["cardio", "conditioning", "intervals", "footwork"],
+      "aliases": [
+        "skipping",
+        "jump rope intervals",
+        "speed rope"
+      ],
+      "tags": [
+        "cardio",
+        "conditioning",
+        "intervals",
+        "footwork"
+      ],
       "isActive": true
     },
     {
@@ -1691,7 +2192,9 @@
       "category": "mobility",
       "type": "Mobility",
       "primaryMuscle": "Back",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Foam Roller",
       "difficulty": "Beginner",
@@ -1711,8 +2214,16 @@
         "Hinging from the lower back instead of the thoracic spine.",
         "Rolling the neck or lumbar region."
       ],
-      "aliases": ["t-spine extension", "foam roller extension"],
-      "tags": ["mobility", "t-spine", "warm-up", "recovery"],
+      "aliases": [
+        "t-spine extension",
+        "foam roller extension"
+      ],
+      "tags": [
+        "mobility",
+        "t-spine",
+        "warm-up",
+        "recovery"
+      ],
       "isActive": true
     },
     {
@@ -1723,7 +2234,9 @@
       "type": "Stretching",
       "trackingType": "Timed",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Bodyweight",
       "difficulty": "Beginner",
@@ -1743,8 +2256,15 @@
         "Letting the hips rotate open instead of staying square.",
         "Forcing the front shin to 90° before the hip is ready."
       ],
-      "aliases": ["pigeon pose", "pigeon stretch"],
-      "tags": ["stretching", "hips", "recovery"],
+      "aliases": [
+        "pigeon pose",
+        "pigeon stretch"
+      ],
+      "tags": [
+        "stretching",
+        "hips",
+        "recovery"
+      ],
       "isActive": true
     },
     {
@@ -1755,7 +2275,9 @@
       "type": "Stretching",
       "trackingType": "Timed",
       "primaryMuscle": "Legs",
-      "secondaryMuscles": ["Core"],
+      "secondaryMuscles": [
+        "Core"
+      ],
       "equipment": "Bodyweight",
       "equipmentDetail": "Bodyweight",
       "difficulty": "Beginner",
@@ -1775,8 +2297,16 @@
         "Arching the lower back instead of tucking the pelvis.",
         "Pushing the front knee far past the toes."
       ],
-      "aliases": ["hip flexor stretch", "kneeling hip flexor stretch"],
-      "tags": ["stretching", "hips", "recovery", "posture"],
+      "aliases": [
+        "hip flexor stretch",
+        "kneeling hip flexor stretch"
+      ],
+      "tags": [
+        "stretching",
+        "hips",
+        "recovery",
+        "posture"
+      ],
       "isActive": true
     },
     {
@@ -2809,6 +3339,2306 @@
       "tags": [
         "legs",
         "glutes"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "preacher-curl",
+      "name": "Preacher Curl",
+      "description": "Biceps curl performed on a preacher bench so the upper arms are fixed against the pad, removing momentum and biasing the lower biceps through a strong stretch.",
+      "category": "biceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Barbell",
+      "equipmentDetail": "EZ Bar / Preacher Bench",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Elbow Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 35,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Seat the back of the upper arms flat on the preacher pad with a shoulder-width underhand grip.",
+        "Curl the bar up by flexing the biceps, then lower slowly until the elbows are nearly straight."
+      ],
+      "safetyNotes": [
+        "Do not bounce out of the bottom — the stretched position is where the biceps tendon is most vulnerable."
+      ],
+      "commonMistakes": [
+        "Lifting the elbows off the pad to cheat the rep.",
+        "Dropping the weight at the bottom instead of lowering under control."
+      ],
+      "aliases": [
+        "preacher curls",
+        "ez bar preacher curl",
+        "machine preacher curl"
+      ],
+      "tags": [
+        "isolation",
+        "arms",
+        "biceps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "hip-adductor-machine",
+      "name": "Hip Adductor (Machine)",
+      "description": "Seated hip-adductor machine targeting the inner-thigh adductors by squeezing the knees together against the stack.",
+      "category": "glutes",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Hip Adductor Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Hip Adduction",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Sit with the pads against the inner thighs and the legs spread to a comfortable stretch.",
+        "Squeeze the knees together against the resistance, then return under control."
+      ],
+      "safetyNotes": [
+        "Set the starting width to a comfortable stretch; do not force an aggressive range under load."
+      ],
+      "aliases": [
+        "adductor machine",
+        "seated hip adduction",
+        "inner thigh machine"
+      ],
+      "tags": [
+        "legs",
+        "glutes"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "standing-cable-overhead-triceps-extension",
+      "name": "Standing Cable Overhead Triceps Extension",
+      "description": "Standing overhead cable extension with a rope, keeping constant tension on the long head of the triceps through a deep stretch.",
+      "category": "triceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Intermediate",
+      "mechanics": "Isolation",
+      "movementPattern": "Elbow Extension",
+      "forceType": "Push",
+      "estimatedCalories": 35,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Set a rope low (or face away from a high pulley) and step forward so the cable runs behind the head with the elbows high and tucked.",
+        "Extend the arms fully overhead, then lower under control until the triceps is deeply stretched."
+      ],
+      "safetyNotes": [
+        "Keep the elbows pointing forward and still — let only the forearms move to protect the elbow joint."
+      ],
+      "commonMistakes": [
+        "Letting the elbows flare wide and drift down.",
+        "Using bodyweight to lean and push instead of extending the elbows."
+      ],
+      "aliases": [
+        "standing cable triceps extension",
+        "cable overhead triceps extension",
+        "rope overhead extension"
+      ],
+      "tags": [
+        "isolation",
+        "arms",
+        "triceps",
+        "cable"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "high-cable-rear-delt-cuff",
+      "name": "High Cable Rear Delt Fly (Cuffs)",
+      "description": "Bilateral high-cable reverse fly using wrist cuffs, pulling out and back to isolate the posterior deltoids with constant cable tension.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Back"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Intermediate",
+      "mechanics": "Isolation",
+      "movementPattern": "Horizontal Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Attach a cuff to each high pulley, cross the cables and grip neither handle — drive from the wrists.",
+        "Pull the cuffs out and back in a wide arc squeezing the rear delts, then return slowly without letting the shoulders roll forward."
+      ],
+      "safetyNotes": [
+        "Keep a slight fixed elbow bend; do not turn it into a straight-arm pulldown."
+      ],
+      "commonMistakes": [
+        "Using too much weight and recruiting the lats and traps.",
+        "Shrugging the shoulders up instead of driving the elbows back."
+      ],
+      "aliases": [
+        "high cable rear delt",
+        "cuff rear delt fly",
+        "cable rear delt cuff"
+      ],
+      "tags": [
+        "isolation",
+        "rear-delt",
+        "shoulders",
+        "cable"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "stationary-bike",
+      "name": "Stationary Bike",
+      "description": "Steady-state upright cycling on a stationary bike for low-impact aerobic conditioning.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Exercise Bike",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 250,
+      "averageDurationSeconds": 1800,
+      "instructions": [
+        "Set the saddle so the knee is slightly bent at the bottom of the stroke.",
+        "Hold a steady cadence and resistance for the target duration."
+      ],
+      "safetyNotes": [
+        "Keep the resistance high enough that you are not bouncing in the saddle."
+      ],
+      "aliases": [
+        "exercise bike",
+        "upright bike",
+        "spin bike"
+      ],
+      "tags": [
+        "cardio",
+        "low-impact",
+        "legs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "recumbent-bike",
+      "name": "Recumbent Bike",
+      "description": "Seated reclined cycling that supports the back — gentle low-impact cardio.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Recumbent Bike",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 220,
+      "averageDurationSeconds": 1800,
+      "instructions": [
+        "Adjust the seat so the legs almost fully extend at the far pedal.",
+        "Pedal at a steady cadence for the target duration."
+      ],
+      "safetyNotes": [
+        "Keep the back supported against the seat throughout."
+      ],
+      "aliases": [
+        "recumbent cycling",
+        "seated bike"
+      ],
+      "tags": [
+        "cardio",
+        "low-impact",
+        "legs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "elliptical-trainer",
+      "name": "Elliptical Trainer",
+      "description": "Low-impact full-stride cardio driving the pedals and handles together.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Back"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Elliptical",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 280,
+      "averageDurationSeconds": 1800,
+      "instructions": [
+        "Stand tall, drive through the legs and push/pull the handles in rhythm.",
+        "Hold a steady stride and resistance for the target duration."
+      ],
+      "safetyNotes": [
+        "Avoid leaning on the handles — keep the weight through the legs."
+      ],
+      "aliases": [
+        "cross trainer",
+        "elliptical machine"
+      ],
+      "tags": [
+        "cardio",
+        "low-impact",
+        "full-body"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "stair-climber",
+      "name": "Stair Climber (StepMill)",
+      "description": "Continuous stair-stepping cardio that heavily taxes the legs and glutes.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "StepMill",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 320,
+      "averageDurationSeconds": 1500,
+      "instructions": [
+        "Stand tall and step in a controlled rhythm without gripping the rails for support.",
+        "Hold a steady pace for the target duration."
+      ],
+      "safetyNotes": [
+        "Do not hunch over or hang on the handrails — it removes the training effect."
+      ],
+      "aliases": [
+        "stepmill",
+        "stair master",
+        "stairmaster"
+      ],
+      "tags": [
+        "cardio",
+        "legs",
+        "glutes"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "treadmill-incline-walk",
+      "name": "Incline Treadmill Walk",
+      "description": "Brisk uphill treadmill walking — high-calorie, joint-friendly steady cardio.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Treadmill",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 300,
+      "averageDurationSeconds": 1800,
+      "instructions": [
+        "Set a moderate speed and a 6–12% incline; walk tall without holding the rails.",
+        "Maintain the pace and incline for the target duration."
+      ],
+      "safetyNotes": [
+        "Let go of the handrails so the incline actually loads the legs."
+      ],
+      "aliases": [
+        "incline walk",
+        "treadmill walk",
+        "incline treadmill"
+      ],
+      "tags": [
+        "cardio",
+        "low-impact",
+        "legs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "outdoor-run",
+      "name": "Outdoor Run",
+      "description": "Continuous outdoor running over ground for aerobic conditioning.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 350,
+      "averageDurationSeconds": 1800,
+      "instructions": [
+        "Run at a conversational to moderate pace with a relaxed upright posture.",
+        "Hold the effort for the target distance or duration."
+      ],
+      "safetyNotes": [
+        "Build mileage gradually to protect the knees, shins and ankles."
+      ],
+      "aliases": [
+        "road run",
+        "outdoor running",
+        "going for a run"
+      ],
+      "tags": [
+        "cardio",
+        "endurance",
+        "legs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "outdoor-cycling",
+      "name": "Outdoor Cycling",
+      "description": "Riding a bicycle outdoors for endurance and aerobic conditioning.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Bicycle",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 320,
+      "averageDurationSeconds": 2400,
+      "instructions": [
+        "Maintain a smooth cadence over varied terrain in an appropriate gear.",
+        "Ride for the target distance or duration."
+      ],
+      "safetyNotes": [
+        "Wear a helmet and stay aware of traffic."
+      ],
+      "aliases": [
+        "bike ride",
+        "road cycling",
+        "cycling"
+      ],
+      "tags": [
+        "cardio",
+        "endurance",
+        "legs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "walking",
+      "name": "Walking",
+      "description": "Steady walking for easy, accessible low-intensity cardio and recovery.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 150,
+      "averageDurationSeconds": 1800,
+      "instructions": [
+        "Walk at a brisk, comfortable pace with a tall posture and natural arm swing.",
+        "Continue for the target steps, distance or duration."
+      ],
+      "safetyNotes": [
+        "Wear supportive footwear for longer walks."
+      ],
+      "aliases": [
+        "brisk walk",
+        "going for a walk",
+        "steps"
+      ],
+      "tags": [
+        "cardio",
+        "low-impact",
+        "recovery"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "swimming",
+      "name": "Swimming",
+      "description": "Full-body, zero-impact aerobic conditioning in the water.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Shoulders",
+        "Legs"
+      ],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Pool",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 360,
+      "averageDurationSeconds": 1800,
+      "instructions": [
+        "Swim continuous laps in your chosen stroke with steady breathing.",
+        "Hold the effort for the target distance or duration."
+      ],
+      "safetyNotes": [
+        "Only swim where supervised or with a buddy."
+      ],
+      "aliases": [
+        "laps",
+        "lap swimming",
+        "pool swim"
+      ],
+      "tags": [
+        "cardio",
+        "low-impact",
+        "full-body"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "ski-erg",
+      "name": "Ski Erg",
+      "description": "Standing double-pole machine that mimics cross-country skiing — upper-body-led cardio.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Cardio",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Arms",
+        "Core"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Ski Erg",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 300,
+      "averageDurationSeconds": 1200,
+      "instructions": [
+        "Reach tall, then drive the handles down and back by hinging and pulling through the lats and triceps.",
+        "Return to full extension and repeat at a steady pace."
+      ],
+      "safetyNotes": [
+        "Hinge from the hips and keep a braced, neutral spine."
+      ],
+      "aliases": [
+        "skierg",
+        "ski machine"
+      ],
+      "tags": [
+        "cardio",
+        "full-body",
+        "back"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "rowing-erg-intervals",
+      "name": "Rowing Intervals",
+      "description": "High-intensity interval rowing alternating hard pulls with recovery.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Hiit",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Legs",
+        "Arms"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Rowing Erg",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 340,
+      "averageDurationSeconds": 900,
+      "instructions": [
+        "Row hard for the work interval driving with the legs then back then arms.",
+        "Row easy or rest for the recovery interval; repeat for the set."
+      ],
+      "safetyNotes": [
+        "Lead each stroke with the legs, not the lower back."
+      ],
+      "aliases": [
+        "row intervals",
+        "erg intervals"
+      ],
+      "tags": [
+        "cardio",
+        "hiit",
+        "full-body"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "mountain-climbers",
+      "name": "Mountain Climbers",
+      "description": "Fast alternating knee drives from a plank — a bodyweight cardio and core burner.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Hiit",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [
+        "Shoulders"
+      ],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 200,
+      "averageDurationSeconds": 300,
+      "instructions": [
+        "Start in a high plank with a braced core and flat back.",
+        "Drive the knees toward the chest one at a time as fast as control allows."
+      ],
+      "safetyNotes": [
+        "Keep the hips low and level — do not let them pike up."
+      ],
+      "aliases": [
+        "mountain climber",
+        "running plank"
+      ],
+      "tags": [
+        "cardio",
+        "hiit",
+        "core"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "high-knees",
+      "name": "High Knees",
+      "description": "Running in place driving the knees up high — a simple HIIT and warm-up drill.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Hiit",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 180,
+      "averageDurationSeconds": 300,
+      "instructions": [
+        "Run in place driving each knee up to hip height with a quick arm swing.",
+        "Stay on the balls of the feet and keep the pace fast."
+      ],
+      "safetyNotes": [
+        "Land softly through the forefoot to spare the knees."
+      ],
+      "aliases": [
+        "high knee run",
+        "knee drives"
+      ],
+      "tags": [
+        "cardio",
+        "hiit",
+        "warm-up"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "jumping-jacks",
+      "name": "Jumping Jacks",
+      "description": "Classic full-body jumping calisthenic for warm-ups and conditioning.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Hiit",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 160,
+      "averageDurationSeconds": 300,
+      "instructions": [
+        "Jump the feet out while raising the arms overhead, then jump back together.",
+        "Keep a steady rhythm for the work interval."
+      ],
+      "safetyNotes": [
+        "Land softly with slightly bent knees."
+      ],
+      "aliases": [
+        "star jumps",
+        "jumping jack"
+      ],
+      "tags": [
+        "cardio",
+        "hiit",
+        "warm-up"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "box-jump",
+      "name": "Box Jump",
+      "description": "Explosive two-foot jump onto a raised box to build lower-body power.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Hiit",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Plyo Box",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 220,
+      "averageDurationSeconds": 300,
+      "instructions": [
+        "Dip into a quarter squat and swing the arms, then jump and land softly on top of the box.",
+        "Stand tall on the box, then step (do not jump) back down and reset."
+      ],
+      "safetyNotes": [
+        "Always step down rather than jumping down to protect the Achilles and knees."
+      ],
+      "aliases": [
+        "box jumps",
+        "plyo box jump"
+      ],
+      "tags": [
+        "cardio",
+        "hiit",
+        "plyometric",
+        "legs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "battle-ropes",
+      "name": "Battle Ropes",
+      "description": "Rhythmic heavy-rope waves for upper-body conditioning and metabolic work.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Hiit",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Arms",
+        "Core"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Battle Rope",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 260,
+      "averageDurationSeconds": 300,
+      "instructions": [
+        "Hold a rope end in each hand in an athletic stance with a braced core.",
+        "Drive alternating or double waves down the ropes for the work interval."
+      ],
+      "safetyNotes": [
+        "Keep the knees soft and the spine neutral; power the waves from the whole body."
+      ],
+      "aliases": [
+        "battle rope waves",
+        "heavy ropes"
+      ],
+      "tags": [
+        "cardio",
+        "hiit",
+        "upper-body"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "shadow-boxing",
+      "name": "Shadow Boxing",
+      "description": "Continuous punching and footwork against an imaginary opponent for cardio.",
+      "category": "cardio",
+      "type": "Cardio",
+      "trackingType": "Hiit",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Arms",
+        "Core"
+      ],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Conditioning",
+      "forceType": "Push",
+      "estimatedCalories": 220,
+      "averageDurationSeconds": 600,
+      "instructions": [
+        "Move on the balls of the feet throwing combinations of jabs, crosses and hooks.",
+        "Keep the hands up and stay light for the work interval."
+      ],
+      "safetyNotes": [
+        "Do not fully lock out the elbows when punching."
+      ],
+      "aliases": [
+        "shadowboxing",
+        "boxing drills"
+      ],
+      "tags": [
+        "cardio",
+        "hiit",
+        "full-body"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "decline-barbell-bench-press",
+      "name": "Decline Barbell Bench Press",
+      "description": "Barbell press on a decline bench to bias the lower (sternal) chest.",
+      "category": "chest",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Chest",
+      "secondaryMuscles": [
+        "Shoulders",
+        "Arms"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Barbell",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Push",
+      "forceType": "Push",
+      "estimatedCalories": 85,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Set a 15–30° decline and lock the feet; unrack with a slightly wider than shoulder grip.",
+        "Lower the bar to the lower chest, then press up over the shoulders."
+      ],
+      "safetyNotes": [
+        "Use a spotter — bar removal and re-racking are awkward on a decline."
+      ],
+      "aliases": [
+        "decline bench",
+        "decline bench press"
+      ],
+      "tags": [
+        "push",
+        "chest"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "weighted-push-up",
+      "name": "Weighted Push-Up",
+      "description": "Push-up loaded with a plate, vest or band to keep the classic movement in a strength rep range.",
+      "category": "chest",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Chest",
+      "secondaryMuscles": [
+        "Shoulders",
+        "Arms"
+      ],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Weight Plate / Vest",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Push",
+      "forceType": "Push",
+      "estimatedCalories": 70,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Place a plate on the upper back (or wear a vest); set the hands just wider than the shoulders.",
+        "Lower the chest to just above the floor with a braced core, then press up to lockout."
+      ],
+      "safetyNotes": [
+        "Keep a straight line from head to heels — do not let the hips sag."
+      ],
+      "aliases": [
+        "weighted pushup",
+        "plate push-up",
+        "loaded push-up"
+      ],
+      "tags": [
+        "push",
+        "chest"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "diamond-push-up",
+      "name": "Diamond Push-Up",
+      "description": "Close-hands push-up forming a diamond shape to emphasise the triceps and inner chest.",
+      "category": "triceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [
+        "Chest"
+      ],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Push",
+      "forceType": "Push",
+      "estimatedCalories": 50,
+      "averageDurationSeconds": 150,
+      "instructions": [
+        "Place the hands together under the chest so the thumbs and index fingers form a diamond.",
+        "Lower with the elbows tucked, then press back to lockout."
+      ],
+      "safetyNotes": [
+        "Keep the elbows close to the body to protect the shoulders."
+      ],
+      "aliases": [
+        "diamond pushup",
+        "close grip push-up",
+        "triangle push-up"
+      ],
+      "tags": [
+        "push",
+        "triceps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "t-bar-row",
+      "name": "T-Bar Row",
+      "description": "Chest-supported or landmine barbell row that loads the mid-back with a strong squeeze.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "T-Bar / Landmine",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 80,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Straddle the bar, hinge to ~45° with a flat back and grip the handle.",
+        "Row the weight to the lower chest squeezing the shoulder blades, then lower under control."
+      ],
+      "safetyNotes": [
+        "Keep the spine neutral; do not jerk the weight up with the lower back."
+      ],
+      "aliases": [
+        "t bar row",
+        "landmine row"
+      ],
+      "tags": [
+        "pull",
+        "back"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "pendlay-row",
+      "name": "Pendlay Row",
+      "description": "Explosive barbell row from a dead stop on the floor each rep for mid-back power.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Barbell",
+      "difficulty": "Advanced",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 85,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Hinge to a flat, near-parallel torso and grip the bar over the mid-foot.",
+        "Row explosively to the lower chest, then return the bar fully to the floor between reps."
+      ],
+      "safetyNotes": [
+        "Keep the torso fixed and parallel; let the back rest only between reps, not mid-set."
+      ],
+      "aliases": [
+        "pendlay rows",
+        "dead stop row"
+      ],
+      "tags": [
+        "pull",
+        "back"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "inverted-row",
+      "name": "Inverted Row",
+      "description": "Horizontal bodyweight row under a fixed bar — a scalable pull for the whole back.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Bar / Rings",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 45,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Hang under a waist-high bar with a straight body and an overhand grip.",
+        "Pull the chest to the bar squeezing the blades, then lower under control."
+      ],
+      "safetyNotes": [
+        "Keep the hips up so the body stays in a straight line."
+      ],
+      "aliases": [
+        "bodyweight row",
+        "supine row",
+        "australian pull-up"
+      ],
+      "tags": [
+        "pull",
+        "back",
+        "bodyweight"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "straight-arm-pulldown",
+      "name": "Straight-Arm Pulldown",
+      "description": "Cable pullover-style lat isolation with the elbows nearly locked.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Shoulder Extension",
+      "forceType": "Pull",
+      "estimatedCalories": 35,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Stand tall at a high pulley holding a straight bar with nearly straight arms.",
+        "Drive the bar down to the thighs in an arc using the lats, then return under control."
+      ],
+      "safetyNotes": [
+        "Keep a small fixed elbow bend; do not turn it into a triceps pushdown."
+      ],
+      "aliases": [
+        "straight arm pulldown",
+        "lat pushdown",
+        "cable pullover"
+      ],
+      "tags": [
+        "pull",
+        "back",
+        "cable"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "dumbbell-shrug",
+      "name": "Dumbbell Shrug",
+      "description": "Dumbbell shrug for direct upper-trap development with a long range.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Shrug",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Stand tall holding a dumbbell in each hand at the sides.",
+        "Shrug the shoulders straight up toward the ears, pause, then lower fully."
+      ],
+      "safetyNotes": [
+        "Do not roll the shoulders — shrug straight up and down."
+      ],
+      "aliases": [
+        "db shrug",
+        "dumbbell shrugs"
+      ],
+      "tags": [
+        "pull",
+        "back",
+        "traps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "sumo-deadlift",
+      "name": "Sumo Deadlift",
+      "description": "Wide-stance deadlift with a more upright torso, sharing load across legs, glutes and back.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Legs"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Barbell",
+      "difficulty": "Advanced",
+      "mechanics": "Compound",
+      "movementPattern": "Hip Hinge",
+      "forceType": "Pull",
+      "estimatedCalories": 110,
+      "averageDurationSeconds": 300,
+      "instructions": [
+        "Take a wide stance with toes out, grip inside the knees, hips down and chest up.",
+        "Drive the floor away and stand tall, then lower under control."
+      ],
+      "safetyNotes": [
+        "Keep the bar against the body and the spine neutral throughout."
+      ],
+      "aliases": [
+        "sumo dl",
+        "sumo pull"
+      ],
+      "tags": [
+        "pull",
+        "back",
+        "legs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "trap-bar-deadlift",
+      "name": "Trap Bar Deadlift",
+      "description": "Hex/trap-bar deadlift with neutral handles — a knee-friendly, easy-to-learn pull.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Legs"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Trap Bar",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Hip Hinge",
+      "forceType": "Pull",
+      "estimatedCalories": 110,
+      "averageDurationSeconds": 300,
+      "instructions": [
+        "Stand inside the trap bar, grip the neutral handles, hips back and chest up.",
+        "Drive through the floor to stand tall, then lower under control."
+      ],
+      "safetyNotes": [
+        "Brace the core and keep the back neutral on every rep."
+      ],
+      "aliases": [
+        "hex bar deadlift",
+        "trap bar dl"
+      ],
+      "tags": [
+        "pull",
+        "back",
+        "legs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "dead-hang",
+      "name": "Dead Hang",
+      "description": "Passive hang from a pull-up bar for grip endurance, shoulder health and decompression.",
+      "category": "back",
+      "type": "Strength",
+      "trackingType": "Timed",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Pull-Up Bar",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Hang",
+      "forceType": "Pull",
+      "estimatedCalories": 20,
+      "averageDurationSeconds": 60,
+      "instructions": [
+        "Grip a pull-up bar slightly wider than the shoulders and hang with the arms straight.",
+        "Stay relaxed and breathe for the target time."
+      ],
+      "safetyNotes": [
+        "Build hang time gradually to avoid grip and elbow strain."
+      ],
+      "aliases": [
+        "bar hang",
+        "hanging from the bar",
+        "passive hang"
+      ],
+      "tags": [
+        "pull",
+        "back",
+        "grip"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "arnold-press",
+      "name": "Arnold Press",
+      "description": "Rotating seated dumbbell press that hits all three deltoid heads through a long arc.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Vertical Push",
+      "forceType": "Push",
+      "estimatedCalories": 60,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Start seated with the dumbbells in front at shoulder height, palms facing you.",
+        "Press up while rotating the palms to face forward, then reverse on the way down."
+      ],
+      "safetyNotes": [
+        "Keep the core braced and avoid arching the lower back."
+      ],
+      "aliases": [
+        "arnold dumbbell press",
+        "rotating shoulder press"
+      ],
+      "tags": [
+        "push",
+        "shoulders"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "cable-lateral-raise",
+      "name": "Cable Lateral Raise",
+      "description": "Single-arm cable side raise giving the side delt constant tension through the range.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Lateral Raise",
+      "forceType": "Push",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Stand side-on to a low pulley and hold the handle across the body.",
+        "Raise the arm out to shoulder height with a fixed slight elbow bend, then lower slowly."
+      ],
+      "safetyNotes": [
+        "Lead with the elbow, not the hand, and avoid shrugging."
+      ],
+      "aliases": [
+        "cable side raise",
+        "cable side lateral"
+      ],
+      "tags": [
+        "push",
+        "shoulders",
+        "cable"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "front-raise",
+      "name": "Dumbbell Front Raise",
+      "description": "Dumbbell raise to the front isolating the anterior deltoid.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Front Raise",
+      "forceType": "Push",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Stand tall holding dumbbells in front of the thighs.",
+        "Raise one or both arms to shoulder height with a slight elbow bend, then lower slowly."
+      ],
+      "safetyNotes": [
+        "Do not swing or lean back to throw the weight up."
+      ],
+      "aliases": [
+        "dumbbell front raise",
+        "front delt raise"
+      ],
+      "tags": [
+        "push",
+        "shoulders"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "upright-row",
+      "name": "Upright Row",
+      "description": "Vertical pull of a barbell or cable up the front of the body for delts and traps.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Back"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Barbell / Cable",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Vertical Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 40,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Hold the bar at thigh width with an overhand grip.",
+        "Pull the bar up the body leading with the elbows to about chest height, then lower."
+      ],
+      "safetyNotes": [
+        "Stop at chest height and avoid a narrow grip if the shoulders pinch."
+      ],
+      "aliases": [
+        "barbell upright row",
+        "cable upright row"
+      ],
+      "tags": [
+        "pull",
+        "shoulders",
+        "traps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "reverse-pec-deck",
+      "name": "Reverse Pec Deck",
+      "description": "Seated machine reverse fly isolating the rear delts with a fixed path.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Back"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Pec Deck Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Horizontal Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Sit facing the pad and grip the handles with arms extended in front.",
+        "Sweep the arms out and back squeezing the rear delts, then return under control."
+      ],
+      "safetyNotes": [
+        "Keep a soft fixed elbow and avoid shrugging the traps."
+      ],
+      "aliases": [
+        "rear delt machine",
+        "reverse fly machine",
+        "reverse machine fly"
+      ],
+      "tags": [
+        "pull",
+        "shoulders",
+        "rear-delt"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "cable-curl",
+      "name": "Cable Curl",
+      "description": "Standing biceps curl on a low cable for constant tension top to bottom.",
+      "category": "biceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Elbow Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Stand tall at a low pulley with a straight bar and elbows pinned to the sides.",
+        "Curl the bar up by flexing the biceps, then lower under control."
+      ],
+      "safetyNotes": [
+        "Keep the elbows still; do not let them drift forward."
+      ],
+      "aliases": [
+        "cable bicep curl",
+        "standing cable curl"
+      ],
+      "tags": [
+        "pull",
+        "arms",
+        "biceps",
+        "cable"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "concentration-curl",
+      "name": "Concentration Curl",
+      "description": "Seated single-arm curl braced against the inner thigh for peak biceps isolation.",
+      "category": "biceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Elbow Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Sit and brace the working elbow against the inner thigh, arm hanging straight.",
+        "Curl the dumbbell to the shoulder squeezing hard, then lower fully."
+      ],
+      "safetyNotes": [
+        "Keep the upper arm fixed against the thigh — no swinging."
+      ],
+      "aliases": [
+        "concentration curls",
+        "seated db concentration curl"
+      ],
+      "tags": [
+        "pull",
+        "arms",
+        "biceps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "lying-triceps-extension",
+      "name": "Lying Triceps Extension (Skullcrusher)",
+      "description": "Lying EZ-bar extension lowering to the forehead to load all three triceps heads.",
+      "category": "triceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Barbell",
+      "equipmentDetail": "EZ Bar",
+      "difficulty": "Intermediate",
+      "mechanics": "Isolation",
+      "movementPattern": "Elbow Extension",
+      "forceType": "Push",
+      "estimatedCalories": 40,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Lie on a bench holding an EZ bar over the chest with arms vertical.",
+        "Bend only the elbows to lower the bar toward the forehead, then extend back up."
+      ],
+      "safetyNotes": [
+        "Keep the upper arms still and do not flare the elbows wide."
+      ],
+      "aliases": [
+        "skullcrusher",
+        "skull crusher",
+        "lying tricep extension"
+      ],
+      "tags": [
+        "push",
+        "arms",
+        "triceps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "triceps-kickback",
+      "name": "Triceps Kickback",
+      "description": "Bent-over dumbbell kickback that peaks tension at full elbow extension.",
+      "category": "triceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Elbow Extension",
+      "forceType": "Push",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Hinge forward with a flat back and pin the upper arm parallel to the torso.",
+        "Extend the elbow to straighten the arm behind you, squeeze, then return."
+      ],
+      "safetyNotes": [
+        "Keep the upper arm still — only the forearm moves."
+      ],
+      "aliases": [
+        "dumbbell kickback",
+        "tricep kickback"
+      ],
+      "tags": [
+        "push",
+        "arms",
+        "triceps"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "hack-squat",
+      "name": "Hack Squat (Machine)",
+      "description": "Machine squat with the back supported on an angled sled to load the quads safely.",
+      "category": "quadriceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Hack Squat Machine",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Squat",
+      "forceType": "Push",
+      "estimatedCalories": 90,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Set the shoulders and back against the pads with feet mid-platform.",
+        "Unlock and squat to at least parallel, then drive back up without locking out hard."
+      ],
+      "safetyNotes": [
+        "Keep the lower back flat against the pad throughout."
+      ],
+      "aliases": [
+        "hack squat machine",
+        "machine hack squat"
+      ],
+      "tags": [
+        "push",
+        "legs",
+        "quads"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "smith-machine-squat",
+      "name": "Smith Machine Squat",
+      "description": "Guided-bar squat on the Smith machine for a stable, fixed squat path.",
+      "category": "quadriceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Smith Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Squat",
+      "forceType": "Push",
+      "estimatedCalories": 90,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Set the bar across the upper back and place the feet slightly forward.",
+        "Unlock and squat to depth, then drive up and re-rack at the top."
+      ],
+      "safetyNotes": [
+        "Keep the core braced; the fixed bar path does not replace good control."
+      ],
+      "aliases": [
+        "smith squat",
+        "machine squat"
+      ],
+      "tags": [
+        "push",
+        "legs",
+        "quads"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "sumo-squat",
+      "name": "Sumo Squat",
+      "description": "Wide-stance, toes-out squat biasing the inner thighs and glutes.",
+      "category": "quadriceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell / Barbell",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Squat",
+      "forceType": "Push",
+      "estimatedCalories": 80,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Take a wide stance with toes turned out, holding a dumbbell at the chest or between the legs.",
+        "Squat straight down keeping the knees tracking over the toes, then drive up."
+      ],
+      "safetyNotes": [
+        "Keep the chest up and knees pushed out, not caving in."
+      ],
+      "aliases": [
+        "sumo squats",
+        "wide stance squat",
+        "plie squat"
+      ],
+      "tags": [
+        "push",
+        "legs",
+        "glutes"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "step-up",
+      "name": "Dumbbell Step-Up",
+      "description": "Single-leg step onto a box for unilateral quad and glute strength and balance.",
+      "category": "quadriceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell / Box",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Lunge",
+      "forceType": "Push",
+      "estimatedCalories": 70,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Hold a dumbbell in each hand and place one foot fully on a knee-height box.",
+        "Drive through the top foot to stand tall, then lower under control and repeat."
+      ],
+      "safetyNotes": [
+        "Push through the heel of the top foot; avoid pushing off the trailing foot."
+      ],
+      "aliases": [
+        "step ups",
+        "box step-up",
+        "weighted step up"
+      ],
+      "tags": [
+        "push",
+        "legs",
+        "unilateral"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "good-morning",
+      "name": "Good Morning",
+      "description": "Barbell hip hinge with the bar on the back to load the hamstrings and lower back.",
+      "category": "hamstrings",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Back"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Barbell",
+      "difficulty": "Advanced",
+      "mechanics": "Compound",
+      "movementPattern": "Hip Hinge",
+      "forceType": "Pull",
+      "estimatedCalories": 70,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Set the bar on the upper back and take a hip-width stance with soft knees.",
+        "Hinge at the hips pushing them back until the torso is near parallel, then stand tall."
+      ],
+      "safetyNotes": [
+        "Use light loads and a neutral spine — this loads the lower back directly."
+      ],
+      "aliases": [
+        "good mornings",
+        "barbell good morning"
+      ],
+      "tags": [
+        "pull",
+        "legs",
+        "hamstrings"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "nordic-hamstring-curl",
+      "name": "Nordic Hamstring Curl",
+      "description": "Anchored eccentric bodyweight hamstring curl — one of the hardest hamstring builders.",
+      "category": "hamstrings",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Advanced",
+      "mechanics": "Isolation",
+      "movementPattern": "Knee Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 45,
+      "averageDurationSeconds": 150,
+      "instructions": [
+        "Kneel with the ankles anchored and the body straight from knees to head.",
+        "Lower forward as slowly as possible resisting with the hamstrings, then push up to assist back."
+      ],
+      "safetyNotes": [
+        "Only lower as far as you can control; catch yourself with the hands."
+      ],
+      "aliases": [
+        "nordic curl",
+        "nordics",
+        "russian leg curl"
+      ],
+      "tags": [
+        "pull",
+        "legs",
+        "hamstrings",
+        "bodyweight"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "seated-leg-curl",
+      "name": "Seated Leg Curl",
+      "description": "Seated machine hamstring curl flexing the knees against a pad.",
+      "category": "hamstrings",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Leg Curl Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Knee Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 35,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Sit with the shin pad on the lower calves and the thigh pad locked down.",
+        "Curl the heels under the seat squeezing the hamstrings, then return under control."
+      ],
+      "safetyNotes": [
+        "Keep the hips down and avoid jerking the weight."
+      ],
+      "aliases": [
+        "seated hamstring curl",
+        "machine leg curl"
+      ],
+      "tags": [
+        "pull",
+        "legs",
+        "hamstrings"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "glute-kickback",
+      "name": "Cable Glute Kickback",
+      "description": "Single-leg cable kickback driving the hip into extension to isolate the glute.",
+      "category": "glutes",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable / Ankle Strap",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Hip Extension",
+      "forceType": "Push",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Attach an ankle strap to a low pulley and face the stack, hinged slightly forward.",
+        "Drive the working leg back squeezing the glute, then return under control."
+      ],
+      "safetyNotes": [
+        "Avoid arching the lower back to gain range — move from the hip."
+      ],
+      "aliases": [
+        "cable kickback",
+        "glute kickbacks",
+        "donkey kick"
+      ],
+      "tags": [
+        "push",
+        "legs",
+        "glutes",
+        "cable"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "donkey-calf-raise",
+      "name": "Donkey Calf Raise",
+      "description": "Hip-hinged calf raise that stretches the calves under load for a long range.",
+      "category": "calves",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Donkey Calf Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Ankle Extension",
+      "forceType": "Push",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Hinge forward with the pad on the lower back and the balls of the feet on the platform.",
+        "Rise onto the toes squeezing the calves, then lower into a deep stretch."
+      ],
+      "safetyNotes": [
+        "Control the bottom stretch; do not bounce out of it."
+      ],
+      "aliases": [
+        "donkey calf raises",
+        "bent over calf raise"
+      ],
+      "tags": [
+        "push",
+        "legs",
+        "calves"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "leg-press-calf-raise",
+      "name": "Leg Press Calf Raise",
+      "description": "Calf raise performed on the leg-press platform for heavy loadable plantar flexion.",
+      "category": "calves",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Leg Press Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Ankle Extension",
+      "forceType": "Push",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Place the balls of the feet on the bottom edge of the leg-press platform, legs nearly straight.",
+        "Press the platform away by extending the ankles, then lower into a stretch."
+      ],
+      "safetyNotes": [
+        "Keep a slight knee bend and never fully lock the knees under load."
+      ],
+      "aliases": [
+        "calf press",
+        "leg press calf"
+      ],
+      "tags": [
+        "push",
+        "legs",
+        "calves"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "sit-up",
+      "name": "Sit-Up",
+      "description": "Full-range trunk flexion from lying to sitting for the abdominals and hip flexors.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Spinal Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Lie on your back with knees bent and feet flat or anchored.",
+        "Curl up to a seated position, then lower under control."
+      ],
+      "safetyNotes": [
+        "Avoid yanking on the neck — lead with the chest."
+      ],
+      "aliases": [
+        "situp",
+        "sit ups",
+        "full sit-up"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "bodyweight"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "bicycle-crunch",
+      "name": "Bicycle Crunch",
+      "description": "Alternating elbow-to-knee crunch that targets the abs and obliques.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Spinal Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Lie on your back, hands by the ears, and lift the shoulders and feet off the floor.",
+        "Twist to bring each elbow to the opposite knee while extending the other leg, alternating."
+      ],
+      "safetyNotes": [
+        "Rotate from the torso, not by pulling on the neck."
+      ],
+      "aliases": [
+        "bicycle crunches",
+        "bicycle kicks",
+        "air bike crunch"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "obliques"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "lying-leg-raise",
+      "name": "Lying Leg Raise",
+      "description": "Floor leg raise lifting straight legs to target the lower abs.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Hip Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 30,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Lie flat with the legs straight and hands tucked under the hips.",
+        "Raise the legs to vertical keeping them straight, then lower slowly without touching down."
+      ],
+      "safetyNotes": [
+        "Press the lower back into the floor; do not let it arch."
+      ],
+      "aliases": [
+        "lying leg raises",
+        "floor leg raise",
+        "flat leg raise"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "lower-abs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "reverse-crunch",
+      "name": "Reverse Crunch",
+      "description": "Hips-off-the-floor curl that rolls the pelvis up to bias the lower abs.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Spinal Flexion",
+      "forceType": "Pull",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Lie on your back with the knees bent and lifted over the hips.",
+        "Curl the pelvis up bringing the knees toward the chest, then lower under control."
+      ],
+      "safetyNotes": [
+        "Move with the abs, not by swinging the legs."
+      ],
+      "aliases": [
+        "reverse crunches",
+        "hip lift crunch"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "lower-abs"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "ab-wheel-rollout",
+      "name": "Ab Wheel Rollout",
+      "description": "Anti-extension rollout on an ab wheel that powerfully braces the entire core.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "Ab Wheel",
+      "difficulty": "Advanced",
+      "mechanics": "Isolation",
+      "movementPattern": "Anti-Extension",
+      "forceType": "Push",
+      "estimatedCalories": 40,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Kneel holding the ab wheel under the shoulders with a braced core.",
+        "Roll forward as far as you can control without arching, then pull back to the start."
+      ],
+      "safetyNotes": [
+        "Keep the ribs down and the back flat — never let the lower back sag."
+      ],
+      "aliases": [
+        "ab rollout",
+        "wheel rollout",
+        "ab roller"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "anti-extension"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "side-plank",
+      "name": "Side Plank",
+      "description": "Isometric side hold that braces the obliques and lateral core.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Timed",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Anti-Lateral-Flexion",
+      "forceType": "Push",
+      "estimatedCalories": 20,
+      "averageDurationSeconds": 60,
+      "instructions": [
+        "Lie on your side propped on the forearm with the body in a straight line.",
+        "Lift the hips so only the forearm and feet touch, and hold for time."
+      ],
+      "safetyNotes": [
+        "Keep the hips stacked and lifted; do not let them drop."
+      ],
+      "aliases": [
+        "side planks",
+        "side bridge"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "obliques"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "hollow-body-hold",
+      "name": "Hollow Body Hold",
+      "description": "Gymnastics isometric hold pressing the low back down with limbs extended.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Timed",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Bodyweight",
+      "equipmentDetail": "None",
+      "difficulty": "Intermediate",
+      "mechanics": "Isolation",
+      "movementPattern": "Anti-Extension",
+      "forceType": "Push",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 60,
+      "instructions": [
+        "Lie on your back, press the lower back into the floor and lift the shoulders and legs.",
+        "Extend the arms overhead and hold the dished position for time."
+      ],
+      "safetyNotes": [
+        "If the lower back lifts, raise the legs higher to keep it pinned down."
+      ],
+      "aliases": [
+        "hollow hold",
+        "hollow body"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "isometric"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "cable-woodchopper",
+      "name": "Cable Woodchopper",
+      "description": "Diagonal cable chop that trains rotational power through the obliques.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [
+        "Shoulders"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Rotation",
+      "forceType": "Pull",
+      "estimatedCalories": 35,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Set the pulley high and stand side-on, gripping the handle with both hands.",
+        "Pull and rotate down and across to the opposite hip, then return under control."
+      ],
+      "safetyNotes": [
+        "Pivot the back foot and rotate from the trunk, not the arms."
+      ],
+      "aliases": [
+        "woodchopper",
+        "cable chop",
+        "wood chop"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "obliques",
+        "cable"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "pallof-press",
+      "name": "Pallof Press",
+      "description": "Anti-rotation cable press that teaches the core to resist twisting.",
+      "category": "abs",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Cable",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Anti-Rotation",
+      "forceType": "Push",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Stand side-on to a cable at chest height holding the handle at the sternum.",
+        "Press the handle straight out resisting the pull's rotation, hold, then return."
+      ],
+      "safetyNotes": [
+        "Keep the hips and shoulders square — do not let the cable twist you."
+      ],
+      "aliases": [
+        "pallof",
+        "anti-rotation press"
+      ],
+      "tags": [
+        "core",
+        "abs",
+        "anti-rotation",
+        "cable"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "clean-and-press",
+      "name": "Clean and Press",
+      "description": "Full-body lift pulling the bar from the floor to the shoulders then overhead.",
+      "category": "full-body",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Legs",
+        "Back",
+        "Arms"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Barbell",
+      "difficulty": "Advanced",
+      "mechanics": "Compound",
+      "movementPattern": "Full Body",
+      "forceType": "Push",
+      "estimatedCalories": 120,
+      "averageDurationSeconds": 300,
+      "instructions": [
+        "Pull the bar explosively from the floor to the shoulders, dropping under to catch it.",
+        "Brace and press or push the bar overhead to lockout, then return under control."
+      ],
+      "safetyNotes": [
+        "Learn the clean technique with light loads before adding weight."
+      ],
+      "aliases": [
+        "clean press",
+        "barbell clean and press"
+      ],
+      "tags": [
+        "full-body",
+        "power"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "thruster",
+      "name": "Thruster",
+      "description": "Front squat flowing directly into an overhead press — a brutal full-body conditioner.",
+      "category": "full-body",
+      "type": "Strength",
+      "trackingType": "Hiit",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Shoulders"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Barbell / Dumbbell",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Full Body",
+      "forceType": "Push",
+      "estimatedCalories": 110,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Hold the weight at the shoulders and squat to depth.",
+        "Drive up explosively and use the momentum to press the weight overhead, then return to the shoulders."
+      ],
+      "safetyNotes": [
+        "Keep the core braced and the bar path vertical."
+      ],
+      "aliases": [
+        "thrusters",
+        "squat to press"
+      ],
+      "tags": [
+        "full-body",
+        "hiit"
+      ],
+      "isActive": true
+    },
+    {
+      "slug": "turkish-get-up",
+      "name": "Turkish Get-Up",
+      "description": "Slow, multi-step floor-to-standing lift under a single weight for total-body control.",
+      "category": "full-body",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [
+        "Shoulders",
+        "Legs"
+      ],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Kettlebell",
+      "difficulty": "Advanced",
+      "mechanics": "Compound",
+      "movementPattern": "Full Body",
+      "forceType": "Push",
+      "estimatedCalories": 80,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Lie down pressing one weight up; rise to a seated, then kneeling, then standing position keeping the arm locked overhead.",
+        "Reverse each step under control back to lying."
+      ],
+      "safetyNotes": [
+        "Keep eyes on the weight and the arm vertical throughout; start very light."
+      ],
+      "aliases": [
+        "tgu",
+        "get up",
+        "turkish getup"
+      ],
+      "tags": [
+        "full-body",
+        "stability"
       ],
       "isActive": true
     }

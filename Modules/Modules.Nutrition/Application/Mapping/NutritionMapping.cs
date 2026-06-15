@@ -284,6 +284,18 @@ internal static class NutritionMapping
             r.CompletedCount,
             ConsumedKcal: RoundKcal(r.ConsumedKcalSum),
             TargetKcal: hideMacroTargets || !r.HasPlannedEnergy ? null : RoundKcal(r.PlannedKcalSum));
+
+    /// <summary>
+    /// Builds an ALL-SOURCE per-day calorie point (D15) from the same SQL-projected sums as <see cref="ToAdherenceDto"/>.
+    /// <c>ConsumedKcal</c> is the adherent-item sum across all sources (so an ad-hoc / no-plan day still reports its
+    /// logged energy); <c>TargetKcal</c> reuses the identical honesty gate — null when the governing assignment hides
+    /// macro targets (<paramref name="hideMacroTargets"/>) or the day carries no planned energy at all.
+    /// </summary>
+    public static DayCaloriesDto ToDayCaloriesDto(DailyAdherenceCounts r, bool hideMacroTargets) =>
+        new(
+            r.LocalDate,
+            ConsumedKcal: RoundKcal(r.ConsumedKcalSum),
+            TargetKcal: hideMacroTargets || !r.HasPlannedEnergy ? null : RoundKcal(r.PlannedKcalSum));
 }
 
 /// <summary>Projected day counts (computed in SQL) used to build a list summary without loading items.</summary>

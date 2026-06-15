@@ -73,6 +73,15 @@ public sealed record DailyNutritionLogListDto(
 /// a plan-less, self-logging user be recognized ("you logged 5 days this week") without inflating an
 /// adherence % they have no plan to adhere to.
 /// </para>
+/// <para>
+/// <see cref="CaloriesByDay"/> is the ALL-SOURCE per-day calorie list (Decision <b>D15</b>'s companion to the
+/// plan-only <see cref="Days"/>): every day in the endpoint window that carries at least one logged item — ANY
+/// source, plan or ad-hoc — date-ascending, so an ad-hoc / no-plan self-logger (who gets an empty <see cref="Days"/>)
+/// still surfaces what they actually logged. Each entry's <c>ConsumedKcal</c> / <c>TargetKcal</c> carry the same
+/// semantics as the per-day totals on <see cref="DailyAdherenceDto"/> (consumed = adherent kcal, all sources;
+/// target = planned-meal kcal, plan-only, null when no plan / no planned energy / <c>HideMacroTargets</c>). A
+/// touched-but-empty day (no logged item) is omitted.
+/// </para>
 /// Query-only — rides the existing <c>DailyNutritionLog.AdherencePct</c>, no new entity, no migration.
 /// </summary>
 public sealed record NutritionAdherenceDto(
@@ -80,7 +89,8 @@ public sealed record NutritionAdherenceDto(
     IReadOnlyList<DailyAdherenceDto> Days,
     int? CurrentWeekAvgPct,
     int LoggedDaysThisWeek,
-    bool HasAnyLogging);
+    bool HasAnyLogging,
+    IReadOnlyList<DayCaloriesDto> CaloriesByDay);
 
 /// <summary>
 /// One day's nutrition-plan adherence (planned-item count, completed/substituted count, %).
@@ -99,5 +109,18 @@ public sealed record DailyAdherenceDto(
     int AdherencePct,
     int PlannedCount,
     int CompletedCount,
+    int ConsumedKcal,
+    int? TargetKcal);
+
+/// <summary>
+/// One day's ALL-SOURCE calorie totals for <see cref="NutritionAdherenceDto.CaloriesByDay"/>: <see cref="ConsumedKcal"/>
+/// is the rounded sum of <c>EnergyKcal × Quantity</c> over the day's adherent (Completed/Substituted) items across
+/// <b>all sources</b> (plan or ad-hoc); <see cref="TargetKcal"/> is the rounded sum over the day's <b>planned</b>
+/// items (the prescribed energy goal), <c>null</c> — never fabricated — when the day has no planned items, the planned
+/// items carry no energy, or the governing assignment hides macro targets (<c>HideMacroTargets</c>). Same semantics
+/// as the per-day totals on <see cref="DailyAdherenceDto"/>; only days that carry a logged item appear in the list.
+/// </summary>
+public sealed record DayCaloriesDto(
+    DateOnly LocalDate,
     int ConsumedKcal,
     int? TargetKcal);

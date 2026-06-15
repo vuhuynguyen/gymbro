@@ -55,11 +55,13 @@ public sealed class MeController(IMediator mediator) : ControllerBase
         return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
     }
 
-    /// <summary>The single-call trainee Progress home: adherence, consistency, top-lift direction, PR teaser.</summary>
+    /// <summary>The single-call trainee Progress home: adherence, consistency, top-lift direction, PR teaser.
+    /// Optional <paramref name="weeks"/> selects the consistency/heatmap/top-lift window (clamped to [4, 52],
+    /// default 12); the This-Week hero and goal are unaffected.</summary>
     [HttpGet("progress/overview")]
-    public async Task<IActionResult> ProgressOverview(CancellationToken ct)
+    public async Task<IActionResult> ProgressOverview([FromQuery] int? weeks, CancellationToken ct)
     {
-        var result = await mediator.Send(new GetMyProgressOverviewQuery(), ct);
+        var result = await mediator.Send(new GetMyProgressOverviewQuery(weeks), ct);
         return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
     }
 
@@ -71,6 +73,34 @@ public sealed class MeController(IMediator mediator) : ControllerBase
     {
         var result = await mediator.Send(new GetMyExerciseE1rmSeriesQuery(exerciseId, from, to), ct);
         return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
+    /// <summary>The caller's own FULL strength-lift list over the selected window — the uncapped sibling of the
+    /// overview's top-3 strip. <paramref name="weeks"/> is clamped to [4, 52] (default 12). <paramref
+    /// name="muscleGroup"/> optionally narrows by primary group (tolerant camelCase parse — an unknown value is
+    /// ignored, i.e. no filter). Self-scoped, cross-gym; sorted by current e1RM desc; 200 + empty list for a
+    /// brand-new user.</summary>
+    [HttpGet("exercises/strength-lifts")]
+    public async Task<IActionResult> StrengthLifts(
+        [FromQuery] int? weeks, [FromQuery] string? muscleGroup, CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetMyStrengthLiftsQuery(weeks, ParseMuscleGroup(muscleGroup)), ct);
+        return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
+    }
+
+    // Tolerant primary-muscle filter parse: the 6 known groups (camelCase wire form), case/whitespace
+    // insensitive; anything unknown becomes null (no filter), never a 400. Kept here so the controller owns the
+    // wire tolerance and the handler receives an already-validated camelCase token (or null).
+    private static readonly string[] KnownMuscleGroups =
+        ["chest", "back", "legs", "shoulders", "arms", "core"];
+
+    private static string? ParseMuscleGroup(string? muscleGroup)
+    {
+        if (string.IsNullOrWhiteSpace(muscleGroup))
+            return null;
+
+        var normalized = muscleGroup.Trim().ToLowerInvariant();
+        return KnownMuscleGroups.Contains(normalized) ? normalized : null;
     }
 
     /// <summary>The caller's own body-metric trend (latest-per-day) for one metric type (e.g. weight).

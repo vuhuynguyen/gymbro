@@ -36,7 +36,9 @@ public sealed record DailyNutritionLogDto(
     int AdherencePct,
     int PlannedCount,
     int CompletedCount,
-    IReadOnlyList<LoggedMealDto> Meals);
+    IReadOnlyList<LoggedMealDto> Meals,
+    int ConsumedKcal,
+    int? TargetKcal);
 
 public sealed record DailyNutritionLogSummaryDto(
     Guid Id,
@@ -80,9 +82,22 @@ public sealed record NutritionAdherenceDto(
     int LoggedDaysThisWeek,
     bool HasAnyLogging);
 
-/// <summary>One day's nutrition-plan adherence (planned-item count, completed/substituted count, %).</summary>
+/// <summary>
+/// One day's nutrition-plan adherence (planned-item count, completed/substituted count, %).
+/// <para>
+/// <see cref="ConsumedKcal"/> is the rounded sum of <c>EnergyKcal × Quantity</c> over the day's adherent
+/// (Completed/Substituted) items across <b>all sources</b> — an ad-hoc, plan-less day still reports the
+/// calories it logged. <see cref="TargetKcal"/> is the rounded sum over the day's <b>planned</b> items
+/// (the prescribed energy goal); it is <c>null</c> — never fabricated — when the day has no planned items,
+/// the planned items carry no energy macros, or the governing assignment hides macro targets
+/// (<c>HideMacroTargets</c>). The calorie totals are a parallel signal to <see cref="AdherencePct"/>, which
+/// stays plan-only and byte-for-byte unchanged.
+/// </para>
+/// </summary>
 public sealed record DailyAdherenceDto(
     DateOnly LocalDate,
     int AdherencePct,
     int PlannedCount,
-    int CompletedCount);
+    int CompletedCount,
+    int ConsumedKcal,
+    int? TargetKcal);

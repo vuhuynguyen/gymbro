@@ -16,7 +16,7 @@ namespace Modules.NutritionModule.Application.Queries.Handlers;
 /// Nutrition is a daily signal, so the default window is short — trailing <b>4 weeks</b> (vs. 12 for strength).
 /// Only PLANNED days (<c>Source == FromAssignment</c>) feed the trend: an ad-hoc self-logged day carries no plan
 /// to adhere to (its adherence is 100% by convention) and would inflate the trend, so it is excluded. Per-day
-/// adherence reuses the SQL count projection (<see cref="NutritionMapping.SummaryRowProjection"/>): a closed
+/// adherence reuses the SQL count projection (<see cref="NutritionMapping.AdherenceRowProjection"/>): a closed
 /// day reports its finalized <c>AdherencePct</c>, an open day a live recompute. <c>CurrentWeekAvgPct</c> is the
 /// mean adherence over the current local week's planned days (null when none). <c>HasPlan=false</c> (empty
 /// Days, null avg) only when the caller has NEVER had a planned nutrition day — a 200, never a 404 or 204.
@@ -32,6 +32,7 @@ namespace Modules.NutritionModule.Application.Queries.Handlers;
 /// </summary>
 public sealed class GetMyNutritionAdherenceHandler(
     IDailyNutritionLogRepository logRepository,
+    INutritionPlanAssignmentRepository assignmentRepository,
     ICurrentUser currentUser)
     : IRequestHandler<GetMyNutritionAdherenceQuery, Result<NutritionAdherenceDto>>
 {
@@ -80,16 +81,36 @@ public sealed class GetMyNutritionAdherenceHandler(
 
         // One bounded read of the window's planned days; counts computed in SQL via the shared projection
         // (neither the item rows nor the jsonb snapshot are loaded). The rounding rule isn't SQL-translatable,
-        // so adherence is finished in memory by ToSummaryDto.
+        // so adherence is finished in memory by ToAdherenceDto.
         var rows = await planned
             .Where(l => l.LocalDate >= from && l.LocalDate <= to)
-            .Select(NutritionMapping.SummaryRowProjection)
+            .Select(NutritionMapping.AdherenceRowProjection)
             .ToListAsync(cancellationToken);
 
+        // Per-day calorie target respects the governing assignment's HideMacroTargets (the trend's sibling of the
+        // day read's macro redaction). Resolve the flag for just the assignments that govern the window's days —
+        // one bounded, self-scoped lookup of the distinct ids, not a per-row query.
+        var assignmentIds = rows
+            .Where(r => r.NutritionPlanAssignmentId != null)
+            .Select(r => r.NutritionPlanAssignmentId!.Value)
+            .Distinct()
+            .ToList();
+
+        var hideMacroTargetsById = assignmentIds.Count == 0
+            ? new Dictionary<Guid, bool>()
+            : (await assignmentRepository.QueryOwnAcrossGyms(currentUser.UserId)
+                    .AsNoTracking()
+                    .Where(a => assignmentIds.Contains(a.Id))
+                    .Select(a => new { a.Id, a.HideMacroTargets })
+                    .ToListAsync(cancellationToken))
+                .ToDictionary(a => a.Id, a => a.HideMacroTargets);
+
         var days = rows
-            .Select(NutritionMapping.ToSummaryDto)
-            .OrderBy(d => d.LocalDate)
-            .Select(d => new DailyAdherenceDto(d.LocalDate, d.AdherencePct, d.PlannedCount, d.CompletedCount))
+            .OrderBy(r => r.LocalDate)
+            .Select(r => NutritionMapping.ToAdherenceDto(
+                r,
+                hideMacroTargets: r.NutritionPlanAssignmentId is { } id
+                    && hideMacroTargetsById.TryGetValue(id, out var hide) && hide))
             .ToList();
 
         // Current local week (Monday-anchored, in the caller's zone): mean adherence over its planned days.

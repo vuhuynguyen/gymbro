@@ -61,13 +61,24 @@ public sealed record DailyNutritionLogListDto(
 /// false (with empty <see cref="Days"/> and a null <see cref="CurrentWeekAvgPct"/>) when the user has never
 /// had a planned nutrition day. <see cref="Days"/> lists only days that have a logged plan day in range, one
 /// per local date. <see cref="CurrentWeekAvgPct"/> is the mean <c>AdherencePct</c> over the current local
-/// week's planned days (null when none). Query-only — rides the existing <c>DailyNutritionLog.AdherencePct</c>,
-/// no new entity, no migration.
+/// week's planned days (null when none).
+/// <para>
+/// The adherence trend (<see cref="Days"/> / <see cref="CurrentWeekAvgPct"/>) stays <b>plan-only</b> on
+/// purpose (Decision <b>D15</b>): an ad-hoc self-logged day is 100% by convention, so folding it in would
+/// fake a perfect record. Ad-hoc logging is surfaced instead as a separate <i>tracking</i> signal:
+/// <see cref="LoggedDaysThisWeek"/> counts the current local week's days the caller actually logged food on
+/// (any source), and <see cref="HasAnyLogging"/> is whether they have ever logged a nutrition day. These let
+/// a plan-less, self-logging user be recognized ("you logged 5 days this week") without inflating an
+/// adherence % they have no plan to adhere to.
+/// </para>
+/// Query-only — rides the existing <c>DailyNutritionLog.AdherencePct</c>, no new entity, no migration.
 /// </summary>
 public sealed record NutritionAdherenceDto(
     bool HasPlan,
     IReadOnlyList<DailyAdherenceDto> Days,
-    int? CurrentWeekAvgPct);
+    int? CurrentWeekAvgPct,
+    int LoggedDaysThisWeek,
+    bool HasAnyLogging);
 
 /// <summary>One day's nutrition-plan adherence (planned-item count, completed/substituted count, %).</summary>
 public sealed record DailyAdherenceDto(

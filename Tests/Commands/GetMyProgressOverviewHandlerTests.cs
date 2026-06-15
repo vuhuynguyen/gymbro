@@ -261,6 +261,37 @@ public sealed class GetMyProgressOverviewHandlerTests
         Assert.Equal(0, result.Value!.Consistency.CurrentStreakWeeks);
     }
 
+    [Fact]
+    public async Task Ad_hoc_sessions_count_toward_the_weekly_total_even_when_a_plan_is_active()
+    {
+        // Symmetric to nutrition D15: self-training (Source = Adhoc, no PlanAssignment) is real work
+        // and must show on Progress. The weekly total is completed-by-window and is NEVER filtered to
+        // plan-sourced sessions — a future `Source == FromAssignment` filter on the count breaks this.
+        var userId = Guid.NewGuid();
+        var gym = Guid.NewGuid();
+        var monday = ThisMondayInstant;
+
+        // An active plan (so a goal exists) plus three ad-hoc, no-plan completed sessions this week.
+        var sessions = new[]
+        {
+            InTenant(CompletedSession(userId, monday), gym),
+            InTenant(CompletedSession(userId, monday.AddDays(1)), gym),
+            InTenant(CompletedSession(userId, monday.AddDays(2)), gym),
+        };
+        var assignments = new List<OwnActiveAssignmentDto>
+        {
+            new(Guid.NewGuid(), gym, 4, ThisMonday.AddDays(-7 * 8)),
+        };
+
+        var result = await Run(userId, sessions, assignments);
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Value!.ThisWeek.HasActivePlan);
+        Assert.Equal(4, result.Value!.ThisWeek.Goal);
+        // The three ad-hoc sessions are all counted — the weekly total never filters them out.
+        Assert.Equal(3, result.Value!.ThisWeek.CompletedSessions);
+    }
+
     // ── consistency % (D10) ──
 
     [Fact]

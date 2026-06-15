@@ -732,4 +732,41 @@ public sealed class NutritionFlowTests(PostgresFixture fixture)
         Assert.True(theirs.IsSuccess);
         Assert.Empty(theirs.Value!.Points);
     }
+
+    [SkippableFact]
+    public async Task Nutrition_adherence_counts_ad_hoc_self_logged_days_without_inflating_the_percent()
+    {
+        Skip.If(fixture.SkipReason is not null, fixture.SkipReason!);
+        // D15 against real Postgres: an ad-hoc (plan-less, self-logged) day is COUNTED by the tracking signals
+        // yet NEVER enters the adherence trend (no faked 100% record). We log on the caller's real "today"
+        // (UTC zone) so it lands in the current Monday-week and the default 4-week window. The Gym OWNER is the
+        // subject — a self-training user who is never given a nutrition assignment anywhere in this suite, so
+        // HasPlan stays false (ClientA/B DO get plans in other shared-DB tests, so they can't prove HasPlan).
+        var today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.UtcDateTime);
+
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId, isAdmin: true);
+        var food = await fixture.SendAsync(new CreateFoodCommand(
+            new FoodInput("Adhoc Tracking Banana", "Food", "1 medium", 120m, 105m, 1.3m, 27m, 0.4m, 3m, Brand: null)));
+        Assert.True(food.IsSuccess);
+
+        // The Owner (self-train, no assignment) logs an off-plan food today — provisions a plan-less Adhoc day
+        // with a Completed item.
+        fixture.Principal.Become(fixture.OwnerId, fixture.TenantId);
+        var add = await fixture.SendAsync(
+            new AddAdhocNutritionItemCommand(today, food.Value, 1m, "Snack", "logged it"));
+        Assert.True(add.IsSuccess);
+
+        // Default-window self-scoped adherence read (current-week logic runs over real "today").
+        var adherence = await fixture.SendAsync(new GetMyNutritionAdherenceQuery(null, null));
+        Assert.True(adherence.IsSuccess);
+
+        // Honest: the Owner has no plan, so the trend is the empty-invite shape — no faked record.
+        Assert.False(adherence.Value!.HasPlan);
+        Assert.Empty(adherence.Value.Days);
+        Assert.Null(adherence.Value.CurrentWeekAvgPct);
+        // The ad-hoc day is never in the trend regardless (plan-less), and IS counted by the tracking signals.
+        Assert.DoesNotContain(adherence.Value.Days, d => d.LocalDate == today);
+        Assert.True(adherence.Value.LoggedDaysThisWeek >= 1); // ≥1 — robust on a shared DB
+        Assert.True(adherence.Value.HasAnyLogging);
+    }
 }

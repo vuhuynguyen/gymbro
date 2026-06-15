@@ -68,9 +68,29 @@ public sealed class GetMyNutritionAdherenceHandlerTests
         return log;
     }
 
-    /// <summary>An ad-hoc (self-logged, plan-less) day — must NOT count toward the adherence trend.</summary>
-    private static DailyNutritionLog AdhocDay(Guid traineeId, DateOnly localDate)
-        => DailyNutritionLog.OpenSelfLogged(traineeId, Tenant, localDate, "UTC");
+    /// <summary>An ad-hoc (self-logged, plan-less) day — must NOT count toward the adherence trend. By default it
+    /// carries <paramref name="adhocItems"/> logged items (each created already Completed via the domain), so it
+    /// registers as a LOGGED day for the D15 tracking signal while still never appearing in Days.</summary>
+    private static DailyNutritionLog AdhocDay(Guid traineeId, DateOnly localDate, int adhocItems = 1)
+    {
+        var log = DailyNutritionLog.OpenSelfLogged(traineeId, Tenant, localDate, "UTC");
+        for (var i = 0; i < adhocItems; i++)
+            log.AddAdhocItem(AdhocItem(i), note: null);
+        return log;
+    }
+
+    private static LoggedItemData AdhocItem(int order)
+        => new(
+            PlanMealItemId: null,             // null ⇒ ad-hoc / off-plan
+            MealName: "Snack",
+            ScheduledTime: null,
+            Order: order,
+            FoodId: Guid.NewGuid(),
+            Kind: "Food",
+            FoodNameSnapshot: "Banana",
+            ServingLabelSnapshot: "1 medium",
+            Quantity: 1m,
+            EnergyKcal: 90m, ProteinG: 1m, CarbsG: 23m, FatG: 0m, FiberG: 3m);
 
     private static LoggedItemData PlannedItem(int order)
         => new(
@@ -200,6 +220,98 @@ public sealed class GetMyNutritionAdherenceHandlerTests
         Assert.False(dto.HasPlan);
         Assert.Empty(dto.Days);
         Assert.Null(dto.CurrentWeekAvgPct);
+    }
+
+    // ── D15: ad-hoc logging is COUNTED as a separate tracking signal (never folded into the % ) ──
+
+    [Fact]
+    public async Task Self_logged_only_user_has_no_plan_yet_logged_days_are_counted()
+    {
+        var userId = Guid.NewGuid();
+        // Two ad-hoc days THIS week (each with a logged item) + one ad-hoc day LAST week. The user has never had
+        // a plan: HasPlan=false, empty Days, null avg — yet the tracking signals recognize the effort.
+        var seed = new[]
+            {
+                AdhocDay(userId, ThisMonday),
+                AdhocDay(userId, ThisMonday.AddDays(1)),
+                AdhocDay(userId, ThisMonday.AddDays(-7)),
+            }
+            .Where(d => d.LocalDate <= Today) // Today could be Monday itself
+            .ToList();
+        var expectedThisWeek = seed.Count(d => d.LocalDate >= ThisMonday && d.LocalDate <= Today);
+
+        var dto = await Run(userId, seed);
+
+        Assert.False(dto.HasPlan);
+        Assert.Empty(dto.Days);
+        Assert.Null(dto.CurrentWeekAvgPct);
+        // The adherence % stays honest (no inflation), but the ad-hoc effort is surfaced:
+        Assert.Equal(expectedThisWeek, dto.LoggedDaysThisWeek);
+        Assert.True(dto.HasAnyLogging);
+    }
+
+    [Fact]
+    public async Task An_empty_self_logged_day_with_no_items_is_not_a_logged_day()
+    {
+        var userId = Guid.NewGuid();
+        // A touched-but-empty ad-hoc day (snapshot-on-touch with nothing logged) must NOT count as logged.
+        var dto = await Run(userId, new[] { AdhocDay(userId, ThisMonday, adhocItems: 0) });
+
+        Assert.False(dto.HasPlan);
+        Assert.Equal(0, dto.LoggedDaysThisWeek);
+        Assert.False(dto.HasAnyLogging);
+    }
+
+    [Fact]
+    public async Task Plan_user_adherence_is_unchanged_and_logged_days_count_completed_days_any_source()
+    {
+        var userId = Guid.NewGuid();
+        // A planned day this week with a completed item (counts as both an adherence day AND a logged day) + an
+        // ad-hoc day this week (logged, but never in the trend). Adherence output is exactly as before D15.
+        var planned = PlannedDay(userId, ThisMonday, planned: 2, completed: 1);
+        var seed = new[] { planned, AdhocDay(userId, ThisMonday.AddDays(1)) }
+            .Where(d => d.LocalDate <= Today)
+            .ToList();
+        var expectedThisWeek = seed.Count(d => d.LocalDate >= ThisMonday && d.LocalDate <= Today);
+
+        var dto = await Run(userId, seed);
+
+        // Adherence trend unchanged: only the planned day, at its real 50%.
+        Assert.True(dto.HasPlan);
+        var day = Assert.Single(dto.Days);
+        Assert.Equal(ThisMonday, day.LocalDate);
+        Assert.Equal(50, day.AdherencePct);
+        Assert.Equal(50, dto.CurrentWeekAvgPct);
+        // Logged-days counts BOTH the completed planned day and the ad-hoc day.
+        Assert.Equal(expectedThisWeek, dto.LoggedDaysThisWeek);
+        Assert.True(dto.HasAnyLogging);
+    }
+
+    [Fact]
+    public async Task A_planned_day_with_nothing_completed_is_not_yet_a_logged_day()
+    {
+        var userId = Guid.NewGuid();
+        // A planned day this week whose items are all still Planned (nothing ticked) is NOT a logged day —
+        // HasLoggedItem needs a Completed/Substituted item. HasPlan is still true (it's a planned day).
+        var dto = await Run(userId, new[] { PlannedDay(userId, ThisMonday, planned: 2, completed: 0) });
+
+        Assert.True(dto.HasPlan);
+        Assert.Equal(0, dto.LoggedDaysThisWeek);
+        Assert.False(dto.HasAnyLogging);
+    }
+
+    [Fact]
+    public async Task Logged_days_this_week_ignores_prior_week_logging()
+    {
+        var userId = Guid.NewGuid();
+        // Only a PRIOR-week ad-hoc day. HasAnyLogging is true (ever logged), but the current week is empty.
+        var priorWeek = AdhocDay(userId, ThisMonday.AddDays(-7));
+
+        var dto = await Run(userId, new[] { priorWeek });
+
+        Assert.False(dto.HasPlan);
+        Assert.Equal(0, dto.LoggedDaysThisWeek);
+        Assert.True(dto.HasAnyLogging);
     }
 
     // ── self-scope / IDOR ──

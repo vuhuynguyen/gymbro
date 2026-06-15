@@ -382,8 +382,10 @@ today. Nutrition is a *daily* signal, so the window is shorter than the strength
 
 public sealed record NutritionAdherenceDto(
     bool HasPlan,                                 // false ⇒ user never had a planned nutrition day
-    IReadOnlyList<DailyAdherenceDto> Days,        // planned days in range, one per local date, oldest→newest
-    int? CurrentWeekAvgPct);                      // mean AdherencePct over the current local week's planned days; null if none
+    IReadOnlyList<DailyAdherenceDto> Days,        // PLANNED days in range, one per local date, oldest→newest
+    int? CurrentWeekAvgPct,                       // mean AdherencePct over the current local week's planned days; null if none
+    int LoggedDaysThisWeek,                       // D15 tracking: current local-week days with ≥1 logged item (ANY source)
+    bool HasAnyLogging);                          // D15 tracking: has the caller EVER logged a nutrition day (any source)
 
 public sealed record DailyAdherenceDto(
     DateOnly LocalDate,                           // the day's local date (already in the trainee's zone)
@@ -393,8 +395,10 @@ public sealed record DailyAdherenceDto(
 ```
 
 **Business rules (frozen)**
-- **Planned days only:** a day contributes iff `Source == FromAssignment`. An ad-hoc self-logged day has no
-  plan to adhere to (its adherence is 100% by convention) and is **excluded** so it never inflates the trend.
+- **Adherence trend is plan-only (Decision D15 — honest):** a day contributes to `Days` / `CurrentWeekAvgPct`
+  iff `Source == FromAssignment`. An ad-hoc self-logged day has no plan to adhere to (its adherence is 100% by
+  convention) and is **excluded** so it never inflates the trend. Ad-hoc effort is surfaced **separately** as a
+  *tracking* signal (see the two new fields below) — never folded into the %.
 - **Per-day adherence** reuses the SQL count projection (`NutritionMapping.SummaryRowProjection`): a **closed**
   day reports its finalized `AdherencePct`; an **open** day a live recompute (`ComputeAdherencePct`). Counts are
   computed in SQL — neither the item rows nor the jsonb snapshot are loaded.
@@ -405,6 +409,15 @@ public sealed record DailyAdherenceDto(
 - **`CurrentWeekAvgPct`** = mean `AdherencePct` over the current **Monday-anchored** local week's planned days,
   bucketed in the **trainee's** zone; `null` when no planned day falls in the current week (never `0`).
 - **`Days`** sorted by `LocalDate` asc.
+- **`LoggedDaysThisWeek` (D15 — ad-hoc counted, ANY source):** count of days in the current Monday-anchored
+  local week (trainee's zone) that carry **≥1 actually-logged item** — an ad-hoc add or a ticked planned item
+  (`Status ∈ {Completed, Substituted}`; `Planned`/`Skipped`/`Missed` placeholders do **not** count). Computed
+  by a second ALL-SOURCES read (no `Source` filter) over `QueryOwnAcrossGyms`, **not** restricted to planned
+  items — so a pure self-logged day registers. A touched-but-empty day is **not** a logged day.
+- **`HasAnyLogging` (D15):** a bounded `EXISTS` — has the caller **ever** logged a nutrition day with a logged
+  item (any source, any gym, any time). Lets a plan-less self-logger be recognized (`HasPlan: false` but
+  `HasAnyLogging: true`) without a faked adherence record. Mirrors how workout sessions already count ad-hoc
+  training. Still **query-only, no migration, no cache.**
 
 **Authorization** `[Authorize]`, any authenticated role. Self-scoped via `QueryOwnAcrossGyms(currentUser.UserId)`.
 Exemption `GetMyNutritionAdherenceQuery` (`ImperativeGuarded`) in `Tests/Authorization/TenantAuthorizationExemptions.cs`.

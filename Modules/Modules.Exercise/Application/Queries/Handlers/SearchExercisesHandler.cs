@@ -22,10 +22,12 @@ public class SearchExercisesHandler(
     {
         // Clamp pagination before it reaches the cache key / reader — an unbounded pageSize would both
         // blow up cache-key cardinality and force a huge materialization. (Audit finding 3.)
+        // Cap is 500 (was 100): the plan/nutrition builders load the whole catalog client-side to name and
+        // pick exercises, so a cap below the catalog size left later entries unnamed/unsearchable.
         request = request with
         {
             Page = Math.Max(request.Page, 1),
-            PageSize = Math.Clamp(request.PageSize, 1, 100)
+            PageSize = Math.Clamp(request.PageSize, 1, 500)
         };
 
         if (!currentUser.IsAdmin)

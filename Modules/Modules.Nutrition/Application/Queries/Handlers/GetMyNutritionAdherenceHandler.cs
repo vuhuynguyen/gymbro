@@ -28,6 +28,13 @@ namespace Modules.NutritionModule.Application.Queries.Handlers;
 /// <c>LoggedDaysThisWeek &gt; 0</c> / <c>HasAnyLogging=true</c>, so their effort is counted without faking an
 /// adherence record. Mirrors how workout sessions already count ad-hoc training.
 /// </para>
+/// <para>
+/// The same ALL-SOURCES read also yields <c>CaloriesByDay</c> — every day in the endpoint window that carries
+/// at least one logged item (any source), date-ascending, each with the day's all-source consumed kcal and the
+/// plan-only target kcal (null under <c>HideMacroTargets</c> / no planned energy). It reuses the trend's
+/// <see cref="NutritionMapping.AdherenceRowProjection"/> kcal sums so a plan-less self-logger — whose
+/// plan-only <c>Days</c> is empty — still surfaces what they actually logged.
+/// </para>
 /// Query-only: rides the existing <c>DailyNutritionLog.AdherencePct</c>; no new entity, no migration, no cache.
 /// </summary>
 public sealed class GetMyNutritionAdherenceHandler(
@@ -66,6 +73,26 @@ public sealed class GetMyNutritionAdherenceHandler(
 
         var hasAnyLogging = await ownLogs.AnyAsync(NutritionMapping.HasLoggedItem, cancellationToken);
 
+        // D15 — ALL-SOURCE per-day calorie list: every day in the window that carries >=1 logged item (any
+        // source), so an ad-hoc / no-plan self-logger still surfaces what they logged even though their plan-only
+        // Days list is empty. Reuses the same AdherenceRowProjection kcal sums + honesty flag as the trend, then
+        // resolves each governing assignment's HideMacroTargets exactly like the trend's per-day targetKcal.
+        var calorieRows = await ownLogs
+            .Where(l => l.LocalDate >= from && l.LocalDate <= to)
+            .Where(NutritionMapping.HasLoggedItem)
+            .Select(NutritionMapping.AdherenceRowProjection)
+            .ToListAsync(cancellationToken);
+
+        var hideMacroTargetsForCalories = await ResolveHideMacroTargets(calorieRows, cancellationToken);
+
+        var caloriesByDay = calorieRows
+            .OrderBy(r => r.LocalDate)
+            .Select(r => NutritionMapping.ToDayCaloriesDto(
+                r,
+                hideMacroTargets: r.NutritionPlanAssignmentId is { } id
+                    && hideMacroTargetsForCalories.TryGetValue(id, out var hide) && hide))
+            .ToList();
+
         // PLANNED days only — an ad-hoc day has no plan to adhere to.
         var planned = ownLogs.Where(l => l.Source == NutritionSource.FromAssignment);
 
@@ -77,7 +104,8 @@ public sealed class GetMyNutritionAdherenceHandler(
             return Result<NutritionAdherenceDto>.Success(
                 new NutritionAdherenceDto(
                     HasPlan: false, Days: [], CurrentWeekAvgPct: null,
-                    LoggedDaysThisWeek: loggedDaysThisWeek, HasAnyLogging: hasAnyLogging));
+                    LoggedDaysThisWeek: loggedDaysThisWeek, HasAnyLogging: hasAnyLogging,
+                    CaloriesByDay: caloriesByDay));
 
         // One bounded read of the window's planned days; counts computed in SQL via the shared projection
         // (neither the item rows nor the jsonb snapshot are loaded). The rounding rule isn't SQL-translatable,
@@ -90,20 +118,7 @@ public sealed class GetMyNutritionAdherenceHandler(
         // Per-day calorie target respects the governing assignment's HideMacroTargets (the trend's sibling of the
         // day read's macro redaction). Resolve the flag for just the assignments that govern the window's days —
         // one bounded, self-scoped lookup of the distinct ids, not a per-row query.
-        var assignmentIds = rows
-            .Where(r => r.NutritionPlanAssignmentId != null)
-            .Select(r => r.NutritionPlanAssignmentId!.Value)
-            .Distinct()
-            .ToList();
-
-        var hideMacroTargetsById = assignmentIds.Count == 0
-            ? new Dictionary<Guid, bool>()
-            : (await assignmentRepository.QueryOwnAcrossGyms(currentUser.UserId)
-                    .AsNoTracking()
-                    .Where(a => assignmentIds.Contains(a.Id))
-                    .Select(a => new { a.Id, a.HideMacroTargets })
-                    .ToListAsync(cancellationToken))
-                .ToDictionary(a => a.Id, a => a.HideMacroTargets);
+        var hideMacroTargetsById = await ResolveHideMacroTargets(rows, cancellationToken);
 
         var days = rows
             .OrderBy(r => r.LocalDate)
@@ -125,6 +140,32 @@ public sealed class GetMyNutritionAdherenceHandler(
         return Result<NutritionAdherenceDto>.Success(
             new NutritionAdherenceDto(
                 HasPlan: true, days, currentWeekAvgPct,
-                LoggedDaysThisWeek: loggedDaysThisWeek, HasAnyLogging: hasAnyLogging));
+                LoggedDaysThisWeek: loggedDaysThisWeek, HasAnyLogging: hasAnyLogging,
+                CaloriesByDay: caloriesByDay));
+    }
+
+    /// <summary>
+    /// One bounded, self-scoped lookup of the <c>HideMacroTargets</c> flag for just the distinct assignments that
+    /// govern the given projected days — not a per-row query. Shared by the plan-only trend and the all-source
+    /// calorie list so both apply the identical macro-hiding gate.
+    /// </summary>
+    private async Task<IReadOnlyDictionary<Guid, bool>> ResolveHideMacroTargets(
+        IEnumerable<DailyAdherenceCounts> rows, CancellationToken cancellationToken)
+    {
+        var assignmentIds = rows
+            .Where(r => r.NutritionPlanAssignmentId != null)
+            .Select(r => r.NutritionPlanAssignmentId!.Value)
+            .Distinct()
+            .ToList();
+
+        if (assignmentIds.Count == 0)
+            return new Dictionary<Guid, bool>();
+
+        return (await assignmentRepository.QueryOwnAcrossGyms(currentUser.UserId)
+                .AsNoTracking()
+                .Where(a => assignmentIds.Contains(a.Id))
+                .Select(a => new { a.Id, a.HideMacroTargets })
+                .ToListAsync(cancellationToken))
+            .ToDictionary(a => a.Id, a => a.HideMacroTargets);
     }
 }

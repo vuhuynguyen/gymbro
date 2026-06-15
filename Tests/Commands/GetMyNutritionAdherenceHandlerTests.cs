@@ -415,6 +415,108 @@ public sealed class GetMyNutritionAdherenceHandlerTests
         Assert.Equal(67, d.AdherencePct);                // 2/3 ⇒ 66.67 → 67 (unchanged rounding)
     }
 
+    // ── ALL-SOURCE per-day calorie list (CaloriesByDay, D15) ──
+
+    [Fact]
+    public async Task CaloriesByDay_surfaces_an_adhoc_only_loggers_consumed_kcal_with_null_target()
+    {
+        var userId = Guid.NewGuid();
+        // A plan-LESS self-logger: only ad-hoc days this week, 1 item (90 kcal) on the first, 2 (180) on the next.
+        // The plan-only Days list is empty (HasPlan=false), but the all-source calorie list still surfaces them.
+        var dayA = AdhocDay(userId, ThisMonday, adhocItems: 1);
+        var dayB = AdhocDay(userId, ThisMonday.AddDays(1), adhocItems: 2);
+        var seed = new[] { dayA, dayB }.Where(d => d.LocalDate <= Today).ToList();
+
+        var dto = await Run(userId, seed);
+
+        Assert.False(dto.HasPlan);
+        Assert.Empty(dto.Days); // plan-only trend stays empty for a never-planned user
+        Assert.Equal(seed.Count, dto.CaloriesByDay.Count);
+        // Date-ascending, all-source consumed kcal, and a null target (no plan ⇒ no prescribed energy).
+        Assert.Equal(seed.Select(d => d.LocalDate).OrderBy(x => x), dto.CaloriesByDay.Select(c => c.LocalDate));
+        foreach (var c in dto.CaloriesByDay)
+            Assert.Null(c.TargetKcal);
+        var first = dto.CaloriesByDay.Single(c => c.LocalDate == ThisMonday);
+        Assert.Equal(90, first.ConsumedKcal); // 1 ad-hoc item × 90
+        if (dto.CaloriesByDay.Any(c => c.LocalDate == ThisMonday.AddDays(1)))
+            Assert.Equal(180, dto.CaloriesByDay.Single(c => c.LocalDate == ThisMonday.AddDays(1)).ConsumedKcal);
+    }
+
+    [Fact]
+    public async Task CaloriesByDay_reports_consumed_and_target_for_a_plan_day()
+    {
+        var userId = Guid.NewGuid();
+        var assignmentId = Guid.NewGuid();
+        // 2 planned items (300 each), 1 completed, plus 1 ad-hoc (90). Consumed = 300 + 90; target = 2×300.
+        var day = PlannedDay(userId, ThisMonday, planned: 2, completed: 1, assignmentId: assignmentId);
+        day.AddAdhocItem(AdhocItem(99), note: null);
+        var visible = AssignmentWithId(assignmentId, userId, hideMacroTargets: false);
+
+        var dto = await Run(userId, new[] { day }, new[] { visible });
+
+        var c = Assert.Single(dto.CaloriesByDay);
+        Assert.Equal(ThisMonday, c.LocalDate);
+        Assert.Equal(390, c.ConsumedKcal); // 1 completed planned (300) + 1 ad-hoc (90), all sources
+        Assert.Equal(600, c.TargetKcal);   // 2 planned × 300, plan-only
+    }
+
+    [Fact]
+    public async Task CaloriesByDay_omits_a_touched_but_empty_day()
+    {
+        var userId = Guid.NewGuid();
+        // A snapshot-on-touch ad-hoc day with NOTHING logged must not appear (no logged item).
+        var empty = AdhocDay(userId, ThisMonday, adhocItems: 0);
+        // A planned day with nothing completed is likewise not yet a "logged" day for the all-source list.
+        var plannedUntouched = PlannedDay(userId, ThisMonday.AddDays(-7), planned: 2, completed: 0);
+
+        var dto = await Run(userId, new[] { empty, plannedUntouched });
+
+        Assert.Empty(dto.CaloriesByDay);
+    }
+
+    [Fact]
+    public async Task CaloriesByDay_target_is_null_under_HideMacroTargets_but_consumed_stays()
+    {
+        var userId = Guid.NewGuid();
+        var assignmentId = Guid.NewGuid();
+        var day = PlannedDay(userId, ThisMonday, planned: 2, completed: 2, assignmentId: assignmentId);
+        var hiding = AssignmentWithId(assignmentId, userId, hideMacroTargets: true);
+
+        var dto = await Run(userId, new[] { day }, new[] { hiding });
+
+        var c = Assert.Single(dto.CaloriesByDay);
+        Assert.Null(c.TargetKcal);          // redacted, never fabricated
+        Assert.Equal(600, c.ConsumedKcal);  // 2 completed planned × 300, the trainee's own logged energy
+    }
+
+    [Fact]
+    public async Task CaloriesByDay_does_not_disturb_the_existing_fields()
+    {
+        var userId = Guid.NewGuid();
+        var assignmentId = Guid.NewGuid();
+        // A planned day this week (50%) + an ad-hoc day this week — the exact shape asserted before CaloriesByDay
+        // existed. All prior fields must be byte-for-byte unchanged while the new list is populated.
+        var planned = PlannedDay(userId, ThisMonday, planned: 2, completed: 1, assignmentId: assignmentId);
+        var adhoc = AdhocDay(userId, ThisMonday.AddDays(1));
+        var seed = new[] { planned, adhoc }.Where(d => d.LocalDate <= Today).ToList();
+        var expectedThisWeek = seed.Count(d => d.LocalDate >= ThisMonday && d.LocalDate <= Today);
+        var visible = AssignmentWithId(assignmentId, userId, hideMacroTargets: false);
+
+        var dto = await Run(userId, seed, new[] { visible });
+
+        // Existing fields unchanged.
+        Assert.True(dto.HasPlan);
+        var day = Assert.Single(dto.Days);
+        Assert.Equal(ThisMonday, day.LocalDate);
+        Assert.Equal(50, day.AdherencePct);
+        Assert.Equal(50, dto.CurrentWeekAvgPct);
+        Assert.Equal(expectedThisWeek, dto.LoggedDaysThisWeek);
+        Assert.True(dto.HasAnyLogging);
+        // New list populated alongside, all-source (the ad-hoc day appears here but never in Days).
+        Assert.Contains(dto.CaloriesByDay, c => c.LocalDate == ThisMonday);
+        Assert.Equal(seed.Count, dto.CaloriesByDay.Count);
+    }
+
     // ── self-scope / IDOR ──
 
     [Fact]

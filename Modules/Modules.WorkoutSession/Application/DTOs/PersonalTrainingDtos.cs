@@ -54,9 +54,11 @@ public sealed record ConsistencyDayDto(
     int SessionCount);
 
 /// <summary>
-/// 12-week training consistency. <see cref="Days"/> lists only days with ≥1 completed session (the client
-/// fills the rest of the grid). <see cref="ConsistencyPct"/> and <see cref="CurrentStreakWeeks"/> are
-/// null/0 when the trainee has no goal to measure adherence against.
+/// Training consistency over the selected window. <see cref="WindowWeeks"/> is the EFFECTIVE clamped window
+/// (the user-selectable ?weeks=, clamped to [4, 52], default 12) so the client can label the heatmap.
+/// <see cref="Days"/> lists only days with ≥1 completed session (the client fills the rest of the grid).
+/// <see cref="ConsistencyPct"/> and <see cref="CurrentStreakWeeks"/> are null/0 when the trainee has no goal
+/// to measure adherence against.
 /// </summary>
 public sealed record ConsistencyDto(
     int WindowWeeks,
@@ -65,7 +67,7 @@ public sealed record ConsistencyDto(
     int CurrentStreakWeeks);
 
 /// <summary>
-/// Per-lift strength direction over the 12-week window, honesty-gated (working sets, e1RM present,
+/// Per-lift strength direction over the selected window (default 12 weeks), honesty-gated (working sets, e1RM present,
 /// reps ≤ 12, strength/bodyweight tracking). One e1RM point per session = the max qualifying working-set
 /// e1RM in that session.
 /// </summary>

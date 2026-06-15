@@ -55,11 +55,13 @@ public sealed class MeController(IMediator mediator) : ControllerBase
         return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
     }
 
-    /// <summary>The single-call trainee Progress home: adherence, consistency, top-lift direction, PR teaser.</summary>
+    /// <summary>The single-call trainee Progress home: adherence, consistency, top-lift direction, PR teaser.
+    /// Optional <paramref name="weeks"/> selects the consistency/heatmap/top-lift window (clamped to [4, 52],
+    /// default 12); the This-Week hero and goal are unaffected.</summary>
     [HttpGet("progress/overview")]
-    public async Task<IActionResult> ProgressOverview(CancellationToken ct)
+    public async Task<IActionResult> ProgressOverview([FromQuery] int? weeks, CancellationToken ct)
     {
-        var result = await mediator.Send(new GetMyProgressOverviewQuery(), ct);
+        var result = await mediator.Send(new GetMyProgressOverviewQuery(weeks), ct);
         return result.IsFailure ? result.ToFailureResult(this) : Ok(result.Value);
     }
 

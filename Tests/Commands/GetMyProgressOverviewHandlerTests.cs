@@ -82,10 +82,11 @@ public sealed class GetMyProgressOverviewHandlerTests
         Guid userId,
         IEnumerable<WorkoutSession> sessions,
         IReadOnlyList<OwnActiveAssignmentDto>? activeAssignments = null,
-        IReadOnlyList<PersonalRecordDto>? records = null)
+        IReadOnlyList<PersonalRecordDto>? records = null,
+        int? weeks = null)
     {
         var (sut, _) = CreateSut(userId, sessions, activeAssignments, records);
-        return sut.Handle(new GetMyProgressOverviewQuery(), CancellationToken.None);
+        return sut.Handle(new GetMyProgressOverviewQuery(weeks), CancellationToken.None);
     }
 
     // ── entity seeding (private setters + UtcNow stamps ⇒ reflection) ──
@@ -532,6 +533,130 @@ public sealed class GetMyProgressOverviewHandlerTests
         var dto = Assert.Single(result.Value!.TopLifts);
         Assert.False(dto.Stalled);
         Assert.Equal(0, dto.StallSessions);
+    }
+
+    // ── user-selectable window (?weeks=) ──
+
+    [Fact]
+    public async Task Weeks_null_defaults_to_a_twelve_week_window()
+    {
+        var userId = Guid.NewGuid();
+
+        // A session 8 weeks ago is INSIDE the default 12-week window → it shows in the consistency days,
+        // and the reported WindowWeeks is the default 12.
+        var result = await Run(userId,
+            [CompletedSession(userId, MondayInstant(8))],
+            weeks: null);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(12, result.Value!.Consistency.WindowWeeks);
+        Assert.Single(result.Value!.Consistency.Days);
+    }
+
+    [Fact]
+    public async Task Weeks_four_narrows_the_consistency_window()
+    {
+        var userId = Guid.NewGuid();
+
+        // Two sessions: one this week (always in any window), one 6 weeks ago. A 4-week window covers
+        // weeks 0..3, so the 6-weeks-ago session falls OUTSIDE it and must be dropped from consistency.
+        var sessions = new[]
+        {
+            CompletedSession(userId, MondayInstant(0)),
+            CompletedSession(userId, MondayInstant(6)),
+        };
+
+        // Default 12-week window: both sessions are in range → 2 consistency days.
+        var wide = await Run(userId, sessions, weeks: null);
+        Assert.True(wide.IsSuccess);
+        Assert.Equal(12, wide.Value!.Consistency.WindowWeeks);
+        Assert.Equal(2, wide.Value!.Consistency.Days.Count);
+
+        // weeks=4: the 6-weeks-ago session is outside the window → only the current-week day remains.
+        var narrow = await Run(userId, sessions, weeks: 4);
+        Assert.True(narrow.IsSuccess);
+        Assert.Equal(4, narrow.Value!.Consistency.WindowWeeks);
+        Assert.Single(narrow.Value!.Consistency.Days);
+        Assert.Equal(ThisMonday, narrow.Value!.Consistency.Days[0].Date);
+    }
+
+    [Fact]
+    public async Task Weeks_below_minimum_clamps_up_to_four()
+    {
+        var userId = Guid.NewGuid();
+
+        // weeks=2 is below the floor → clamps to 4, and the reported WindowWeeks reflects the EFFECTIVE
+        // clamped window. A session 5 weeks ago is outside the clamped 4-week window → dropped.
+        var sessions = new[]
+        {
+            CompletedSession(userId, MondayInstant(0)),
+            CompletedSession(userId, MondayInstant(5)),
+        };
+
+        var result = await Run(userId, sessions, weeks: 2);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(4, result.Value!.Consistency.WindowWeeks);   // clamped 2 → 4
+        Assert.Single(result.Value!.Consistency.Days);            // 5-weeks-ago session excluded
+    }
+
+    [Fact]
+    public async Task Weeks_above_maximum_clamps_down_to_fifty_two()
+    {
+        var userId = Guid.NewGuid();
+
+        // weeks=99 is above the ceiling → clamps to 52. A session 40 weeks ago is inside the clamped
+        // 52-week window → it shows, and WindowWeeks reports the EFFECTIVE 52.
+        var sessions = new[]
+        {
+            CompletedSession(userId, MondayInstant(0)),
+            CompletedSession(userId, MondayInstant(40)),
+        };
+
+        var result = await Run(userId, sessions, weeks: 99);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(52, result.Value!.Consistency.WindowWeeks);  // clamped 99 → 52
+        Assert.Equal(2, result.Value!.Consistency.Days.Count);    // both in the 52-week window
+    }
+
+    [Fact]
+    public async Task This_week_hero_and_goal_are_unaffected_by_the_selected_window()
+    {
+        var userId = Guid.NewGuid();
+        var gym = Guid.NewGuid();
+
+        // Two completed sessions this week plus one 6 weeks ago; an active 4/week plan supplies the goal.
+        // The window only governs consistency/heatmap/top-lifts — the hero (current-week count + WeekStart)
+        // and the D1 goal must be identical whether the window is narrow (4) or default (12).
+        var sessions = new[]
+        {
+            InTenant(CompletedSession(userId, MondayInstant(0)), gym),
+            InTenant(CompletedSession(userId, MondayInstant(0).AddDays(2)), gym),
+            InTenant(CompletedSession(userId, MondayInstant(6)), gym),
+        };
+        var assignments = new List<OwnActiveAssignmentDto>
+        {
+            new(Guid.NewGuid(), gym, 4, ThisMonday.AddDays(-7 * 8)),
+        };
+
+        var narrow = await Run(userId, sessions, assignments, weeks: 4);
+        var wide = await Run(userId, sessions, assignments, weeks: 12);
+
+        Assert.True(narrow.IsSuccess);
+        Assert.True(wide.IsSuccess);
+
+        // Hero week + current-week completed count + goal are identical across windows.
+        Assert.Equal(ThisMonday, narrow.Value!.ThisWeek.WeekStart);
+        Assert.Equal(wide.Value!.ThisWeek.WeekStart, narrow.Value!.ThisWeek.WeekStart);
+        Assert.Equal(2, narrow.Value!.ThisWeek.CompletedSessions);
+        Assert.Equal(wide.Value!.ThisWeek.CompletedSessions, narrow.Value!.ThisWeek.CompletedSessions);
+        Assert.Equal(4, narrow.Value!.ThisWeek.Goal);
+        Assert.Equal(wide.Value!.ThisWeek.Goal, narrow.Value!.ThisWeek.Goal);
+
+        // But the consistency window itself DID change with the selection.
+        Assert.Equal(4, narrow.Value!.Consistency.WindowWeeks);
+        Assert.Equal(12, wide.Value!.Consistency.WindowWeeks);
     }
 
     // ── PR teaser ──

@@ -15,10 +15,12 @@ namespace Modules.WorkoutSessionModule.Application.Queries.Handlers;
 /// <summary>
 /// The single-call trainee Progress home. Self-scoped via
 /// <see cref="IWorkoutSessionRepository.QueryOwnAcrossGyms"/> (<c>currentUser.UserId</c> only) across every
-/// gym the caller trains in; only completed sessions count. Computes, over a 12-week Monday-anchored window
-/// in the trainee's zone: current-week adherence against the authoritative active-plan goal (Decision D1,
-/// resolved via an internal <see cref="GetOwnActiveAssignmentsQuery"/>), daily consistency + streak, top-3
-/// honesty-gated lift e1RM directions, and a PR teaser (top 3 from <see cref="GetMyPersonalRecordsQuery"/>).
+/// gym the caller trains in; only completed sessions count. Computes, over a user-selectable Monday-anchored
+/// window (<see cref="GetMyProgressOverviewQuery.Weeks"/>, clamped to [4, 52], default 12) in the trainee's
+/// zone: current-week adherence against the authoritative active-plan goal (Decision D1, resolved via an
+/// internal <see cref="GetOwnActiveAssignmentsQuery"/>), daily consistency + streak, top-3 honesty-gated lift
+/// e1RM directions, and a PR teaser (top 3 from <see cref="GetMyPersonalRecordsQuery"/>). The This-Week hero,
+/// the trailing-4-week strength baseline, and the 3-exposure stall stay fixed regardless of the window.
 /// One bounded read materializes the window, then all aggregation is done in memory; returns an
 /// empty-but-valid DTO (never a failure) for a brand-new user.
 /// </summary>
@@ -28,7 +30,9 @@ public sealed class GetMyProgressOverviewHandler(
     ICurrentUser currentUser)
     : IRequestHandler<GetMyProgressOverviewQuery, Result<ProgressOverviewDto>>
 {
-    private const int WindowWeeks = 12;
+    private const int DefaultWindowWeeks = 12;
+    private const int MinWindowWeeks = 4;
+    private const int MaxWindowWeeks = 52;
     private const int MinSessionsForTopLift = 4;
     private const int MaxTopLifts = 3;
     // Direction/stall/trailing-baseline constants AND the spark-point cap live in E1rmSeriesCalculator
@@ -39,11 +43,15 @@ public sealed class GetMyProgressOverviewHandler(
         CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
-        // The trainee's own stored zone anchors "this week" and the 12-week window; per-session captured
+        // The user-selectable window (consistency window + heatmap span + top-lift gathering), clamped to
+        // [4, 52], default 12 when null. The This-Week hero/goal, the trailing-4-week strength baseline, and
+        // the 3-exposure stall are NOT driven by this — they stay fixed regardless of the selected window.
+        var windowWeeks = Math.Clamp(request.Weeks ?? DefaultWindowWeeks, MinWindowWeeks, MaxWindowWeeks);
+        // The trainee's own stored zone anchors "this week" and the selected window; per-session captured
         // zones still decide each session's own local day below.
         var userZone = currentUser.TimeZoneId;
         var currentWeekStart = LocalDayResolver.WeekStartOf(now, userZone);
-        var windowStart = currentWeekStart.AddDays(-7 * (WindowWeeks - 1));
+        var windowStart = currentWeekStart.AddDays(-7 * (windowWeeks - 1));
 
         // Conservative UTC lower bound (one day of slack for cross-zone session timestamps) keeps the scan
         // bounded; exact local-day/week bucketing happens in memory once materialized.
@@ -101,7 +109,7 @@ public sealed class GetMyProgressOverviewHandler(
             })
             .ToList();
 
-        // Re-bucket each session to its own local Monday week, then drop anything outside the 12-week window.
+        // Re-bucket each session to its own local Monday week, then drop anything outside the selected window.
         var windowRows = rows
             .Select(r => new
             {
@@ -123,7 +131,8 @@ public sealed class GetMyProgressOverviewHandler(
         var consistency = BuildConsistency(
             windowRows.Select(x => (x.LocalDate, x.WeekStart)),
             currentWeekStart,
-            goal);
+            goal,
+            windowWeeks);
 
         var topLifts = BuildTopLifts(
             windowRows.Select(x => (x.WeekStart, x.Row)));
@@ -172,7 +181,8 @@ public sealed class GetMyProgressOverviewHandler(
     private static ConsistencyDto BuildConsistency(
         IEnumerable<(DateOnly LocalDate, DateOnly WeekStart)> rows,
         DateOnly currentWeekStart,
-        int? goal)
+        int? goal,
+        int windowWeeks)
     {
         var materialized = rows.ToList();
 
@@ -193,7 +203,7 @@ public sealed class GetMyProgressOverviewHandler(
 
         if (goal is int weeklyGoal && weeklyGoal > 0)
         {
-            // D10: "weeks observed" = the Monday weeks from the FIRST completed session in the 12-week window
+            // D10: "weeks observed" = the Monday weeks from the FIRST completed session in the selected window
             // through the current week (so quiet weeks AFTER the user started count as misses, but the empty
             // weeks BEFORE their first session don't penalize a newcomer). Capped at the window by construction
             // (the earliest session is itself bounded to ≥ windowStart). Null when there are no sessions.
@@ -221,7 +231,8 @@ public sealed class GetMyProgressOverviewHandler(
             }
         }
 
-        return new ConsistencyDto(WindowWeeks, days, consistencyPct, streak);
+        // Report the EFFECTIVE clamped window so the client can label the heatmap correctly.
+        return new ConsistencyDto(windowWeeks, days, consistencyPct, streak);
     }
 
     private static IReadOnlyList<LiftDirectionDto> BuildTopLifts(

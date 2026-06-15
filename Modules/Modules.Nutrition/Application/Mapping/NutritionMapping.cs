@@ -217,19 +217,7 @@ internal static class NutritionMapping
             l.Id, l.TraineeId, l.LocalDate, l.Status, l.Source, l.AdherencePct,
             l.Items.Count(i => i.PlanMealItemId != null),
             l.Items.Count(i => i.PlanMealItemId != null
-                && (i.Status == LoggedItemStatus.Completed || i.Status == LoggedItemStatus.Substituted)),
-            l.NutritionPlanAssignmentId,
-            // ConsumedKcal — Σ EnergyKcal×Quantity over the adherent (Completed/Substituted) items, ALL SOURCES.
-            // Summed in SQL as decimal (null kcal ⇒ 0); finalized (rounded to int) in ToAdherenceDto.
-            l.Items
-                .Where(i => i.Status == LoggedItemStatus.Completed || i.Status == LoggedItemStatus.Substituted)
-                .Sum(i => (i.EnergyKcal ?? 0m) * i.Quantity),
-            // TargetKcal — Σ over PLANNED items, plus a flag for whether ANY planned item carries energy. The
-            // flag is the honesty gate (target stays null when no planned energy exists, never a fabricated 0).
-            l.Items
-                .Where(i => i.PlanMealItemId != null)
-                .Sum(i => (i.EnergyKcal ?? 0m) * i.Quantity),
-            l.Items.Any(i => i.PlanMealItemId != null && i.EnergyKcal != null));
+                && (i.Status == LoggedItemStatus.Completed || i.Status == LoggedItemStatus.Substituted)));
 
     /// <summary>
     /// SQL predicate for "this day has at least one actually-logged food item" — any source. An ad-hoc item is
@@ -255,13 +243,38 @@ internal static class NutritionMapping
             r.PlannedCount, r.CompletedCount);
 
     /// <summary>
+    /// Adherence-trend projection — the same SQL count subqueries as <see cref="SummaryRowProjection"/> PLUS the
+    /// per-day kcal sums and the honesty flag, computed in SQL without loading item rows. Used ONLY by the Progress
+    /// nutrition-adherence read (<see cref="ToAdherenceDto"/>); the list/history readers use the lighter
+    /// <see cref="SummaryRowProjection"/> so they never pay for the kcal aggregates they discard.
+    /// </summary>
+    public static Expression<Func<DailyNutritionLog, DailyAdherenceCounts>> AdherenceRowProjection =>
+        l => new DailyAdherenceCounts(
+            l.LocalDate, l.Status, l.AdherencePct,
+            l.Items.Count(i => i.PlanMealItemId != null),
+            l.Items.Count(i => i.PlanMealItemId != null
+                && (i.Status == LoggedItemStatus.Completed || i.Status == LoggedItemStatus.Substituted)),
+            l.NutritionPlanAssignmentId,
+            // ConsumedKcal — Σ EnergyKcal×Quantity over the adherent (Completed/Substituted) items, ALL SOURCES.
+            // Summed in SQL as decimal (null kcal ⇒ 0); finalized (rounded to int) in ToAdherenceDto.
+            l.Items
+                .Where(i => i.Status == LoggedItemStatus.Completed || i.Status == LoggedItemStatus.Substituted)
+                .Sum(i => (i.EnergyKcal ?? 0m) * i.Quantity),
+            // TargetKcal — Σ over PLANNED items, plus a flag for whether ANY planned item carries energy. The
+            // flag is the honesty gate (target stays null when no planned energy exists, never a fabricated 0).
+            l.Items
+                .Where(i => i.PlanMealItemId != null)
+                .Sum(i => (i.EnergyKcal ?? 0m) * i.Quantity),
+            l.Items.Any(i => i.PlanMealItemId != null && i.EnergyKcal != null));
+
+    /// <summary>
     /// Builds the Progress per-day adherence point (the same byte-for-byte AdherencePct as <see cref="ToSummaryDto"/>)
     /// and adds the calorie totals from the SQL-projected sums. <paramref name="hideMacroTargets"/> is the governing
     /// assignment's macro-hiding flag: when true the planned target is redacted to null (never fabricated), exactly
     /// like the day read's <see cref="RedactPlannedMacros"/>. The honesty gate also nulls the target when the day
     /// carries no planned energy at all.
     /// </summary>
-    public static DailyAdherenceDto ToAdherenceDto(DailyLogCounts r, bool hideMacroTargets) =>
+    public static DailyAdherenceDto ToAdherenceDto(DailyAdherenceCounts r, bool hideMacroTargets) =>
         new(
             r.LocalDate,
             r.Status == DailyLogStatus.Closed
@@ -273,15 +286,23 @@ internal static class NutritionMapping
             TargetKcal: hideMacroTargets || !r.HasPlannedEnergy ? null : RoundKcal(r.PlannedKcalSum));
 }
 
-/// <summary>Projected day counts (computed in SQL) used to build a list summary without loading items. The kcal
-/// sums are decimal SQL aggregates (rounded to int in the mapping); <see cref="HasPlannedEnergy"/> is the honesty
-/// gate that keeps a no-planned-energy day's target null rather than a fabricated 0.</summary>
+/// <summary>Projected day counts (computed in SQL) used to build a list summary without loading items.</summary>
 internal sealed record DailyLogCounts(
     Guid Id,
     Guid TraineeId,
     DateOnly LocalDate,
     DailyLogStatus Status,
     NutritionSource Source,
+    int StoredAdherence,
+    int PlannedCount,
+    int CompletedCount);
+
+/// <summary>Projected day counts for the Progress adherence trend (computed in SQL) without loading items. The kcal
+/// sums are decimal SQL aggregates (rounded to int in the mapping); <see cref="HasPlannedEnergy"/> is the honesty
+/// gate that keeps a no-planned-energy day's target null rather than a fabricated 0.</summary>
+internal sealed record DailyAdherenceCounts(
+    DateOnly LocalDate,
+    DailyLogStatus Status,
     int StoredAdherence,
     int PlannedCount,
     int CompletedCount,

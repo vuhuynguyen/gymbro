@@ -33,7 +33,9 @@ public sealed class GetMyProgressOverviewHandler(
     private const int DefaultWindowWeeks = 12;
     private const int MinWindowWeeks = 4;
     private const int MaxWindowWeeks = 52;
-    private const int MinSessionsForTopLift = 4;
+    // Shared with the full strength-lift list so the top-3 strip and the lift list can never diverge on the
+    // honesty gate — both omit/flag lifts below the same qualifying-session count.
+    private const int MinSessionsForTopLift = StrengthLiftSeries.MinSessionsForTrend;
     private const int MaxTopLifts = 3;
     // Direction/stall/trailing-baseline constants AND the spark-point cap live in E1rmSeriesCalculator
     // (the shared math) — Spark defaults to E1rmSeriesCalculator.DefaultSparkPoints.

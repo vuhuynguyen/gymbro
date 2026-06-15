@@ -27,9 +27,12 @@ content-file dependency. Both CLI entrypoints (and the Development startup auto-
 
 ## Exercise catalog
 
-The current library seeds **86 exercises** across **13 categories**, **6 muscle groups**, and **5 equipment
+The current library seeds **149 exercises** across **13 categories**, **6 muscle groups**, and **5 equipment
 codes** — the authoritative count is the entry count of
-[`exercises.json`](../Modules/Modules.Exercise/Infrastructure/SeedData/exercises.json).
+[`exercises.json`](../Modules/Modules.Exercise/Infrastructure/SeedData/exercises.json). The catalog includes a
+broad common-movement set: full cardio (bikes, elliptical, stair climber, treadmill, rower, swim, ski-erg, plus
+HIIT drills — jumping jacks, mountain climbers, high knees, box jumps, battle ropes), and common
+strength/bodyweight lifts across every muscle group.
 
 ### Where the seed files live
 
@@ -88,9 +91,10 @@ ship images/GIFs/video, to avoid shipping unlicensed/copyrighted media. `ImageUr
 - `dotnet build` — succeeds (no new warnings).
 - `dotnet test --filter Seeding.ExerciseSeedDataTests` — **7/7 pass** (incl. a regression guard that the embedded
   data validates clean and covers every category/equipment code).
-- `--reseed-exercises` against local dev → **86 active global exercises**, 172 instructions, 169 muscle links,
-  87 warnings (counts track `exercises.json`); any renamed legacy entry is soft-deleted; **logged
-  performed-exercise and plan-exercise rows are untouched.**
+- `--reseed-exercises` against a live DB upserts to **149 active global exercises** (counts track
+  `exercises.json`; instruction/muscle/warning row counts scale with it); any renamed legacy entry is
+  soft-deleted; **logged performed-exercise and plan-exercise rows are untouched.** The pure seed-data
+  validation tests (`Seeding.ExerciseSeedDataTests`, 7/7) pass on the 149-entry file.
 - API smoke check: `/health/ready` Healthy; `GET /api/exercises` filters return seeded rows; detail returns
   muscles/instructions/warnings/tags.
 

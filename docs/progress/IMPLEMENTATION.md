@@ -23,7 +23,7 @@
 | **2 — P1 diagnostics + coach triage** | ✅ **Done** (2a trainee + 2b coach; backend+frontend, audited, tests green) | — |
 | **3 — Body & nutrition** | ✅ **Done** (no migration); vs-target deferred to nutrition program | Adherence % + goal-weight ride existing columns (query-only); only calorie/macro **vs-target** needs the nutrition program's daily-target entity |
 | **4 — Coach insight (acute-vs-chronic load)** | ✅ **Done** (no migration; 529 BE + 151 FE tests green) | Streak + genuine-PR celebration already shipped (Phase 1/2); roster-stall precompute (migration) + kudos (infra) **deferred** with seams |
-| **5+ — Wearable / readiness / TDEE** | ⚪ **Deferred — groundwork documented (§11)** | No data source (no HRV/sleep/RHR/wearable ingestion). The `MetricEntry` series infra already generalizes; a future `Source=wearable` *writer* is the only missing piece. **Never fabricate a readiness score.** |
+| **5+ — Wearable / readiness / TDEE** | ⚪ **Deferred — groundwork documented (§11)** | No data source (no HRV/sleep/RHR/wearable ingestion). The `MetricEntry` series *read* infra already generalizes, but `MetricEntry` has **no `Source` field** — so wearable ingestion needs an ingestion *writer* **plus** either a `Source`-column migration or a `Type`-naming convention (e.g. `"wearable:hrv"`) to tag it (§11). **Never fabricate a readiness score.** |
 
 ### Phase 1 — ✅ Ready to Implement
 - **Why:** every metric is computable from existing columns; all blocking decisions resolved (§2). One new self-scoped read, no migration, no cache.
@@ -202,7 +202,7 @@ There is **no code to build** here yet — these metrics need a data source GymB
 
 **What already generalizes (no new read infra):** `GET /api/me/progress/metrics/series?type=X` reads **any** `MetricEntry` type (free-text by design). Weight and sleep flow through it today; HRV, RHR, body-fat, mood — any future signal — flow through the *same* endpoint the moment rows of that type exist. No new query, no migration. (Goal-weight, D12, already proves the pattern.)
 
-**The single missing piece — a writer, not a model:** a `Source=wearable`/`Source=ai` ingestion adapter that writes `MetricEntry` rows of the appropriate types (Apple Health / Garmin / Whoop), plus the OAuth/device-link surface — owned by a wearable-integration workstream, **not** a Progress-page change. When it lands, the readiness/body sections light up by consuming the existing series endpoint.
+**What's missing — an ingestion writer AND a way to tag its source:** a wearable/AI ingestion adapter that writes `MetricEntry` rows of the appropriate types (Apple Health / Garmin / Whoop), plus the OAuth/device-link surface — owned by a wearable-integration workstream, **not** a Progress-page change. Note the read endpoint generalizes, but `MetricEntry` has **no `Source` field** today (its columns are `TraineeId`/`Type`/`Value`/`Unit`/`LocalDate`/`LoggedAtUtc`). So distinguishing wearable-written rows from self-logged ones needs **either** a migration that adds a `Source` column **or** a `Type`-naming convention (e.g. `Type="wearable:hrv"` / `"ai:tdee"`) that rides the existing free-text column — no `Source=wearable` value can be written until one of those exists. When ingestion lands, the readiness/body sections light up by consuming the existing series endpoint.
 
 **What stays NOT buildable — and why (never fabricate):**
 

@@ -23,7 +23,16 @@ internal static class ExerciseMapping
                 .ThenBy(m => m.Muscle)
                 .Select(m => m.Muscle.ToString())
                 .FirstOrDefault() ?? string.Empty,
-            ImageUrl = x.ImageUrl
+            ImageUrl = x.ImageUrl,
+            Muscles = x.Muscles
+                .OrderByDescending(m => m.IsPrimary)
+                .ThenBy(m => m.Muscle)
+                .Select(m => new ExerciseMuscleItemDto
+                {
+                    Muscle = m.Muscle.ToString(),
+                    IsPrimary = m.IsPrimary
+                })
+                .ToList()
         };
 
     public static Expression<Func<Exercise, ExerciseDetailDto>> ExerciseDetailProjection =>

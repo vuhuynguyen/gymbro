@@ -254,7 +254,8 @@ internal static class SessionMapping
         IReadOnlySet<Guid>? prSetIds = null,
         IReadOnlyList<SessionPrDto>? prs = null,
         string? programName = null,
-        int? planWeek = null) =>
+        int? planWeek = null,
+        IReadOnlyDictionary<Guid, LastPerformedSetDto>? lastPerformedByExercise = null) =>
         new(
             session.Id,
             session.TraineeId,
@@ -270,7 +271,7 @@ internal static class SessionMapping
             session.PlanAssignmentId,
             session.PlannedWorkoutId,
             session.WorkoutNameSnapshot,
-            ToPerformedExerciseDtos(session.Exercises, nameById, prSetIds),
+            ToPerformedExerciseDtos(session.Exercises, nameById, prSetIds, lastPerformedByExercise),
             snapshot,
             ComputeVolumeKg(session.Exercises),
             programName,

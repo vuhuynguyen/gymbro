@@ -144,13 +144,17 @@ internal static class NutritionMapping
 
     public static DailyNutritionLogDto ToDayDto(DailyNutritionLog log)
     {
+        // Group by meal NAME only so ad-hoc items (which carry no ScheduledTime) merge into the matching
+        // planned meal instead of forming a second same-named section. The section keeps the plan's
+        // scheduled time (the first non-null), and the section orders by its earliest item — so a planned
+        // meal stays in place and its ad-hoc additions sort to the end of that meal.
         var meals = log.Items
             .OrderBy(i => i.Order)
-            .GroupBy(i => new { i.MealName, i.ScheduledTime })
+            .GroupBy(i => i.MealName)
             .OrderBy(g => g.Min(i => i.Order))
             .Select(g => new LoggedMealDto(
-                g.Key.MealName,
-                g.Key.ScheduledTime,
+                g.Key,
+                g.Select(i => i.ScheduledTime).FirstOrDefault(t => t.HasValue),
                 g.OrderBy(i => i.Order).Select(ToItemDto).ToList()))
             .ToList();
 

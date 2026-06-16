@@ -106,6 +106,19 @@ public sealed class WorkoutSession : AggregateRoot, ITenantEntity, ISoftDelete
         RaiseDomainEvent(new SessionCompletedEvent(Id, TraineeId, TenantId!.Value, DateTimeOffset.UtcNow));
     }
 
+    /// <summary>
+    /// Refresh the cached PR count after a COMPLETED session is edited in place (sets/exercises changed).
+    /// Date, duration and status are untouched — only the denormalized read-model count moves.
+    /// </summary>
+    public void RecountPrs(int prCount)
+    {
+        if (Status != SessionStatus.Completed)
+            throw new DomainException("Only completed sessions can have their PR count refreshed.");
+        if (prCount < 0)
+            throw new DomainException("prCount is out of range.");
+        PrCount = prCount;
+    }
+
     public void Abandon(string? notes)
     {
         if (Status != SessionStatus.InProgress)

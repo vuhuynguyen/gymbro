@@ -28,7 +28,7 @@ public sealed class AddPerformedExerciseHandler(
     {
         var tenantId = tenantContext.TenantId!.Value;
 
-        var load = await SessionGuard.LoadOwnedInProgressAsync(
+        var load = await SessionGuard.LoadOwnedEditableAsync(
             sessionRepository, currentUser, request.SessionId, cancellationToken);
         if (load.IsFailure)
             return Result<PerformedExerciseDto>.Failure(load.Error);
@@ -63,6 +63,11 @@ public sealed class AddPerformedExerciseHandler(
             exerciseName,
             trackingType,
             request.SupersetGroupId);
+
+        // Adding an exercise to an already-finished workout (edit-in-place): mark it completed so the
+        // history breakdown doesn't show a stray "in progress" exercise on a completed session.
+        if (session.Status == SessionStatus.Completed)
+            exercise.MarkCompleted();
 
         await exerciseRepository.AddAsync(exercise, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);

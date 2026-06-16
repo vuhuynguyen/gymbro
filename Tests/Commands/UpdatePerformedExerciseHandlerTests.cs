@@ -91,7 +91,7 @@ public sealed class UpdatePerformedExerciseHandlerTests
     }
 
     [Fact]
-    public async Task Updating_a_non_in_progress_session_returns_conflict()
+    public async Task Updating_an_abandoned_session_returns_conflict()
     {
         var traineeId = Guid.NewGuid();
         var tenantId = Guid.NewGuid();
@@ -101,9 +101,9 @@ public sealed class UpdatePerformedExerciseHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var mediator = Substitute.For<IMediator>();
 
-        // Already terminal: structural edits must be rejected once the session is done.
+        // Abandoned stays read-only (a COMPLETED session is now editable in place; an abandoned one isn't).
         var session = StartAdhocSession(traineeId, tenantId);
-        session.Complete(null, null, null, prCount: 0);
+        session.Abandon(null);
         sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>()).Returns(session);
 
         var sut = CreateSut(sessionRepository, exerciseRepository, unitOfWork, mediator, traineeId);

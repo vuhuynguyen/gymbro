@@ -104,7 +104,7 @@ public sealed class AddPerformedExerciseHandlerTests
     }
 
     [Fact]
-    public async Task Adding_to_a_non_in_progress_session_returns_conflict()
+    public async Task Adding_to_an_abandoned_session_returns_conflict()
     {
         var traineeId = Guid.NewGuid();
         var tenantId = Guid.NewGuid();
@@ -114,10 +114,10 @@ public sealed class AddPerformedExerciseHandlerTests
         var unitOfWork = Substitute.For<IUnitOfWork>();
         var mediator = Substitute.For<IMediator>();
 
-        // Already terminal: no further exercises may be appended.
+        // Abandoned stays read-only (a COMPLETED session can be edited in place; an abandoned one can't).
         var session = WorkoutSession.Start(
             traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
-        session.Complete(null, null, null, prCount: 0);
+        session.Abandon(null);
 
         sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>())
             .Returns(session);

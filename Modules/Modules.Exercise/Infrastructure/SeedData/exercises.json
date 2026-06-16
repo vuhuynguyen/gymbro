@@ -1843,7 +1843,7 @@
       "description": "Explosive two-handed hip-hinge swing for posterior-chain power and conditioning.",
       "category": "full-body",
       "type": "Strength",
-      "trackingType": "Custom",
+      "trackingType": "Strength",
       "primaryMuscle": "Legs",
       "secondaryMuscles": [
         "Back",
@@ -1889,7 +1889,7 @@
       "description": "Loaded carry for grip, core stability, and posture — log it by distance, time, or load.",
       "category": "full-body",
       "type": "Strength",
-      "trackingType": "Custom",
+      "trackingType": "Cardio",
       "primaryMuscle": "Core",
       "secondaryMuscles": [
         "Arms",
@@ -1934,7 +1934,7 @@
       "description": "Loaded sled push for lower-body power and conditioning — flexible logging by distance, time, or rounds.",
       "category": "full-body",
       "type": "Strength",
-      "trackingType": "Custom",
+      "trackingType": "Cardio",
       "primaryMuscle": "Legs",
       "secondaryMuscles": [
         "Core"
@@ -2232,7 +2232,7 @@
       "description": "Static hip external-rotation stretch for the glutes and hip capsule.",
       "category": "mobility",
       "type": "Stretching",
-      "trackingType": "Timed",
+      "trackingType": "Mobility",
       "primaryMuscle": "Legs",
       "secondaryMuscles": [
         "Core"
@@ -2273,7 +2273,7 @@
       "description": "Half-kneeling or standing lunge stretch for the hip flexors, useful after long sitting.",
       "category": "mobility",
       "type": "Stretching",
-      "trackingType": "Timed",
+      "trackingType": "Mobility",
       "primaryMuscle": "Legs",
       "secondaryMuscles": [
         "Core"
@@ -2495,7 +2495,7 @@
       "description": "Static cross-body and overhead shoulder stretch for the deltoids and capsule.",
       "category": "mobility",
       "type": "Stretching",
-      "trackingType": "Timed",
+      "trackingType": "Mobility",
       "primaryMuscle": "Shoulders",
       "secondaryMuscles": [],
       "equipment": "Bodyweight",
@@ -2529,7 +2529,7 @@
       "description": "Static overhead triceps stretch.",
       "category": "mobility",
       "type": "Stretching",
-      "trackingType": "Timed",
+      "trackingType": "Mobility",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
       "equipment": "Bodyweight",
@@ -2846,7 +2846,7 @@
       "description": "Static overhead/side lat stretch.",
       "category": "mobility",
       "type": "Stretching",
-      "trackingType": "Timed",
+      "trackingType": "Mobility",
       "primaryMuscle": "Back",
       "secondaryMuscles": [],
       "equipment": "Bodyweight",
@@ -2954,7 +2954,7 @@
       "description": "Static doorway/wall pec stretch.",
       "category": "mobility",
       "type": "Stretching",
-      "trackingType": "Timed",
+      "trackingType": "Mobility",
       "primaryMuscle": "Chest",
       "secondaryMuscles": [],
       "equipment": "Bodyweight",
@@ -5574,7 +5574,7 @@
       "description": "Front squat flowing directly into an overhead press — a brutal full-body conditioner.",
       "category": "full-body",
       "type": "Strength",
-      "trackingType": "Hiit",
+      "trackingType": "Strength",
       "primaryMuscle": "Legs",
       "secondaryMuscles": [
         "Shoulders"

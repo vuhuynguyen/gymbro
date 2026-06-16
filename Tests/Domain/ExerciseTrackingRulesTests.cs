@@ -75,4 +75,25 @@ public sealed class ExerciseTrackingRulesTests
         var profile = ExerciseTrackingRules.Profile((ExerciseTrackingType)999);
         Assert.Equal(ExerciseTrackingType.Strength, profile.Type);
     }
+
+    [Fact]
+    public void Timed_allows_optional_weight_but_still_requires_duration()
+    {
+        // Weighted holds (weighted plank / wall-sit / dead-hang) can carry load, but the duration is
+        // still the primary metric — weight alone never satisfies it.
+        Assert.True(ExerciseTrackingRules.Profile(ExerciseTrackingType.Timed).Allowed.HasFlag(TrackingMetric.Weight));
+        Assert.False(Has(ExerciseTrackingType.Timed, weight: 20m));
+        Assert.True(Has(ExerciseTrackingType.Timed, duration: 60, weight: 20m));
+    }
+
+    [Fact]
+    public void Cardio_allows_incline_speed_and_level_as_optional_intensity()
+    {
+        var allowed = ExerciseTrackingRules.Profile(ExerciseTrackingType.Cardio).Allowed;
+        Assert.True(allowed.HasFlag(TrackingMetric.Incline));
+        Assert.True(allowed.HasFlag(TrackingMetric.Speed));
+        Assert.True(allowed.HasFlag(TrackingMetric.Level));
+        // They are never required — cardio still needs a duration or distance to log.
+        Assert.False(Has(ExerciseTrackingType.Cardio));
+    }
 }

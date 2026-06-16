@@ -74,6 +74,9 @@ public sealed class LogSetHandler(
             request.Calories,
             request.AvgHeartRate,
             request.Rounds,
+            request.InclinePercent,
+            request.SpeedKph,
+            request.Level,
             request.ParentSetId);
 
         await setRepository.AddAsync(set, cancellationToken);

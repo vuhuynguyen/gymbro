@@ -13,7 +13,13 @@ public enum TrackingMetric
     Rest = 1 << 5,
     Rpe = 1 << 6,
     Calories = 1 << 7,
-    HeartRate = 1 << 8
+    HeartRate = 1 << 8,
+    /// <summary>Treadmill/ramp grade as a percentage — cardio intensity that distance/time don't capture.</summary>
+    Incline = 1 << 9,
+    /// <summary>Pace in km/h — treadmill/bike speed setting.</summary>
+    Speed = 1 << 10,
+    /// <summary>Machine resistance/level (bike/elliptical/stair) — a unitless intensity knob.</summary>
+    Level = 1 << 11
 }
 
 /// <summary>
@@ -55,13 +61,17 @@ public static class ExerciseTrackingRules
             [ExerciseTrackingType.Cardio] = new(
                 ExerciseTrackingType.Cardio,
                 Primary: TrackingMetric.Duration | TrackingMetric.Distance,
-                Allowed: TrackingMetric.Duration | TrackingMetric.Distance | TrackingMetric.Calories | TrackingMetric.HeartRate | TrackingMetric.Rpe,
+                // Incline/Speed/Level are optional intensity metrics (treadmill grade, pace, machine
+                // resistance) — never required, but accepted and shown for cardio machines.
+                Allowed: TrackingMetric.Duration | TrackingMetric.Distance | TrackingMetric.Calories | TrackingMetric.HeartRate | TrackingMetric.Rpe | TrackingMetric.Incline | TrackingMetric.Speed | TrackingMetric.Level,
                 AllowCompletionOnly: false),
 
             [ExerciseTrackingType.Timed] = new(
                 ExerciseTrackingType.Timed,
                 Primary: TrackingMetric.Duration,
-                Allowed: TrackingMetric.Duration | TrackingMetric.Rpe | TrackingMetric.Rest,
+                // Weight is optional load for weighted holds (weighted plank/wall-sit/dead-hang); the
+                // duration is still what's required.
+                Allowed: TrackingMetric.Duration | TrackingMetric.Weight | TrackingMetric.Rpe | TrackingMetric.Rest,
                 AllowCompletionOnly: false),
 
             [ExerciseTrackingType.Hiit] = new(

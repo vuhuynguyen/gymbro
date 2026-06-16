@@ -24,6 +24,12 @@ public sealed class PerformedSet : BaseEntity, ITenantEntity
     public int? AvgHeartRate { get; private set; }
     /// <summary>Number of rounds/intervals completed, for HIIT/circuit logging.</summary>
     public int? Rounds { get; private set; }
+    /// <summary>Treadmill/ramp incline as a percentage grade — optional cardio intensity.</summary>
+    public decimal? InclinePercent { get; private set; }
+    /// <summary>Pace in km/h — optional treadmill/bike speed.</summary>
+    public decimal? SpeedKph { get; private set; }
+    /// <summary>Machine resistance/level (bike/elliptical/stair) — optional unitless intensity.</summary>
+    public int? Level { get; private set; }
     public int? Rpe { get; private set; }
     public int? RestSeconds { get; private set; }
     public bool IsCompleted { get; private set; }
@@ -50,6 +56,9 @@ public sealed class PerformedSet : BaseEntity, ITenantEntity
         int? calories = null,
         int? avgHeartRate = null,
         int? rounds = null,
+        decimal? inclinePercent = null,
+        decimal? speedKph = null,
+        int? level = null,
         Guid? parentSetId = null)
     {
         if (performedExerciseId == Guid.Empty)
@@ -73,6 +82,9 @@ public sealed class PerformedSet : BaseEntity, ITenantEntity
             Calories = calories,
             AvgHeartRate = avgHeartRate,
             Rounds = rounds,
+            InclinePercent = inclinePercent,
+            SpeedKph = speedKph,
+            Level = level,
             Rpe = rpe,
             RestSeconds = restSeconds,
             IsCompleted = isCompleted,
@@ -92,7 +104,10 @@ public sealed class PerformedSet : BaseEntity, ITenantEntity
         PerformedSetType? setType,
         int? calories = null,
         int? avgHeartRate = null,
-        int? rounds = null)
+        int? rounds = null,
+        decimal? inclinePercent = null,
+        decimal? speedKph = null,
+        int? level = null)
     {
         if (reps.HasValue) Reps = reps;
         if (weightKg.HasValue) WeightKg = weightKg;
@@ -101,6 +116,9 @@ public sealed class PerformedSet : BaseEntity, ITenantEntity
         if (calories.HasValue) Calories = calories;
         if (avgHeartRate.HasValue) AvgHeartRate = avgHeartRate;
         if (rounds.HasValue) Rounds = rounds;
+        if (inclinePercent.HasValue) InclinePercent = inclinePercent;
+        if (speedKph.HasValue) SpeedKph = speedKph;
+        if (level.HasValue) Level = level;
         if (rpe.HasValue) Rpe = rpe;
         if (restSeconds.HasValue) RestSeconds = restSeconds;
         if (isCompleted.HasValue) IsCompleted = isCompleted.Value;

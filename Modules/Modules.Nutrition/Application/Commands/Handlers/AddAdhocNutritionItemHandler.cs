@@ -46,6 +46,16 @@ public sealed class AddAdhocNutritionItemHandler(
         }
 
         var mealName = string.IsNullOrWhiteSpace(request.MealName) ? "Off-plan" : request.MealName.Trim();
+
+        // Adopt the matching planned meal's scheduled time so an ad-hoc item logged to (e.g.) "Breakfast"
+        // carries that meal's time — it then sorts with, and reads as part of, the planned meal. Null when
+        // there's no planned meal of that name (a plan-less day), which is correct.
+        var scheduledTime = log.Items
+            .Where(i => i.IsPlanned && i.ScheduledTime != null
+                && string.Equals(i.MealName, mealName, StringComparison.OrdinalIgnoreCase))
+            .Select(i => i.ScheduledTime)
+            .FirstOrDefault();
+
         LoggedItemData data;
 
         if (request.FoodId is { } foodId && foodId != Guid.Empty)
@@ -58,7 +68,7 @@ public sealed class AddAdhocNutritionItemHandler(
                 return Result<Guid>.Failure(Validation("FoodId", $"Food {foodId} was not found."));
 
             data = new LoggedItemData(
-                PlanMealItemId: null, MealName: mealName, ScheduledTime: null, Order: 0,
+                PlanMealItemId: null, MealName: mealName, ScheduledTime: scheduledTime, Order: 0,
                 FoodId: foodId,
                 Kind: food.Kind,
                 FoodNameSnapshot: food.Name, ServingLabelSnapshot: food.ServingLabel, Quantity: request.Quantity,
@@ -69,7 +79,7 @@ public sealed class AddAdhocNutritionItemHandler(
         {
             // Inline custom food: no catalog entry — the item carries its own snapshot (FoodId null).
             data = new LoggedItemData(
-                PlanMealItemId: null, MealName: mealName, ScheduledTime: null, Order: 0,
+                PlanMealItemId: null, MealName: mealName, ScheduledTime: scheduledTime, Order: 0,
                 FoodId: null,
                 Kind: string.IsNullOrWhiteSpace(request.CustomKind) ? "Food" : request.CustomKind.Trim(),
                 FoodNameSnapshot: request.CustomName.Trim(),

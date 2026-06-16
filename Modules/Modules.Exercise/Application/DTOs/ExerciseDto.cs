@@ -13,4 +13,8 @@ public class ExerciseDto
     public int? AverageDurationSeconds { get; set; }
     public required string MuscleGroup { get; set; }
     public string? ImageUrl { get; set; }
+
+    /// All targeted muscles (primary + secondary), so clients can show full involvement — not just the
+    /// single primary group. Ordered primary-first.
+    public List<ExerciseMuscleItemDto> Muscles { get; set; } = [];
 }

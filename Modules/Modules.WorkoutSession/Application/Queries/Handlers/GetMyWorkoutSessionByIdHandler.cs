@@ -57,6 +57,14 @@ public sealed class GetMyWorkoutSessionByIdHandler(
             .Select(g => new { ExerciseId = g.Key, Best = g.Max(x => x.EstimatedOneRepMaxKg!.Value) })
             .ToDictionaryAsync(x => x.ExerciseId, x => x.Best, cancellationToken);
 
+        // "vs last time": the top working set per lift from the caller's most recent COMPLETED session
+        // STARTED BEFORE this one (across gyms) — drives the per-exercise progress deltas on the summary.
+        var lastPerformed = await SessionHistoryLookup.TopWorkingSetPerExerciseAsync(
+            sessionRepository.QueryOwnAcrossGyms(currentUser.UserId),
+            exerciseIds,
+            session.StartedAt,
+            cancellationToken);
+
         var (prSetIds, prs) = SessionMapping.DetectPrs(session.Exercises, priorBest, names);
 
         // Cross-gym program context (name + week) when the session came from a plan assignment.
@@ -75,6 +83,7 @@ public sealed class GetMyWorkoutSessionByIdHandler(
 
         return Result<SessionDetailDto>.Success(
             SessionMapping.ToSessionDetailDto(
-                session, snapshot: null, names, prSetIds, prs, programName, planWeek));
+                session, snapshot: null, names, prSetIds, prs, programName, planWeek,
+                lastPerformedByExercise: lastPerformed));
     }
 }

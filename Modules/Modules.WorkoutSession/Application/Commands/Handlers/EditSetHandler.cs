@@ -19,7 +19,7 @@ public sealed class EditSetHandler(
 {
     public async Task<Result> Handle(EditSetCommand request, CancellationToken cancellationToken)
     {
-        var load = await SessionGuard.LoadOwnedInProgressAsync(
+        var load = await SessionGuard.LoadOwnedEditableAsync(
             sessionRepository, currentUser, request.SessionId, cancellationToken);
         if (load.IsFailure)
             return Result.Failure(load.Error);
@@ -61,6 +61,15 @@ public sealed class EditSetHandler(
             request.Rounds);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Editing a finished workout in place: refresh its cached PR count (no-op for in-progress).
+        if (session.Status == SessionStatus.Completed)
+        {
+            await SessionStatsRecalculator.RecomputeAfterEditAsync(
+                sessionRepository, exerciseRepository, session, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
         return Result.Success();
     }
 }

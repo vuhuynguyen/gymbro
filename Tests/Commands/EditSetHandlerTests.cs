@@ -100,7 +100,7 @@ public sealed class EditSetHandlerTests
     }
 
     [Fact]
-    public async Task Editing_a_set_on_a_non_in_progress_session_returns_conflict()
+    public async Task Editing_a_set_on_an_abandoned_session_returns_conflict()
     {
         var traineeId = Guid.NewGuid();
         var tenantId = Guid.NewGuid();
@@ -110,10 +110,11 @@ public sealed class EditSetHandlerTests
         var setRepository = Substitute.For<IPerformedSetRepository>();
         var unitOfWork = Substitute.For<IUnitOfWork>();
 
-        // Already terminal: edits must be rejected once the session is no longer InProgress.
+        // Abandoned is the only non-editable terminal state: a COMPLETED session can be edited in place
+        // (fix/add sets), but an abandoned one stays read-only.
         var session = WorkoutSession.Start(
             traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
-        session.Complete(null, null, null, prCount: 0);
+        session.Abandon(null);
 
         sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>())
             .Returns(session);

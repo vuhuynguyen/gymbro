@@ -20,7 +20,7 @@ public sealed class UpdatePerformedExerciseHandler(
 {
     public async Task<Result> Handle(UpdatePerformedExerciseCommand request, CancellationToken cancellationToken)
     {
-        var load = await SessionGuard.LoadOwnedInProgressAsync(
+        var load = await SessionGuard.LoadOwnedEditableAsync(
             sessionRepository, currentUser, request.SessionId, cancellationToken);
         if (load.IsFailure)
             return Result.Failure(load.Error);

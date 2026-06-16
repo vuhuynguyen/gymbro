@@ -82,10 +82,14 @@ are correct.
   loggers and validation never re-resolve it per set. The matrix lives once in `BuildingBlocks.Shared.Tracking`
   (`ExerciseTrackingRules`) and is mirrored by the Angular/Flutter clients.
 - **Set metrics:** a `PerformedSet` carries `Reps`, `WeightKg`, `DurationSeconds`, `DistanceM`, `Calories`,
-  `AvgHeartRate`, `Rounds`, `Rpe`, `RestSeconds` — all optional. **No metric is unconditionally required.** Instead,
-  `LogSet` enforces a **mode-aware primary-metric rule**: Strength/Bodyweight need reps; Cardio needs duration or
-  distance; Timed needs duration; Hiit needs rounds or a work duration; Mobility/Custom accept a metric-less *completed*
-  set (mark-done). Field validators still range-check each metric when present (weight > 0, reps ≥ 1, HR 1–250, etc.).
+  `AvgHeartRate`, `Rounds`, `InclinePercent`, `SpeedKph`, `Level`, `Rpe`, `RestSeconds` — all optional. **No metric is
+  unconditionally required.** Instead, `LogSet` enforces a **mode-aware primary-metric rule**: Strength/Bodyweight need
+  reps; Cardio needs duration or distance; Timed needs duration; Hiit needs rounds or a work duration; Mobility/Custom
+  accept a metric-less *completed* set (mark-done). The optional intensity metrics ride alongside the primary gate
+  without ever being required: **Cardio** also accepts `InclinePercent` / `SpeedKph` / `Level` (treadmill grade, pace,
+  machine resistance) and **Timed** accepts an optional `WeightKg` (weighted holds — weighted plank/wall-sit/dead-hang).
+  Field validators still range-check each metric when present (weight > 0, reps ≥ 1, HR 1–250, incline 0–40, speed 0–60,
+  level 0–100, etc.).
   Plan prescription is mode-aware too: `TargetReps` is **not** required; cardio/HIIT plans prescribe
   `TargetDurationSeconds` / `TargetDistanceM` / `TargetRounds`. "Notes" is a field on performed-exercise and on session
   complete/abandon, not a separate feature.

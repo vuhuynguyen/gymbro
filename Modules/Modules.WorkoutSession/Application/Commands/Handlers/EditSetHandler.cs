@@ -58,7 +58,10 @@ public sealed class EditSetHandler(
             request.SetType,
             request.Calories,
             request.AvgHeartRate,
-            request.Rounds);
+            request.Rounds,
+            request.InclinePercent,
+            request.SpeedKph,
+            request.Level);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -44,6 +44,12 @@ public sealed class LogSetRequest
     public int? Calories { get; set; }
     public int? AvgHeartRate { get; set; }
     public int? Rounds { get; set; }
+    /// <summary>Treadmill/ramp incline %, optional cardio intensity.</summary>
+    public decimal? InclinePercent { get; set; }
+    /// <summary>Pace in km/h, optional treadmill/bike speed.</summary>
+    public decimal? SpeedKph { get; set; }
+    /// <summary>Machine resistance/level (bike/elliptical/stair), optional.</summary>
+    public int? Level { get; set; }
     public int? Rpe { get; set; }
     public int? RestSeconds { get; set; }
     public bool IsCompleted { get; set; } = true;
@@ -58,6 +64,9 @@ public sealed class EditSetRequest
     public int? Calories { get; set; }
     public int? AvgHeartRate { get; set; }
     public int? Rounds { get; set; }
+    public decimal? InclinePercent { get; set; }
+    public decimal? SpeedKph { get; set; }
+    public int? Level { get; set; }
     public int? Rpe { get; set; }
     public int? RestSeconds { get; set; }
     public bool? IsCompleted { get; set; }

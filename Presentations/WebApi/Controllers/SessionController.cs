@@ -151,6 +151,9 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.Calories,
             request.AvgHeartRate,
             request.Rounds,
+            request.InclinePercent,
+            request.SpeedKph,
+            request.Level,
             request.ParentSetId), ct);
 
         if (result.IsFailure)
@@ -181,7 +184,10 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
             request.SetType,
             request.Calories,
             request.AvgHeartRate,
-            request.Rounds), ct);
+            request.Rounds,
+            request.InclinePercent,
+            request.SpeedKph,
+            request.Level), ct);
 
         if (result.IsFailure)
             return result.ToFailureResult(this);

@@ -19,6 +19,8 @@ public sealed class PerformedSetConfiguration : IEntityTypeConfiguration<Perform
         builder.Property(x => x.LoggedAt).IsRequired();
         builder.Property(x => x.WeightKg).HasPrecision(6, 2);
         builder.Property(x => x.EstimatedOneRepMaxKg).HasPrecision(6, 1);
+        builder.Property(x => x.InclinePercent).HasPrecision(4, 1);
+        builder.Property(x => x.SpeedKph).HasPrecision(4, 1);
 
         builder.HasIndex(x => new { x.PerformedExerciseId, x.SetNumber });
         builder.HasIndex(x => x.LoggedAt);

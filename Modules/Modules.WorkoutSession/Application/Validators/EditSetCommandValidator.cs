@@ -20,5 +20,8 @@ public sealed class EditSetCommandValidator : AbstractValidator<EditSetCommand>
         RuleFor(x => x.Calories).GreaterThanOrEqualTo(0).When(x => x.Calories.HasValue);
         RuleFor(x => x.AvgHeartRate).InclusiveBetween(1, 250).When(x => x.AvgHeartRate.HasValue);
         RuleFor(x => x.Rounds).GreaterThanOrEqualTo(1).When(x => x.Rounds.HasValue);
+        RuleFor(x => x.InclinePercent).InclusiveBetween(0, 40).When(x => x.InclinePercent.HasValue);
+        RuleFor(x => x.SpeedKph).InclusiveBetween(0, 60).When(x => x.SpeedKph.HasValue);
+        RuleFor(x => x.Level).InclusiveBetween(0, 100).When(x => x.Level.HasValue);
     }
 }

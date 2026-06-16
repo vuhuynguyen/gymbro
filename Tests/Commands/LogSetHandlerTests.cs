@@ -366,4 +366,45 @@ public sealed class LogSetHandlerTests
         await setRepository.DidNotReceive().AddAsync(Arg.Any<PerformedSet>(), Arg.Any<CancellationToken>());
         await unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Cardio_set_persists_incline_speed_and_level()
+    {
+        var tenantId = Guid.NewGuid();
+        var traineeId = Guid.NewGuid();
+
+        var sessionRepository = Substitute.For<IWorkoutSessionRepository>();
+        var exerciseRepository = Substitute.For<IPerformedExerciseRepository>();
+        var setRepository = Substitute.For<IPerformedSetRepository>();
+        var unitOfWork = Substitute.For<IUnitOfWork>();
+
+        var session = WorkoutSession.Start(
+            traineeId, tenantId, SessionSource.Adhoc, null, null, null, null, null, null);
+        sessionRepository.GetByIdAsync(session.Id, Arg.Any<CancellationToken>()).Returns(session);
+
+        var exercise = PerformedExercise.Create(
+            session.Id, tenantId, Guid.NewGuid(), null, 0, "Incline Treadmill Walk", ExerciseTrackingType.Cardio);
+        exerciseRepository.GetByIdAsync(exercise.Id, Arg.Any<CancellationToken>()).Returns(exercise);
+        unitOfWork.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
+
+        var sut = CreateSut(
+            sessionRepository, exerciseRepository, setRepository, unitOfWork, tenantId, traineeId);
+
+        // A treadmill walk: duration is the primary metric; incline/speed/level ride along as intensity.
+        var command = new LogSetCommand(
+            session.Id, exercise.Id, PlanSetId: null, SetNumber: 1, SetType: PerformedSetType.Working,
+            Reps: null, WeightKg: null, DurationSeconds: 1800, DistanceM: 2400,
+            Rpe: null, RestSeconds: null, IsCompleted: true,
+            InclinePercent: 8.5m, SpeedKph: 5.5m, Level: 12);
+
+        var result = await sut.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        await setRepository.Received(1).AddAsync(
+            Arg.Is<PerformedSet>(s => s.InclinePercent == 8.5m && s.SpeedKph == 5.5m && s.Level == 12),
+            Arg.Any<CancellationToken>());
+        Assert.Equal(8.5m, result.Value!.InclinePercent);
+        Assert.Equal(5.5m, result.Value!.SpeedKph);
+        Assert.Equal(12, result.Value!.Level);
+    }
 }

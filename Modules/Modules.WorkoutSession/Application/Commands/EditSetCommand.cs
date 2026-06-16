@@ -19,7 +19,10 @@ public sealed record EditSetCommand(
     PerformedSetType? SetType,
     int? Calories = null,
     int? AvgHeartRate = null,
-    int? Rounds = null) : IRequest<Result>, ITenantAuthorizedRequest
+    int? Rounds = null,
+    decimal? InclinePercent = null,
+    decimal? SpeedKph = null,
+    int? Level = null) : IRequest<Result>, ITenantAuthorizedRequest
 {
     public Permission RequiredPermission => Permission.WorkoutLogCreate;
 }

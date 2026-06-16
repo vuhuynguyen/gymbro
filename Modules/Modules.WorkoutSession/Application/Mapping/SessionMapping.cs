@@ -90,6 +90,9 @@ internal static class SessionMapping
             set.Calories,
             set.AvgHeartRate,
             set.Rounds,
+            set.InclinePercent,
+            set.SpeedKph,
+            set.Level,
             set.ParentSetId);
 
     public static PerformedExerciseDto ToPerformedExerciseDto(

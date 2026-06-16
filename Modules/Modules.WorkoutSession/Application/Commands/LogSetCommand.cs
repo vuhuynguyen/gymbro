@@ -22,6 +22,9 @@ public sealed record LogSetCommand(
     int? Calories = null,
     int? AvgHeartRate = null,
     int? Rounds = null,
+    decimal? InclinePercent = null,
+    decimal? SpeedKph = null,
+    int? Level = null,
     Guid? ParentSetId = null) : IRequest<Result<PerformedSetDto>>, ITenantAuthorizedRequest
 {
     public Permission RequiredPermission => Permission.WorkoutLogCreate;

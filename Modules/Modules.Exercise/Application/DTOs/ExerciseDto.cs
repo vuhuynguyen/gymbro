@@ -12,6 +12,11 @@ public class ExerciseDto
     public int? EstimatedCaloriesBurn { get; set; }
     public int? AverageDurationSeconds { get; set; }
     public required string MuscleGroup { get; set; }
+
+    /// <summary>Fine-grained library category (one of the 13 codes, e.g. <c>biceps</c>/<c>glutes</c>/<c>cardio</c>);
+    /// powers the catalog's browse/filter chips beyond the 6 coarse muscle groups. Null until reseeded.</summary>
+    public string? Category { get; set; }
+
     public string? ImageUrl { get; set; }
 
     /// All targeted muscles (primary + secondary), so clients can show full involvement — not just the

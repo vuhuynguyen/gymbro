@@ -49,6 +49,7 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
 
         builder.Property(x => x.DetailedPrimaryMuscles).HasMaxLength(256);
         builder.Property(x => x.DetailedSecondaryMuscles).HasMaxLength(256);
+        builder.Property(x => x.Category).HasMaxLength(64);
 
         builder.Property(x => x.TenantId)
             .IsRequired(false);

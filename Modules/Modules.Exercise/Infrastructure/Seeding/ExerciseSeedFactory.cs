@@ -67,6 +67,7 @@ public static class ExerciseSeedFactory
         exercise.ReplaceTags(BuildTags(dto));
         exercise.ReplaceWarnings(dto.SafetyNotes);
         exercise.SetDetailedMuscles(JoinMuscles(dto.DetailedPrimaryMuscles), JoinMuscles(dto.DetailedSecondaryMuscles));
+        exercise.SetCategory(dto.Category);
     }
 
     private static string? JoinMuscles(List<string> muscles) =>

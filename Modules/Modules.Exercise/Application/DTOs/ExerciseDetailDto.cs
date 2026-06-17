@@ -13,6 +13,10 @@ public class ExerciseDetailDto
     public int? EstimatedCaloriesBurn { get; set; }
     public int? AverageDurationSeconds { get; set; }
     public required string MuscleGroup { get; set; }
+
+    /// <summary>Fine-grained library category (one of the 13 codes, e.g. <c>biceps</c>/<c>glutes</c>/<c>cardio</c>).</summary>
+    public string? Category { get; set; }
+
     public string? ImageUrl { get; set; }
 
     /// <summary>Comma-separated specific (fine) muscle slugs for the activation map — primary then secondary.</summary>

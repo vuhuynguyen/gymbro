@@ -23,6 +23,7 @@ internal static class ExerciseMapping
                 .ThenBy(m => m.Muscle)
                 .Select(m => m.Muscle.ToString())
                 .FirstOrDefault() ?? string.Empty,
+            Category = x.Category,
             ImageUrl = x.ImageUrl,
             Muscles = x.Muscles
                 .OrderByDescending(m => m.IsPrimary)
@@ -53,6 +54,7 @@ internal static class ExerciseMapping
                 .ThenBy(m => m.Muscle)
                 .Select(m => m.Muscle.ToString())
                 .FirstOrDefault() ?? string.Empty,
+            Category = x.Category,
             ImageUrl = x.ImageUrl,
             Muscles = x.Muscles
                 .OrderByDescending(m => m.IsPrimary)

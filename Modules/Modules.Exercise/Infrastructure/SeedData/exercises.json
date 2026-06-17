@@ -187,8 +187,13 @@
         "upper"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "chest"
+      ],
+      "detailedSecondaryMuscles": [
+        "deltoids",
+        "triceps"
+      ],
       "imageUrl": ""
     },
     {
@@ -250,7 +255,7 @@
       "secondaryMuscles": [
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -324,8 +329,12 @@
         "upper"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "chest"
+      ],
+      "detailedSecondaryMuscles": [
+        "deltoids"
+      ],
       "imageUrl": ""
     },
     {
@@ -430,7 +439,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -556,8 +565,13 @@
         "unilateral"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "biceps",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -570,7 +584,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -693,8 +707,12 @@
         "vertical"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "triceps"
+      ],
       "imageUrl": ""
     },
     {
@@ -751,7 +769,7 @@
       "secondaryMuscles": [
         "Back"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -1023,7 +1041,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -1097,7 +1115,9 @@
         "triceps"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "triceps"
+      ],
       "detailedSecondaryMuscles": [],
       "imageUrl": ""
     },
@@ -1239,8 +1259,16 @@
         "powerlifting"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring",
+        "adductors",
+        "calves",
+        "lower-back"
+      ],
       "imageUrl": ""
     },
     {
@@ -1669,8 +1697,17 @@
         "powerlifting"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "hamstring",
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "lower-back",
+        "upper-back",
+        "trapezius",
+        "quadriceps",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -1982,8 +2019,13 @@
         "hanging"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "abs"
+      ],
+      "detailedSecondaryMuscles": [
+        "obliques",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -1994,7 +2036,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -2160,8 +2202,16 @@
         "power"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "gluteal",
+        "hamstring"
+      ],
+      "detailedSecondaryMuscles": [
+        "lower-back",
+        "deltoids",
+        "abs",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -2207,8 +2257,16 @@
         "conditioning"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "forearm",
+        "trapezius"
+      ],
+      "detailedSecondaryMuscles": [
+        "abs",
+        "obliques",
+        "quadriceps",
+        "gluteal"
+      ],
       "imageUrl": ""
     },
     {
@@ -2358,8 +2416,16 @@
         "intervals"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "hamstring"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "calves",
+        "deltoids",
+        "abs"
+      ],
       "imageUrl": ""
     },
     {
@@ -2402,8 +2468,15 @@
         "aerobic"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "hamstring",
+        "calves"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "tibialis"
+      ],
       "imageUrl": ""
     },
     {
@@ -2547,8 +2620,13 @@
         "recovery"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "trapezius",
+        "lower-back"
+      ],
       "imageUrl": ""
     },
     {
@@ -2591,8 +2669,13 @@
         "recovery"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "adductors",
+        "hamstring"
+      ],
       "imageUrl": ""
     },
     {
@@ -2824,7 +2907,7 @@
       "trackingType": "Strength",
       "primaryMuscle": "Shoulders",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -3027,7 +3110,7 @@
       "trackingType": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -3051,8 +3134,12 @@
         "biceps"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "biceps"
+      ],
+      "detailedSecondaryMuscles": [
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -3085,8 +3172,13 @@
         "hamstrings"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "hamstring"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "calves"
+      ],
       "imageUrl": ""
     },
     {
@@ -3213,8 +3305,13 @@
         "hips"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "adductors",
+        "hamstring"
+      ],
       "imageUrl": ""
     },
     {
@@ -3253,8 +3350,13 @@
         "biceps"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "biceps",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -3577,8 +3679,12 @@
         "lower-abs"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "abs"
+      ],
+      "detailedSecondaryMuscles": [
+        "obliques"
+      ],
       "imageUrl": ""
     },
     {
@@ -3592,7 +3698,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Intermediate",
       "mechanics": "Compound",
@@ -3922,7 +4028,9 @@
         "glutes"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "adductors"
+      ],
       "detailedSecondaryMuscles": [],
       "imageUrl": ""
     },
@@ -3935,7 +4043,7 @@
       "trackingType": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -3983,7 +4091,7 @@
       "secondaryMuscles": [
         "Back"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -4055,8 +4163,14 @@
         "legs"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring",
+        "gluteal",
+        "calves"
+      ],
       "imageUrl": ""
     },
     {
@@ -4225,8 +4339,15 @@
         "legs"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "gluteal",
+        "calves"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring",
+        "tibialis"
+      ],
       "imageUrl": ""
     },
     {
@@ -4264,8 +4385,15 @@
         "legs"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "hamstring",
+        "calves"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "tibialis"
+      ],
       "imageUrl": ""
     },
     {
@@ -4396,8 +4524,16 @@
         "full-body"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back",
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "chest",
+        "triceps",
+        "gluteal",
+        "hamstring"
+      ],
       "imageUrl": ""
     },
     {
@@ -4436,8 +4572,14 @@
         "back"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "triceps",
+        "abs",
+        "deltoids"
+      ],
       "imageUrl": ""
     },
     {
@@ -4567,8 +4709,14 @@
         "warm-up"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps"
+      ],
+      "detailedSecondaryMuscles": [
+        "calves",
+        "hamstring",
+        "abs"
+      ],
       "imageUrl": ""
     },
     {
@@ -4605,8 +4753,15 @@
         "warm-up"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "calves",
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "quadriceps",
+        "gluteal",
+        "adductors"
+      ],
       "imageUrl": ""
     },
     {
@@ -4735,8 +4890,14 @@
         "full-body"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "triceps",
+        "obliques",
+        "abs"
+      ],
       "imageUrl": ""
     },
     {
@@ -4854,9 +5015,7 @@
       "safetyNotes": [
         "Keep the spine neutral; do not jerk the weight up with the lower back."
       ],
-      "aliases": [
-        "landmine row"
-      ],
+      "aliases": [],
       "tags": [
         "pull",
         "back"
@@ -4905,8 +5064,14 @@
         "back"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "biceps",
+        "forearm",
+        "trapezius"
+      ],
       "imageUrl": ""
     },
     {
@@ -4961,7 +5126,7 @@
       "trackingType": "Strength",
       "primaryMuscle": "Back",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -5222,7 +5387,7 @@
       "trackingType": "Strength",
       "primaryMuscle": "Shoulders",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -5321,8 +5486,7 @@
         "Stop at chest height and avoid a narrow grip if the shoulders pinch."
       ],
       "aliases": [
-        "barbell upright row",
-        "cable upright row"
+        "barbell upright row"
       ],
       "tags": [
         "pull",
@@ -5392,7 +5556,7 @@
       "trackingType": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -5808,8 +5972,13 @@
         "bodyweight"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "hamstring"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "calves"
+      ],
       "imageUrl": ""
     },
     {
@@ -5861,7 +6030,7 @@
       "trackingType": "Strength",
       "primaryMuscle": "Legs",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable / Ankle Strap",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -6262,8 +6431,12 @@
         "isometric"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "abs"
+      ],
+      "detailedSecondaryMuscles": [
+        "obliques"
+      ],
       "imageUrl": ""
     },
     {
@@ -6277,7 +6450,7 @@
       "secondaryMuscles": [
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Intermediate",
       "mechanics": "Compound",
@@ -6304,8 +6477,13 @@
         "cable"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "obliques"
+      ],
+      "detailedSecondaryMuscles": [
+        "abs",
+        "deltoids"
+      ],
       "imageUrl": ""
     },
     {
@@ -6317,7 +6495,7 @@
       "trackingType": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "Cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -6976,7 +7154,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -9131,7 +9309,7 @@
       "secondaryMuscles": [
         "Back"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -9643,7 +9821,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10057,7 +10235,7 @@
         "Arms",
         "Back"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -10095,7 +10273,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10131,7 +10309,7 @@
       "type": "Strength",
       "primaryMuscle": "Legs",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10168,7 +10346,7 @@
       "type": "Strength",
       "primaryMuscle": "Back",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10203,7 +10381,7 @@
       "type": "Strength",
       "primaryMuscle": "Shoulders",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -10238,7 +10416,7 @@
       "type": "Strength",
       "primaryMuscle": "Chest",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10273,7 +10451,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -10308,7 +10486,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10343,7 +10521,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10379,7 +10557,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10418,7 +10596,7 @@
       "type": "Strength",
       "primaryMuscle": "Shoulders",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10452,7 +10630,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10488,7 +10666,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10526,7 +10704,7 @@
         "Arms",
         "Back"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -10565,7 +10743,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -10602,7 +10780,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -10637,7 +10815,7 @@
       "type": "Strength",
       "primaryMuscle": "Back",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -12108,7 +12286,7 @@
         "Arms",
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -14790,7 +14968,7 @@
       "type": "Strength",
       "primaryMuscle": "Back",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Compound",
@@ -15009,7 +15187,7 @@
       "type": "Strength",
       "primaryMuscle": "Shoulders",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -15159,7 +15337,7 @@
       "type": "Strength",
       "primaryMuscle": "Chest",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -15727,7 +15905,7 @@
       "type": "Strength",
       "primaryMuscle": "Shoulders",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -16019,7 +16197,7 @@
         "Arms",
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Compound",
@@ -16808,7 +16986,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Compound",
@@ -17325,7 +17503,7 @@
         "Shoulders",
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -17363,7 +17541,7 @@
       "secondaryMuscles": [
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -19145,7 +19323,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -19184,7 +19362,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -19255,7 +19433,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -19362,7 +19540,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -20390,7 +20568,7 @@
       "secondaryMuscles": [
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -20426,7 +20604,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -20465,7 +20643,7 @@
         "Arms",
         "Back"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -20681,7 +20859,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -20756,7 +20934,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -22352,7 +22530,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -23066,7 +23244,7 @@
       "type": "Strength",
       "primaryMuscle": "Legs",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -23612,7 +23790,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -23853,7 +24031,7 @@
         "Shoulders",
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -25032,7 +25210,7 @@
       "secondaryMuscles": [
         "Back"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -25936,7 +26114,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -26086,7 +26264,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -26630,7 +26808,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -26700,7 +26878,7 @@
       "type": "Strength",
       "primaryMuscle": "Back",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -27302,7 +27480,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -27952,7 +28130,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Compound",
@@ -28163,7 +28341,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -28245,7 +28423,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -28787,7 +28965,7 @@
       "type": "Strength",
       "primaryMuscle": "Chest",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -31304,7 +31482,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -31419,7 +31597,7 @@
         "Shoulders",
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -31458,7 +31636,7 @@
       "secondaryMuscles": [
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -31500,7 +31678,7 @@
       "secondaryMuscles": [
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -32111,7 +32289,7 @@
       "secondaryMuscles": [
         "Arms"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -32152,7 +32330,7 @@
         "Chest",
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -32266,7 +32444,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Isolation",
@@ -32571,7 +32749,7 @@
       "type": "Strength",
       "primaryMuscle": "Core",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -34026,7 +34204,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -34061,7 +34239,7 @@
       "type": "Strength",
       "primaryMuscle": "Arms",
       "secondaryMuscles": [],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Isolation",
@@ -34321,7 +34499,7 @@
         "Arms",
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -34469,7 +34647,7 @@
         "Arms",
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Compound",
@@ -35016,7 +35194,7 @@
         "Arms",
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Beginner",
       "mechanics": "Compound",
@@ -35058,7 +35236,7 @@
         "Arms",
         "Shoulders"
       ],
-      "equipment": "Machine",
+      "equipment": "Cable",
       "equipmentDetail": "cable",
       "difficulty": "Intermediate",
       "mechanics": "Compound",
@@ -35624,6 +35802,378 @@
         "forearm"
       ],
       "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Zottman_Preacher_Curl/0.jpg"
+    },
+    {
+      "slug": "landmine-press",
+      "name": "Landmine Press",
+      "description": "Single-arm vertical press driving the end of a barbell anchored in a landmine — joint-friendly overhead pressing on a natural arc.",
+      "category": "shoulders",
+      "type": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Chest",
+        "Arms"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Landmine (Barbell)",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Vertical Push",
+      "forceType": "Push",
+      "estimatedCalories": 80,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Stagger your stance and hold the bar end at shoulder height with one hand.",
+        "Press up and slightly forward until the arm locks out, then lower under control."
+      ],
+      "safetyNotes": [
+        "Keep the ribs down — don’t lean back to press."
+      ],
+      "commonMistakes": [
+        "Letting the elbow flare wide.",
+        "Arching the lower back at lockout."
+      ],
+      "aliases": [
+        "landmine shoulder press",
+        "single arm landmine press"
+      ],
+      "tags": [
+        "upper",
+        "push"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "chest",
+        "triceps"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "landmine-row",
+      "name": "Landmine Row",
+      "description": "Hip-hinged row driving the end of a landmine barbell to the torso — heavy, back-biased pulling with a braced spine.",
+      "category": "back",
+      "type": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Landmine (Barbell)",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 90,
+      "averageDurationSeconds": 200,
+      "instructions": [
+        "Straddle or stand beside the loaded bar end and hinge to a flat-back position.",
+        "Row the bar end to the hip/ribs, squeeze the back, then lower under control."
+      ],
+      "safetyNotes": [
+        "Keep a neutral spine throughout the hinge."
+      ],
+      "commonMistakes": [
+        "Jerking with the lower back.",
+        "Shrugging instead of rowing."
+      ],
+      "aliases": [
+        "t-bar landmine row",
+        "meadows row"
+      ],
+      "tags": [
+        "upper",
+        "pull"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "biceps",
+        "forearm"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "landmine-squat",
+      "name": "Landmine Squat",
+      "description": "Front-loaded squat holding the end of a landmine barbell at the chest — an accessible, upright squat pattern.",
+      "category": "quadriceps",
+      "type": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Core"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Landmine (Barbell)",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Squat",
+      "forceType": "Push",
+      "estimatedCalories": 95,
+      "averageDurationSeconds": 240,
+      "instructions": [
+        "Hold the bar end at chest height with both hands and set a shoulder-width stance.",
+        "Sit between the hips keeping the chest tall, then drive through the floor to stand."
+      ],
+      "safetyNotes": [
+        "Let the landmine arc guide you slightly forward at the bottom."
+      ],
+      "commonMistakes": [
+        "Heels rising.",
+        "Knees caving in."
+      ],
+      "aliases": [
+        "landmine goblet squat"
+      ],
+      "tags": [
+        "lower",
+        "squat"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring",
+        "calves"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "landmine-rotation",
+      "name": "Landmine Rotation",
+      "description": "Standing anti-rotation/rotation core drive swinging the end of a landmine barbell in an arc across the body.",
+      "category": "abs",
+      "type": "Strength",
+      "primaryMuscle": "Core",
+      "secondaryMuscles": [
+        "Shoulders"
+      ],
+      "equipment": "Barbell",
+      "equipmentDetail": "Landmine (Barbell)",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Rotation",
+      "forceType": "Push",
+      "estimatedCalories": 70,
+      "averageDurationSeconds": 150,
+      "instructions": [
+        "Hold the bar end with both hands at chest height, arms extended.",
+        "Rotate from the hips and trunk to sweep the bar across in an arc, then control it back."
+      ],
+      "safetyNotes": [
+        "Drive the rotation from the hips and core, not the arms."
+      ],
+      "commonMistakes": [
+        "Bending the elbows.",
+        "Twisting only the arms."
+      ],
+      "aliases": [
+        "landmine twist",
+        "landmine 180"
+      ],
+      "tags": [
+        "core",
+        "rotation"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "obliques"
+      ],
+      "detailedSecondaryMuscles": [
+        "abs",
+        "deltoids"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "cable-upright-row",
+      "name": "Cable Upright Row",
+      "description": "Upright row from a low cable pulley — constant tension up the side delts and traps with a smooth resistance curve.",
+      "category": "shoulders",
+      "type": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Cable",
+      "equipmentDetail": "Cable",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Vertical Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 60,
+      "averageDurationSeconds": 150,
+      "instructions": [
+        "Set a straight bar or rope on a low pulley and stand tall holding it at arm’s length.",
+        "Lead with the elbows to pull to upper-chest height, then lower under control."
+      ],
+      "safetyNotes": [
+        "Keep the bar close to the body; stop at chest height to spare the shoulders."
+      ],
+      "commonMistakes": [
+        "Pulling too high.",
+        "Using momentum from the legs."
+      ],
+      "aliases": [
+        "cable high pull"
+      ],
+      "tags": [
+        "upper",
+        "pull"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "trapezius",
+        "biceps"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "dumbbell-reverse-lunge",
+      "name": "Dumbbell Reverse Lunge",
+      "description": "Stepping backward into a lunge with dumbbells — a knee-friendly single-leg builder with strong glute and quad demand.",
+      "category": "quadriceps",
+      "type": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Core"
+      ],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "Dumbbell",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Lunge",
+      "forceType": "Push",
+      "estimatedCalories": 90,
+      "averageDurationSeconds": 220,
+      "instructions": [
+        "Hold a dumbbell in each hand at your sides, standing tall.",
+        "Step one foot back and lower until both knees bend ~90°, then drive through the front heel to stand."
+      ],
+      "safetyNotes": [
+        "Keep the front shin vertical and torso upright."
+      ],
+      "commonMistakes": [
+        "Front knee collapsing inward.",
+        "Short, shallow steps."
+      ],
+      "aliases": [
+        "reverse dumbbell lunge",
+        "db reverse lunge"
+      ],
+      "tags": [
+        "lower",
+        "lunge",
+        "unilateral"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring",
+        "calves"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "single-arm-cable-curl",
+      "name": "Single-Arm Cable Curl",
+      "description": "One-arm biceps curl from a low pulley — constant tension and a long peak-contraction range, easy to keep strict.",
+      "category": "biceps",
+      "type": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Cable",
+      "equipmentDetail": "Cable",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Curl",
+      "forceType": "Pull",
+      "estimatedCalories": 45,
+      "averageDurationSeconds": 140,
+      "instructions": [
+        "Set a single handle on a low pulley and stand holding it with a supinated grip.",
+        "Curl the handle up keeping the elbow pinned, squeeze, then lower slowly."
+      ],
+      "safetyNotes": [
+        "Keep the upper arm still — only the forearm moves."
+      ],
+      "commonMistakes": [
+        "Elbow drifting forward.",
+        "Leaning back to lift."
+      ],
+      "aliases": [
+        "one arm cable curl"
+      ],
+      "tags": [
+        "arms"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "biceps"
+      ],
+      "detailedSecondaryMuscles": [
+        "forearm"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "cable-reverse-lunge",
+      "name": "Cable Reverse Lunge",
+      "description": "Reverse lunge anchored to a low cable for forward tension — adds a glute-loading line of pull to the single-leg pattern.",
+      "category": "quadriceps",
+      "type": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Core"
+      ],
+      "equipment": "Cable",
+      "equipmentDetail": "Cable",
+      "difficulty": "Intermediate",
+      "mechanics": "Compound",
+      "movementPattern": "Lunge",
+      "forceType": "Push",
+      "estimatedCalories": 85,
+      "averageDurationSeconds": 210,
+      "instructions": [
+        "Hold a handle from a low pulley at chest height and stand facing the stack.",
+        "Step back into a lunge, then drive through the front heel back to standing against the cable tension."
+      ],
+      "safetyNotes": [
+        "Resist the cable pulling you forward — stay tall."
+      ],
+      "commonMistakes": [
+        "Letting the cable yank your posture forward."
+      ],
+      "aliases": [
+        "cable lunge"
+      ],
+      "tags": [
+        "lower",
+        "lunge",
+        "unilateral"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring"
+      ],
+      "imageUrl": ""
     }
   ]
 }

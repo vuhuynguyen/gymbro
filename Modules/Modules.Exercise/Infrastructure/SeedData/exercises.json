@@ -187,8 +187,13 @@
         "upper"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "chest"
+      ],
+      "detailedSecondaryMuscles": [
+        "deltoids",
+        "triceps"
+      ],
       "imageUrl": ""
     },
     {
@@ -324,8 +329,12 @@
         "upper"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "chest"
+      ],
+      "detailedSecondaryMuscles": [
+        "deltoids"
+      ],
       "imageUrl": ""
     },
     {
@@ -556,8 +565,13 @@
         "unilateral"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "biceps",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -693,8 +707,12 @@
         "vertical"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "triceps"
+      ],
       "imageUrl": ""
     },
     {
@@ -1097,7 +1115,9 @@
         "triceps"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "triceps"
+      ],
       "detailedSecondaryMuscles": [],
       "imageUrl": ""
     },
@@ -1239,8 +1259,16 @@
         "powerlifting"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring",
+        "adductors",
+        "calves",
+        "lower-back"
+      ],
       "imageUrl": ""
     },
     {
@@ -1669,8 +1697,17 @@
         "powerlifting"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "hamstring",
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "lower-back",
+        "upper-back",
+        "trapezius",
+        "quadriceps",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -1982,8 +2019,13 @@
         "hanging"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "abs"
+      ],
+      "detailedSecondaryMuscles": [
+        "obliques",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -2160,8 +2202,16 @@
         "power"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "gluteal",
+        "hamstring"
+      ],
+      "detailedSecondaryMuscles": [
+        "lower-back",
+        "deltoids",
+        "abs",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -2207,8 +2257,16 @@
         "conditioning"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "forearm",
+        "trapezius"
+      ],
+      "detailedSecondaryMuscles": [
+        "abs",
+        "obliques",
+        "quadriceps",
+        "gluteal"
+      ],
       "imageUrl": ""
     },
     {
@@ -2358,8 +2416,16 @@
         "intervals"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "hamstring"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "calves",
+        "deltoids",
+        "abs"
+      ],
       "imageUrl": ""
     },
     {
@@ -2402,8 +2468,15 @@
         "aerobic"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "hamstring",
+        "calves"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "tibialis"
+      ],
       "imageUrl": ""
     },
     {
@@ -2547,8 +2620,13 @@
         "recovery"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "trapezius",
+        "lower-back"
+      ],
       "imageUrl": ""
     },
     {
@@ -2591,8 +2669,13 @@
         "recovery"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "adductors",
+        "hamstring"
+      ],
       "imageUrl": ""
     },
     {
@@ -3051,8 +3134,12 @@
         "biceps"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "biceps"
+      ],
+      "detailedSecondaryMuscles": [
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -3085,8 +3172,13 @@
         "hamstrings"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "hamstring"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "calves"
+      ],
       "imageUrl": ""
     },
     {
@@ -3213,8 +3305,13 @@
         "hips"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "adductors",
+        "hamstring"
+      ],
       "imageUrl": ""
     },
     {
@@ -3253,8 +3350,13 @@
         "biceps"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "biceps",
+        "forearm"
+      ],
       "imageUrl": ""
     },
     {
@@ -3577,8 +3679,12 @@
         "lower-abs"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "abs"
+      ],
+      "detailedSecondaryMuscles": [
+        "obliques"
+      ],
       "imageUrl": ""
     },
     {
@@ -3922,7 +4028,9 @@
         "glutes"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "adductors"
+      ],
       "detailedSecondaryMuscles": [],
       "imageUrl": ""
     },
@@ -4055,8 +4163,14 @@
         "legs"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring",
+        "gluteal",
+        "calves"
+      ],
       "imageUrl": ""
     },
     {
@@ -4225,8 +4339,15 @@
         "legs"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "gluteal",
+        "calves"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring",
+        "tibialis"
+      ],
       "imageUrl": ""
     },
     {
@@ -4264,8 +4385,15 @@
         "legs"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps",
+        "hamstring",
+        "calves"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "tibialis"
+      ],
       "imageUrl": ""
     },
     {
@@ -4396,8 +4524,16 @@
         "full-body"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back",
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "chest",
+        "triceps",
+        "gluteal",
+        "hamstring"
+      ],
       "imageUrl": ""
     },
     {
@@ -4436,8 +4572,14 @@
         "back"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "triceps",
+        "abs",
+        "deltoids"
+      ],
       "imageUrl": ""
     },
     {
@@ -4567,8 +4709,14 @@
         "warm-up"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "quadriceps"
+      ],
+      "detailedSecondaryMuscles": [
+        "calves",
+        "hamstring",
+        "abs"
+      ],
       "imageUrl": ""
     },
     {
@@ -4605,8 +4753,15 @@
         "warm-up"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "calves",
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "quadriceps",
+        "gluteal",
+        "adductors"
+      ],
       "imageUrl": ""
     },
     {
@@ -4735,8 +4890,14 @@
         "full-body"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "triceps",
+        "obliques",
+        "abs"
+      ],
       "imageUrl": ""
     },
     {
@@ -4905,8 +5066,14 @@
         "back"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "biceps",
+        "forearm",
+        "trapezius"
+      ],
       "imageUrl": ""
     },
     {
@@ -5808,8 +5975,13 @@
         "bodyweight"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "hamstring"
+      ],
+      "detailedSecondaryMuscles": [
+        "gluteal",
+        "calves"
+      ],
       "imageUrl": ""
     },
     {
@@ -6262,8 +6434,12 @@
         "isometric"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "abs"
+      ],
+      "detailedSecondaryMuscles": [
+        "obliques"
+      ],
       "imageUrl": ""
     },
     {
@@ -6304,8 +6480,13 @@
         "cable"
       ],
       "isActive": true,
-      "detailedPrimaryMuscles": [],
-      "detailedSecondaryMuscles": [],
+      "detailedPrimaryMuscles": [
+        "obliques"
+      ],
+      "detailedSecondaryMuscles": [
+        "abs",
+        "deltoids"
+      ],
       "imageUrl": ""
     },
     {

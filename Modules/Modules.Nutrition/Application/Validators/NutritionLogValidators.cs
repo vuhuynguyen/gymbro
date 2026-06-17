@@ -10,8 +10,8 @@ public sealed class SetNutritionItemStatusCommandValidator : AbstractValidator<S
     {
         RuleFor(x => x.ItemId).NotEmpty();
         RuleFor(x => x.Status)
-            .Must(s => s is LoggedItemStatus.Completed or LoggedItemStatus.Skipped)
-            .WithMessage("Status must be Completed or Skipped.");
+            .Must(s => s is LoggedItemStatus.Completed or LoggedItemStatus.Skipped or LoggedItemStatus.Planned)
+            .WithMessage("Status must be Completed, Skipped, or Planned.");
         RuleFor(x => x.Note).MaximumLength(500).When(x => x.Note != null);
     }
 }

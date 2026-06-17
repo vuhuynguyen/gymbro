@@ -34,6 +34,9 @@ public sealed class SetNutritionItemStatusHandler(
             case LoggedItemStatus.Skipped:
                 item.Skip(request.Note);
                 break;
+            case LoggedItemStatus.Planned:
+                item.ResetToPlanned();
+                break;
             default:
                 return Result.Failure(Validation("Status", "Only Completed or Skipped may be set directly."));
         }

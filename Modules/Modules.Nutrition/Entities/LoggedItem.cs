@@ -148,6 +148,15 @@ public sealed class LoggedItem : BaseEntity, ITenantEntity
         if (note != null) Note = note;
     }
 
+    /// <summary>Reverts a planned item back to Planned (un-tick) and clears its logged timestamp.</summary>
+    public void ResetToPlanned()
+    {
+        if (PlanMealItemId == null) throw new DomainException("Only planned items can be reset to Planned.");
+
+        Status = LoggedItemStatus.Planned;
+        LoggedAtUtc = null;
+    }
+
     /// <summary>Marks a still-Planned item as Missed at day close (no-show). Other statuses are untouched.</summary>
     public void MarkMissedIfPlanned()
     {

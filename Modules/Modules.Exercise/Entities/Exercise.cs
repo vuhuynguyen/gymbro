@@ -22,6 +22,12 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
     public int? AverageDurationSeconds { get; private set; }
     
     public string ImageUrl { get; private set; } = null!;
+
+    /// <summary>Comma-separated specific (fine) muscle slugs for the activation map — primary (e.g. <c>hamstring</c>).
+    /// The catalog's coarse <see cref="Muscles"/> only knows 6 groups; this carries the real per-muscle detail.</summary>
+    public string? DetailedPrimaryMuscles { get; private set; }
+    /// <summary>Comma-separated specific (fine) muscle slugs — secondary.</summary>
+    public string? DetailedSecondaryMuscles { get; private set; }
     
     private readonly List<ExerciseMuscle> _muscles = new();
     public IReadOnlyCollection<ExerciseMuscle> Muscles => _muscles;
@@ -172,6 +178,13 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
     public void AddMedia(string url, string type)
     {
         _media.Add(new ExerciseMedia(Id, type, url));
+    }
+
+    /// <summary>Sets the specific (fine) muscle slugs that drive the activation map (comma-separated, nullable).</summary>
+    public void SetDetailedMuscles(string? primary, string? secondary)
+    {
+        DetailedPrimaryMuscles = string.IsNullOrWhiteSpace(primary) ? null : primary.Trim();
+        DetailedSecondaryMuscles = string.IsNullOrWhiteSpace(secondary) ? null : secondary.Trim();
     }
     
     public void AddWarning(string content)

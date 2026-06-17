@@ -24,7 +24,7 @@ public static class ExerciseSeedFactory
 
         var exercise = Exercise.CreateGlobal(
             name: dto.Name!.Trim(),
-            imageUrl: string.Empty, // media gap — no copyrighted media seeded; see docs/master-data/MEDIA_STRATEGY.md
+            imageUrl: dto.ImageUrl ?? string.Empty,
             description: dto.Description ?? string.Empty,
             type: ParseType(dto.Type),
             movementType: ParseMechanics(dto.Mechanics),
@@ -48,7 +48,7 @@ public static class ExerciseSeedFactory
         existing.UpdateCatalog(
             name: dto.Name!.Trim(),
             description: dto.Description ?? string.Empty,
-            imageUrl: string.Empty,
+            imageUrl: dto.ImageUrl ?? string.Empty,
             type: ParseType(dto.Type),
             movementType: ParseMechanics(dto.Mechanics),
             difficulty: ParseDifficulty(dto.Difficulty),
@@ -66,7 +66,11 @@ public static class ExerciseSeedFactory
         exercise.ReplaceInstructions(dto.Instructions);
         exercise.ReplaceTags(BuildTags(dto));
         exercise.ReplaceWarnings(dto.SafetyNotes);
+        exercise.SetDetailedMuscles(JoinMuscles(dto.DetailedPrimaryMuscles), JoinMuscles(dto.DetailedSecondaryMuscles));
     }
+
+    private static string? JoinMuscles(List<string> muscles) =>
+        muscles.Count > 0 ? string.Join(",", muscles) : null;
 
     private static IReadOnlyList<(MuscleGroup muscle, bool isPrimary)> BuildMuscles(ExerciseSeedDto dto)
     {

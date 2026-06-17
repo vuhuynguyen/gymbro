@@ -37,6 +37,42 @@ public sealed class ExerciseSeedDataTests
             "Embedded seed data failed validation:\n" + string.Join("\n", result.Errors));
     }
 
+    /// <summary>The 16 fine muscle slugs the activation-map renderer understands (front + back anatomy).
+    /// Both clients (Flutter <c>muscle_map.dart</c>, Angular <c>muscle-map-paths.ts</c>) carry the same set —
+    /// a slug outside this list would silently render nothing on the map.</summary>
+    private static readonly System.Collections.Generic.HashSet<string> KnownFineMuscles =
+        ("chest|obliques|abs|biceps|triceps|forearm|trapezius|deltoids|upper-back|lower-back|" +
+         "adductors|quadriceps|tibialis|calves|hamstring|gluteal").Split('|').ToHashSet();
+
+    [Fact]
+    public void Detailed_muscles_use_only_known_fine_slugs()
+    {
+        var data = Load();
+        var offenders = data.Exercises
+            .SelectMany(e => e.DetailedPrimaryMuscles.Concat(e.DetailedSecondaryMuscles)
+                .Where(m => !KnownFineMuscles.Contains(m))
+                .Select(m => $"{e.Slug}: '{m}'"))
+            .ToList();
+
+        Assert.True(offenders.Count == 0,
+            "Seeded detailed muscles must be one of the 16 known fine slugs the map renders. Offenders:\n" +
+            string.Join("\n", offenders));
+    }
+
+    [Fact]
+    public void Detailed_muscles_never_repeat_a_slug_across_primary_and_secondary()
+    {
+        var data = Load();
+        var offenders = data.Exercises
+            .Where(e => e.DetailedPrimaryMuscles.Intersect(e.DetailedSecondaryMuscles).Any())
+            .Select(e => $"{e.Slug}: {string.Join(",", e.DetailedPrimaryMuscles.Intersect(e.DetailedSecondaryMuscles))}")
+            .ToList();
+
+        Assert.True(offenders.Count == 0,
+            "A muscle cannot be both primary and secondary on the same exercise. Offenders:\n" +
+            string.Join("\n", offenders));
+    }
+
     [Fact]
     public void Seed_library_covers_every_category_and_equipment_code()
     {

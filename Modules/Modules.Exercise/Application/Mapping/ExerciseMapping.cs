@@ -63,6 +63,8 @@ internal static class ExerciseMapping
                     IsPrimary = m.IsPrimary
                 })
                 .ToList(),
+            DetailedPrimaryMuscles = x.DetailedPrimaryMuscles,
+            DetailedSecondaryMuscles = x.DetailedSecondaryMuscles,
             Instructions = x.Instructions
                 .OrderBy(i => i.StepOrder)
                 .Select(i => i.Content)

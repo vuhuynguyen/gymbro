@@ -2,8 +2,7 @@ namespace Modules.ExerciseModule.Infrastructure.Seeding;
 
 /// <summary>
 /// Root of <c>exercises.json</c>. Seed master data is authored in structured files (never hardcoded in C#);
-/// this is the deserialization shape. See <see cref="ExerciseSeedDataLoader"/> and
-/// <c>docs/master-data/EXERCISE_SEEDING.md</c>.
+/// this is the deserialization shape. See <see cref="ExerciseSeedDataLoader"/> and <c>docs/SEEDING.md</c>.
 /// </summary>
 public sealed class ExerciseSeedFile
 {
@@ -88,6 +87,15 @@ public sealed class ExerciseSeedDto
 
     /// <summary>Active catalog entry. <c>false</c> → skipped on seed / soft-deleted on reseed. Defaults to true.</summary>
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Specific (fine) primary muscle slugs for the activation map (e.g. <c>["hamstring"]</c>).</summary>
+    public List<string> DetailedPrimaryMuscles { get; set; } = [];
+
+    /// <summary>Specific (fine) secondary muscle slugs.</summary>
+    public List<string> DetailedSecondaryMuscles { get; set; } = [];
+
+    /// <summary>Image URL (e.g. a CDN link). Persisted as <c>Exercise.ImageUrl</c>.</summary>
+    public string? ImageUrl { get; set; }
 }
 
 /// <summary>Loaded, deserialized seed inputs: the exercises plus the valid lookup-code sets used for validation.</summary>

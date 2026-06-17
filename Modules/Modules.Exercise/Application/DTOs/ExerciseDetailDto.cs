@@ -15,6 +15,10 @@ public class ExerciseDetailDto
     public required string MuscleGroup { get; set; }
     public string? ImageUrl { get; set; }
 
+    /// <summary>Comma-separated specific (fine) muscle slugs for the activation map — primary then secondary.</summary>
+    public string? DetailedPrimaryMuscles { get; set; }
+    public string? DetailedSecondaryMuscles { get; set; }
+
     public List<ExerciseMuscleItemDto> Muscles { get; set; } = [];
 
     public List<string> Instructions { get; set; } = [];

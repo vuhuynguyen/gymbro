@@ -27,12 +27,15 @@ content-file dependency. Both CLI entrypoints (and the Development startup auto-
 
 ## Exercise catalog
 
-The current library seeds **149 exercises** across **13 categories**, **6 muscle groups**, and **5 equipment
+The current library seeds **910 exercises** across **13 categories**, **6 muscle groups**, and **5 equipment
 codes** — the authoritative count is the entry count of
-[`exercises.json`](../Modules/Modules.Exercise/Infrastructure/SeedData/exercises.json). The catalog includes a
-broad common-movement set: full cardio (bikes, elliptical, stair climber, treadmill, rower, swim, ski-erg, plus
-HIIT drills — jumping jacks, mountain climbers, high knees, box jumps, battle ropes), and common
-strength/bodyweight lifts across every muscle group.
+[`exercises.json`](../Modules/Modules.Exercise/Infrastructure/SeedData/exercises.json). The catalog merges the
+original curated set (full cardio — bikes, elliptical, stair climber, treadmill, rower, swim, ski-erg, plus HIIT
+drills — and the common strength/bodyweight lifts) with the [free-exercise-db](https://github.com/yuhonas/free-exercise-db)
+movement library (The Unlicense) to cover the long tail (cable rows, reverse curls, machine variants, stretches,
+Olympic lifts, …). **878 entries carry specific worked muscles** (`detailedPrimaryMuscles`/`detailedSecondaryMuscles`,
+the 16 fine slugs the activation map renders — e.g. a leg curl is `hamstring`, not the whole leg) and **847 carry an
+`imageUrl`** (see [Media](#media)).
 
 ### Where the seed files live
 
@@ -61,8 +64,11 @@ The pure pieces live in the Exercise module (no `AppDbContext` dependency) and a
 **Persisted now:** `name`→DefaultName, `description`→DefaultDescription, `type`, `trackingType`,
 `primaryMuscle`/`secondaryMuscles`→ExerciseMuscle (IsPrimary), `equipment`, `difficulty`,
 `mechanics`→MovementType, `estimatedCalories`, `averageDurationSeconds`, `instructions`→ExerciseInstruction,
-`safetyNotes`→ExerciseWarning, and `tags` (merged with `category`/`movementPattern`/`forceType`/
-`equipmentDetail`, slugified) →ExerciseTag.
+`safetyNotes`→ExerciseWarning, `imageUrl`→ImageUrl, `detailedPrimaryMuscles`/`detailedSecondaryMuscles`
+(comma-joined → the `DetailedPrimaryMuscles`/`DetailedSecondaryMuscles` columns, added by the
+`Exercise_DetailedMuscles` migration), and `tags` (merged with `category`/`movementPattern`/`forceType`/
+`equipmentDetail`, slugified) →ExerciseTag. The detailed muscles are the per-exercise activation-map source of
+truth in both clients (the coarse `MuscleGroup` is a fallback, not the map's primary input).
 
 **Preserved in the file but NOT yet persisted as structured columns:** `slug`, `aliases`, `commonMistakes`, and
 the structured `category`/`movementPattern`/`forceType`/`equipmentDetail` (the last four are folded into search
@@ -79,22 +85,38 @@ duplicated in `secondaryMuscles`, secondaries distinct; no empty instruction ste
 (within an exercise, globally unique, and not colliding with another exercise's name); non-negative
 calories/duration. On any failure the seeder logs each error and throws — the database is left untouched.
 
-### Media gap
+### Media
 
-No exercise media is seeded. The model supports a single `ImageUrl` plus `ExerciseMedia` rows, but we do **not**
-ship images/GIFs/video, to avoid shipping unlicensed/copyrighted media. `ImageUrl` is seeded empty and no
-`ExerciseMedia` rows are created. The production media strategy (formats, CDN, licensing) is future work — see
-[ROADMAP.md](ROADMAP.md).
+Each exercise now ships two complementary visuals, **both URL-only — nothing is stored or redistributed by us**:
+
+1. **A muscle-activation map** rendered entirely client-side from the seeded `detailedPrimaryMuscles`/
+   `detailedSecondaryMuscles` over public-domain anatomy (`react-native-body-highlighter`, MIT). This is the
+   legally-clean baseline and needs no hosting.
+2. **A demonstration photo** (`imageUrl`) hot-linked from the free-exercise-db jsDelivr CDN
+   (`https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/…`). 847 entries carry one.
+
+> **License caveat — personal/non-commercial only.** free-exercise-db's *JSON* is The Unlicense, but its bundled
+> *images* are of uncertain provenance (not confirmed originals). We therefore **hot-link** them rather than copy
+> them, and this is acceptable **only for this personal, non-commercial deployment**. A commercial release must
+> replace `imageUrl` with licensed or in-house media before shipping. The two clients degrade gracefully when an
+> `imageUrl` is absent (they show the activation map alone).
+
+The seed leaves the structured `ExerciseMedia` table empty and populates only the scalar `imageUrl`, so there is
+nothing to host, validate, or attribute. A first-party media library (hosted demo clips/photos with real
+licensing, plus the storage/import pipeline to manage them) is deferred future work — see
+[ROADMAP.md](ROADMAP.md) (Part B).
 
 ### Verification (last run)
 
 - `dotnet build` — succeeds (no new warnings).
-- `dotnet test --filter Seeding.ExerciseSeedDataTests` — **7/7 pass** (incl. a regression guard that the embedded
-  data validates clean and covers every category/equipment code).
-- `--reseed-exercises` against a live DB upserts to **149 active global exercises** (counts track
+- `dotnet test --filter Seeding.ExerciseSeedDataTests` — **9/9 pass** (incl. regression guards that the embedded
+  data validates clean, covers every category/equipment code, uses only the 16 known fine-muscle slugs, and never
+  lists a muscle as both primary and secondary).
+- `--reseed-exercises` against a live DB upserts to **910 active global exercises** (counts track
   `exercises.json`; instruction/muscle/warning row counts scale with it); any renamed legacy entry is
-  soft-deleted; **logged performed-exercise and plan-exercise rows are untouched.** The pure seed-data
-  validation tests (`Seeding.ExerciseSeedDataTests`, 7/7) pass on the 149-entry file.
+  soft-deleted; **logged performed-exercise and plan-exercise rows are untouched** (existing IDs are preserved, so
+  workout plans and history stay valid across the 149→910 expansion). The pure seed-data validation tests
+  (`Seeding.ExerciseSeedDataTests`, 9/9) pass on the 910-entry file.
 - API smoke check: `/health/ready` Healthy; `GET /api/exercises` filters return seeded rows; detail returns
   muscles/instructions/warnings/tags.
 

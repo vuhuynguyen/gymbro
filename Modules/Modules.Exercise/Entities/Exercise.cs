@@ -28,7 +28,12 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
     public string? DetailedPrimaryMuscles { get; private set; }
     /// <summary>Comma-separated specific (fine) muscle slugs — secondary.</summary>
     public string? DetailedSecondaryMuscles { get; private set; }
-    
+
+    /// <summary>Fine-grained, human-facing library category (one of the seed's 13 category codes, e.g.
+    /// <c>biceps</c>, <c>glutes</c>, <c>cardio</c>). Independent of the coarse 6-group <see cref="Muscles"/>;
+    /// drives the catalog's browse/filter chips.</summary>
+    public string? Category { get; private set; }
+
     private readonly List<ExerciseMuscle> _muscles = new();
     public IReadOnlyCollection<ExerciseMuscle> Muscles => _muscles;
 
@@ -185,6 +190,11 @@ public class Exercise : AggregateRoot, ISharedEntity, ISoftDelete
     {
         DetailedPrimaryMuscles = string.IsNullOrWhiteSpace(primary) ? null : primary.Trim();
         DetailedSecondaryMuscles = string.IsNullOrWhiteSpace(secondary) ? null : secondary.Trim();
+    }
+
+    public void SetCategory(string? category)
+    {
+        Category = string.IsNullOrWhiteSpace(category) ? null : category.Trim();
     }
     
     public void AddWarning(string content)

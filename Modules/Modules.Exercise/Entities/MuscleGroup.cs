@@ -30,7 +30,10 @@ public enum Equipment
     Dumbbell,
     Barbell,
     Machine,
-    ResistanceBand
+    ResistanceBand,
+    // Appended (value 5) so existing persisted int values are unaffected — no migration needed. Cable/pulley
+    // movements were previously folded into Machine; split out so the catalog distinguishes cable variants.
+    Cable
 }
 
 public enum DifficultyLevel

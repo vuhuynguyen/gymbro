@@ -75,8 +75,9 @@ public sealed class GetClientLoadHandler(
 
         // TENANT-FILTERED read (filter ON): the client's completed sessions in THIS gym over the 28-day chronic
         // window, each with its working-set volume projected in SQL. The acute 7-day slice is taken in memory
-        // from the same rows. Per-set volume = Σ weight×reps over Working sets carrying both values — identical
-        // to SessionMapping.ComputeVolumeKg / GetMyProgressHandler (ParentSetId NOT filtered ⇒ stages count).
+        // from the same rows. Per-set volume = Σ weight×reps over NON-WARMUP sets carrying both values — so
+        // drop/AMRAP/failure stages count as real work (only warmups excluded); identical predicate to
+        // SessionMapping.ComputeVolumeKg / GetMyProgressHandler.
         var rows = await sessionRepository.Query()
             .Where(s => s.Status == SessionStatus.Completed
                 && s.TraineeId == request.TraineeId
@@ -86,7 +87,7 @@ public sealed class GetClientLoadHandler(
                 s.StartedAt,
                 VolumeKg = s.Exercises
                     .SelectMany(e => e.Sets)
-                    .Where(set => set.SetType == PerformedSetType.Working
+                    .Where(set => set.SetType != PerformedSetType.Warmup
                         && set.WeightKg != null && set.Reps != null)
                     .Sum(set => (decimal?)(set.WeightKg!.Value * set.Reps!.Value)) ?? 0m
             })

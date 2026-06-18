@@ -136,11 +136,12 @@ internal static class SessionMapping
             .Select(e => ToPerformedExerciseDto(e, nameById, prSetIds, lastPerformedByExercise))
             .ToList();
 
-    /// <summary>Working-set volume: Σ (weight × reps) over working sets that carry both values.</summary>
+    /// <summary>Effort volume: Σ (weight × reps) over every non-warmup set that carries both values — so
+    /// drop / AMRAP / failure stages all count as real work; only warmups are excluded.</summary>
     public static decimal ComputeVolumeKg(IEnumerable<PerformedExercise> exercises) =>
         exercises
             .SelectMany(e => e.Sets)
-            .Where(s => s.SetType == PerformedSetType.Working && s.WeightKg.HasValue && s.Reps.HasValue)
+            .Where(s => s.SetType != PerformedSetType.Warmup && s.WeightKg.HasValue && s.Reps.HasValue)
             .Sum(s => s.WeightKg!.Value * s.Reps!.Value);
 
     /// <summary>

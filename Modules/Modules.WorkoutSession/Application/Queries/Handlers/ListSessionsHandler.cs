@@ -112,7 +112,7 @@ public sealed class ListSessionsHandler(
         var volumeRows = await exerciseRepository.Query()
             .Where(e => sessionIds.Contains(e.SessionId))
             .SelectMany(e => e.Sets.Select(set => new { e.SessionId, set.SetType, set.WeightKg, set.Reps }))
-            .Where(x => x.SetType == PerformedSetType.Working && x.WeightKg != null && x.Reps != null)
+            .Where(x => x.SetType != PerformedSetType.Warmup && x.WeightKg != null && x.Reps != null)
             .GroupBy(x => x.SessionId)
             .Select(g => new { g.Key, Volume = g.Sum(x => x.WeightKg!.Value * x.Reps!.Value) })
             .ToListAsync(cancellationToken);

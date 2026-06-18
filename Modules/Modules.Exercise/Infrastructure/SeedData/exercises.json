@@ -36174,6 +36174,96 @@
         "hamstring"
       ],
       "imageUrl": ""
+    },
+    {
+      "slug": "cable-reverse-curl",
+      "name": "Cable Reverse Curl",
+      "description": "Reverse-grip cable curl with constant tension, emphasising the forearm extensors and brachioradialis alongside the biceps.",
+      "category": "biceps",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Cable",
+      "equipmentDetail": "Cable",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Curl",
+      "forceType": "Pull",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Attach a straight bar to a low pulley and grip it with palms facing down (pronated), arms extended.",
+        "Keeping your upper arms pinned to your sides, curl the bar up by contracting the forearms and biceps.",
+        "Squeeze at the top, then lower slowly to full extension under control.",
+        "Repeat for the recommended repetitions."
+      ],
+      "safetyNotes": [
+        "Keep the wrists firm and the elbows still — let only the forearms move."
+      ],
+      "aliases": [
+        "reverse grip cable curl",
+        "cable reverse grip curl",
+        "pronated cable curl"
+      ],
+      "tags": [
+        "pull",
+        "biceps",
+        "cable"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "biceps"
+      ],
+      "detailedSecondaryMuscles": [
+        "forearm"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "machine-lateral-raise",
+      "name": "Machine Lateral Raise",
+      "description": "Seated machine side raise that isolates the side delts on a fixed path with constant tension.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Lateral Raise Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Lateral Raise",
+      "forceType": "Push",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Sit in the machine with the pads against the outside of your upper arms and your torso upright.",
+        "Drive the pads up and out to shoulder height by raising the elbows, leading with the elbows.",
+        "Pause briefly at the top, then lower slowly under control.",
+        "Repeat for the recommended repetitions."
+      ],
+      "safetyNotes": [
+        "Lead with the elbows, not the hands, and avoid shrugging the traps."
+      ],
+      "aliases": [
+        "seated lateral raise machine",
+        "machine side raise",
+        "seated machine lateral raise"
+      ],
+      "tags": [
+        "push",
+        "shoulders",
+        "machine"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "trapezius"
+      ],
+      "imageUrl": ""
     }
   ]
 }

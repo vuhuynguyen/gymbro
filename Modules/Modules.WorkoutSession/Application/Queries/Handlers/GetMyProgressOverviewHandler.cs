@@ -19,7 +19,8 @@ namespace Modules.WorkoutSessionModule.Application.Queries.Handlers;
 /// window (<see cref="GetMyProgressOverviewQuery.Weeks"/>, clamped to [4, 52], default 12) in the trainee's
 /// zone: current-week adherence against the authoritative active-plan goal (Decision D1, resolved via an
 /// internal <see cref="GetOwnActiveAssignmentsQuery"/>), daily consistency + streak, top-3 honesty-gated lift
-/// e1RM directions, and a PR teaser (top 3 from <see cref="GetMyPersonalRecordsQuery"/>). The This-Week hero,
+/// e1RM directions, and a PR teaser (the top 3 PRs whose best was SET within the selected window, from
+/// <see cref="GetMyPersonalRecordsQuery"/>). The This-Week hero,
 /// the trailing-4-week strength baseline, and the 3-exposure stall stay fixed regardless of the window.
 /// One bounded read materializes the window, then all aggregation is done in memory; returns an
 /// empty-but-valid DTO (never a failure) for a brand-new user.
@@ -139,7 +140,8 @@ public sealed class GetMyProgressOverviewHandler(
         var topLifts = BuildTopLifts(
             windowRows.Select(x => (x.WeekStart, x.Row)));
 
-        var recentPrs = await ResolveRecentPrsAsync(cancellationToken);
+        var recentPrs = await ResolveRecentPrsAsync(
+            LocalDayResolver.StartOfLocalDayUtc(windowStart, userZone), cancellationToken);
 
         return Result<ProgressOverviewDto>.Success(new ProgressOverviewDto(
             thisWeek,
@@ -270,14 +272,21 @@ public sealed class GetMyProgressOverviewHandler(
             .ToList();
     }
 
-    private async Task<IReadOnlyList<PersonalRecordDto>> ResolveRecentPrsAsync(CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<PersonalRecordDto>> ResolveRecentPrsAsync(
+        DateTimeOffset windowFromUtc,
+        CancellationToken cancellationToken)
     {
         var recordsResult = await mediator.Send(new GetMyPersonalRecordsQuery(), cancellationToken);
         if (recordsResult.IsFailure)
             return [];
 
-        // GetMyPersonalRecordsQuery already returns the current best per lift, e1RM-sorted desc — take 3.
-        return recordsResult.Value!.Records.Take(3).ToList();
+        // GetMyPersonalRecordsQuery returns the current best per lift, e1RM-sorted desc. Keep only PRs
+        // actually SET within the selected window (AchievedAt ≥ windowFromUtc) so the teaser tracks the
+        // chosen period — then take 3. (A lift whose all-time best predates the window contributes nothing.)
+        return recordsResult.Value!.Records
+            .Where(r => r.AchievedAt >= windowFromUtc)
+            .Take(3)
+            .ToList();
     }
 
     // Shapes materialized from the single bounded read; named types so the EF projection + the in-memory

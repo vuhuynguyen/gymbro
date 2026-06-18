@@ -38,7 +38,9 @@ public sealed class GetMyProgressOverviewHandlerTests
     private static readonly DateTimeOffset ThisMondayInstant =
         new(ThisMonday.Year, ThisMonday.Month, ThisMonday.Day, 9, 0, 0, TimeSpan.Zero);
 
-    // PR timestamps are opaque to the overview math (it only forwards GetMyPersonalRecordsQuery); any instant works.
+    // PRs are now windowed by AchievedAt (the overview keeps only PRs set within the selected window), so this
+    // sits on THIS week — in-window for every period. The window test below uses older instants to verify
+    // out-of-window PRs are dropped.
     private static readonly DateTimeOffset NowUtc = ThisMondayInstant;
 
     // Monday-anchored start of the UTC week containing the instant — the same rule the handler uses.
@@ -678,6 +680,24 @@ public sealed class GetMyProgressOverviewHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Equal(3, result.Value!.RecentPrs.Count);
         Assert.Equal(new[] { "Deadlift", "Squat", "Bench" },
+            result.Value!.RecentPrs.Select(p => p.ExerciseName).ToArray());
+    }
+
+    [Fact]
+    public async Task Pr_teaser_keeps_only_records_set_within_the_window()
+    {
+        var userId = Guid.NewGuid();
+        // Deadlift PR set 2 weeks ago (inside a 4-week window); Squat PR set 10 weeks ago (outside it).
+        var records = new List<PersonalRecordDto>
+        {
+            new(Guid.NewGuid(), "Deadlift", 180m, 3, 198m, MondayInstant(2)),
+            new(Guid.NewGuid(), "Squat", 150m, 5, 175m, MondayInstant(10)),
+        };
+
+        var result = await Run(userId, [], records: records, weeks: 4);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(new[] { "Deadlift" },
             result.Value!.RecentPrs.Select(p => p.ExerciseName).ToArray());
     }
 

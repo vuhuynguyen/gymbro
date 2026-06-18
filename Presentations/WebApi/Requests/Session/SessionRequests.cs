@@ -30,6 +30,12 @@ public sealed class UpdateExerciseRequest
     public string? Notes { get; set; }
 }
 
+public sealed class SetExerciseSupersetRequest
+{
+    /// <summary>The exercise to superset this one with (they share/start a group id and rotate together). Null = leave the superset.</summary>
+    public Guid? PeerExerciseId { get; set; }
+}
+
 public sealed class LogSetRequest
 {
     public Guid? PlanSetId { get; set; }

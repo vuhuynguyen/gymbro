@@ -114,6 +114,24 @@ public sealed class SessionController(IMediator mediator) : ControllerBase
         return Ok(new { updated = true });
     }
 
+    [HttpPut("{sessionId:guid}/exercises/{exerciseId:guid}/superset")]
+    public async Task<IActionResult> SetExerciseSuperset(
+        Guid sessionId,
+        Guid exerciseId,
+        [FromBody] SetExerciseSupersetRequest request,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(new SetExerciseSupersetCommand(
+            sessionId,
+            exerciseId,
+            request.PeerExerciseId), ct);
+
+        if (result.IsFailure)
+            return result.ToFailureResult(this);
+
+        return Ok(new { updated = true });
+    }
+
     [HttpDelete("{sessionId:guid}/exercises/{exerciseId:guid}")]
     public async Task<IActionResult> DeleteExercise(
         Guid sessionId,

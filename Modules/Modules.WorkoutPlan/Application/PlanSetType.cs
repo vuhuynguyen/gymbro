@@ -12,5 +12,8 @@ public enum PlanSetType
     Warmup = 1,
     Working = 2,
     Drop = 3,
-    Amrap = 4
+    Amrap = 4,
+    // Cluster / rest-pause (value 6 to mirror PerformedSetType.Cluster so the prescribed→logged wire aligns).
+    // Appended ⇒ no migration. Mini-sets with short intra-set rest; weight may vary per stage.
+    Cluster = 6
 }

@@ -33,7 +33,7 @@ public sealed class GetMyProgressHandler(
                 TotalSets = s.Exercises.SelectMany(e => e.Sets).Count(set => set.ParentSetId == null),
                 Volume = s.Exercises
                     .SelectMany(e => e.Sets)
-                    .Where(set => set.SetType == PerformedSetType.Working
+                    .Where(set => set.SetType != PerformedSetType.Warmup
                         && set.WeightKg != null && set.Reps != null)
                     .Sum(set => (decimal?)(set.WeightKg!.Value * set.Reps!.Value)) ?? 0m
             })

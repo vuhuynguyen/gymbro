@@ -78,6 +78,12 @@ public sealed class PerformedExercise : BaseEntity, ITenantEntity
         Notes = notes;
     }
 
+    /// <summary>Join a superset group (or leave it, when null). Members of a shared non-null group rotate together, resting after the round.</summary>
+    public void SetSupersetGroup(Guid? supersetGroupId)
+    {
+        SupersetGroupId = supersetGroupId;
+    }
+
     public void MarkCompleted()
     {
         if (Status == ExercisePerformStatus.InProgress)

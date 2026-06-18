@@ -126,6 +126,7 @@ stateDiagram-v2
 
 - Every mutation guards: session exists → `TraineeId == caller` → `Status == InProgress`. Terminal sessions are read-only.
 - **Skip** is rejected (409) if the exercise already has logged sets. **Substitute** records `SubstitutedFromExerciseId`.
+- **Superset** (`PUT /api/sessions/{id}/exercises/{exerciseId}/superset`, body `{ peerExerciseId }`): groups the exercise with `peerExerciseId` — they share (or mint) a `SupersetGroupId` and rotate together, resting after the round. A null `peerExerciseId` leaves the superset. Lets a client pair two ad-hoc exercises in a live session without a plan; `AddExerciseRequest.supersetGroupId` does the same at add time.
 - **Estimated 1RM** is computed per Working set only: `weightKg × (1 + reps/30)`, rounded to 0.1, stored and recomputed on edit.
 - "Cancel" = Abandon (keeps every logged set). `SessionCompletedEvent` is currently logged only. Details: [BUSINESS_RULES.md](BUSINESS_RULES.md).
 

@@ -121,7 +121,7 @@ Backend (B*) and frontend (F*) can proceed in parallel once the **contract (API-
 - [x] Top-lift selection: ≥4 sessions, top-3 by count; `< 4` → omitted; new user → empty.
 - [x] Stall: no new best in last 3 exposures → `Stalled`, correct `StallSessions`.
 - [x] `ConsistencyPct` (D10): weeks-observed = first session in window → current week (capped 12); a specific case locks `100`; null when no goal **or** no sessions.
-- [x] PR teaser = top-3 from `/records`, never `PrCount`.
+- [x] PR teaser = top-3 from `/records`, never `PrCount`. **Windowed to the selected period** (kept only when `AchievedAt` ≥ the `?weeks` window start, so 4w/12w differ — `ResolveRecentPrsAsync(windowFromUtc, …)`); a lift whose all-time best predates the window contributes nothing.
 - [x] `200` + empty DTO for a new user (not `204`); self-scoped (no tenant header); IDOR — never reads another user's data (ClientA vs ClientB have **distinct** completed counts, so the assertion discriminates rather than `0 == 0`).
 - [x] Auth-exemption test green.
 

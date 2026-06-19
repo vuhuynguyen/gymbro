@@ -24104,6 +24104,115 @@
       "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench/0.jpg"
     },
     {
+      "slug": "cable-reverse-wrist-curl",
+      "name": "Cable Reverse Wrist Curl",
+      "description": "Cable Reverse Wrist Curl is a beginner isolation strength exercise performed with a cable. It primarily works the forearms.",
+      "category": "biceps",
+      "type": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Cable",
+      "equipmentDetail": "cable",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "forceType": "Pull",
+      "instructions": [
+        "Attach a straight bar to a low pulley and sit on a bench placed in front of the machine.",
+        "Grip the bar with both hands using a pronated grip (palms facing down) at shoulder width.",
+        "Rest your forearms on your thighs so the wrists and bar hang just past your knees. This is your starting position.",
+        "Keeping the forearms stationary, curl the bar upward by extending your wrists as you exhale.",
+        "Hold the contracted position for a second while squeezing the forearms.",
+        "Slowly lower the bar back to the starting position while inhaling.",
+        "Repeat for the recommended amount of repetitions."
+      ],
+      "safetyNotes": [],
+      "commonMistakes": [],
+      "aliases": [],
+      "tags": [
+        "biceps"
+      ],
+      "estimatedCalories": null,
+      "averageDurationSeconds": null,
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "forearm"
+      ],
+      "detailedSecondaryMuscles": [],
+      "imageUrl": ""
+    },
+    {
+      "slug": "dumbbell-reverse-wrist-curl",
+      "name": "Dumbbell Reverse Wrist Curl",
+      "description": "Dumbbell Reverse Wrist Curl is a beginner isolation strength exercise performed with a dumbbell. It primarily works the forearms.",
+      "category": "biceps",
+      "type": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "dumbbell",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "forceType": "Pull",
+      "instructions": [
+        "Sit on a flat bench holding a dumbbell in each hand with a pronated grip (palms facing down).",
+        "Rest your forearms on your thighs so the wrists and dumbbells hang just past your knees. This is your starting position.",
+        "Keeping the forearms stationary, curl the dumbbells upward by extending your wrists as you exhale.",
+        "Hold the contracted position for a second while squeezing the forearms.",
+        "Slowly lower the dumbbells back to the starting position while inhaling.",
+        "Repeat for the recommended amount of repetitions."
+      ],
+      "safetyNotes": [],
+      "commonMistakes": [],
+      "aliases": [],
+      "tags": [
+        "biceps"
+      ],
+      "estimatedCalories": null,
+      "averageDurationSeconds": null,
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "forearm"
+      ],
+      "detailedSecondaryMuscles": [],
+      "imageUrl": ""
+    },
+    {
+      "slug": "dumbbell-wrist-curl",
+      "name": "Dumbbell Wrist Curl",
+      "description": "Dumbbell Wrist Curl is a beginner isolation strength exercise performed with a dumbbell. It primarily works the forearms.",
+      "category": "biceps",
+      "type": "Strength",
+      "primaryMuscle": "Arms",
+      "secondaryMuscles": [],
+      "equipment": "Dumbbell",
+      "equipmentDetail": "dumbbell",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "forceType": "Pull",
+      "instructions": [
+        "Sit on a flat bench holding a dumbbell in each hand with a supinated grip (palms facing up).",
+        "Rest your forearms on your thighs so the wrists and dumbbells hang just past your knees. This is your starting position.",
+        "Keeping the forearms stationary, curl the dumbbells upward by flexing your wrists as you exhale.",
+        "Hold the contracted position for a second while squeezing the forearms.",
+        "Slowly lower the dumbbells back to the starting position while inhaling.",
+        "Repeat for the recommended amount of repetitions."
+      ],
+      "safetyNotes": [],
+      "commonMistakes": [],
+      "aliases": [],
+      "tags": [
+        "biceps"
+      ],
+      "estimatedCalories": null,
+      "averageDurationSeconds": null,
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "forearm"
+      ],
+      "detailedSecondaryMuscles": [],
+      "imageUrl": ""
+    },
+    {
       "slug": "palms-down-wrist-curl-over-a-bench",
       "name": "Palms-Down Wrist Curl Over A Bench",
       "description": "Palms-Down Wrist Curl Over A Bench is a beginner isolation strength exercise performed with a barbell. It primarily works the forearms.",

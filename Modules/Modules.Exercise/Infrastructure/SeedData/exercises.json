@@ -194,7 +194,7 @@
         "deltoids",
         "triceps"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Dumbbell_Bench_Press/0.jpg"
     },
     {
       "slug": "push-up",
@@ -335,7 +335,7 @@
       "detailedSecondaryMuscles": [
         "deltoids"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Butterfly/0.jpg"
     },
     {
       "slug": "pull-up",
@@ -572,7 +572,7 @@
         "biceps",
         "forearm"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/One-Arm_Dumbbell_Row/0.jpg"
     },
     {
       "slug": "seated-cable-row",
@@ -623,6 +623,56 @@
       "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Seated_Cable_Rows/0.jpg"
     },
     {
+      "slug": "dual-pulley-cable-seated-low-row",
+      "name": "Dual Pulley Cable Seated Low Row",
+      "description": "Seated low row using two independent cable pulleys, one per hand, for a free unilateral horizontal pull with constant tension.",
+      "category": "back",
+      "type": "Strength",
+      "primaryMuscle": "Back",
+      "secondaryMuscles": [
+        "Arms"
+      ],
+      "equipment": "Cable",
+      "equipmentDetail": "Dual Cable Pulley",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Horizontal Pull",
+      "forceType": "Pull",
+      "estimatedCalories": 60,
+      "averageDurationSeconds": 210,
+      "instructions": [
+        "Sit facing the machine and take one handle from each low pulley with a neutral grip, arms extended.",
+        "Sit tall with a slight knee bend and a neutral spine, then initiate by retracting the shoulder blades.",
+        "Row both handles to your torso, keeping the elbows close, without swinging through the lower back.",
+        "Return under control to a full stretch, then repeat for the recommended repetitions."
+      ],
+      "safetyNotes": [
+        "Keep the spine neutral; avoid heaving with the lower back to move the weight."
+      ],
+      "commonMistakes": [
+        "Rounding the shoulders forward at the end of the eccentric.",
+        "Using body english instead of the back muscles to row."
+      ],
+      "aliases": [
+        "dual pulley seated row",
+        "two-handle cable low row"
+      ],
+      "tags": [
+        "pull",
+        "upper",
+        "machine"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "upper-back"
+      ],
+      "detailedSecondaryMuscles": [
+        "biceps",
+        "deltoids"
+      ],
+      "imageUrl": ""
+    },
+    {
       "slug": "standing-overhead-press",
       "name": "Standing Overhead Press",
       "description": "Strict standing barbell press from the shoulders to overhead; the core vertical pressing lift.",
@@ -668,7 +718,7 @@
       "detailedSecondaryMuscles": [
         "triceps"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Standing_Military_Press/0.jpg"
     },
     {
       "slug": "seated-dumbbell-shoulder-press",
@@ -713,7 +763,7 @@
       "detailedSecondaryMuscles": [
         "triceps"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Dumbbell_Shoulder_Press/0.jpg"
     },
     {
       "slug": "dumbbell-lateral-raise",
@@ -851,7 +901,7 @@
         "deltoids"
       ],
       "detailedSecondaryMuscles": [],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Seated_Bent-Over_Rear_Delt_Raise/0.jpg"
     },
     {
       "slug": "band-pull-apart",
@@ -1119,7 +1169,7 @@
         "triceps"
       ],
       "detailedSecondaryMuscles": [],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Standing_Dumbbell_Triceps_Extension/0.jpg"
     },
     {
       "slug": "close-grip-bench-press",
@@ -1269,7 +1319,7 @@
         "calves",
         "lower-back"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Barbell_Squat/0.jpg"
     },
     {
       "slug": "front-squat",
@@ -1708,7 +1758,7 @@
         "quadriceps",
         "forearm"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Barbell_Deadlift/0.jpg"
     },
     {
       "slug": "lying-leg-curl",
@@ -1801,6 +1851,104 @@
         "hamstring"
       ],
       "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Barbell_Hip_Thrust/0.jpg"
+    },
+    {
+      "slug": "seated-machine-hip-thrust",
+      "name": "Seated Machine Hip Thrust",
+      "description": "Seated machine hip extension with the resistance pad across the lap; a stable, beginner-friendly glute builder on a fixed path.",
+      "category": "glutes",
+      "type": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Core"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Hip Thrust Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Hinge",
+      "forceType": "Push",
+      "estimatedCalories": 70,
+      "averageDurationSeconds": 210,
+      "instructions": [
+        "Sit upright in the machine with your back against the pad and the lap pad secured across your hips.",
+        "Set your feet flat and shoulder-width with your shins roughly vertical at the top of the movement.",
+        "Drive through your heels and extend your hips to push the pad forward, squeezing the glutes.",
+        "Pause briefly at full extension, then return under control without letting the weight stack rest.",
+        "Repeat for the recommended repetitions."
+      ],
+      "safetyNotes": [
+        "Extend through the hips, not the lower back; keep the ribs down and chin tucked at lockout."
+      ],
+      "commonMistakes": [
+        "Pushing through the toes instead of the heels.",
+        "Arching the lumbar spine to chase extra range."
+      ],
+      "aliases": [
+        "seated hip thrust machine"
+      ],
+      "tags": [
+        "lower",
+        "hinge",
+        "glutes"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "perched-machine-hip-thrust",
+      "name": "Perched Machine Hip Thrust",
+      "description": "Hip thrust performed on a perched glute machine: the torso is supported forward with a pad over the hips while driving hip extension against a loaded lever.",
+      "category": "glutes",
+      "type": "Strength",
+      "primaryMuscle": "Legs",
+      "secondaryMuscles": [
+        "Core"
+      ],
+      "equipment": "Machine",
+      "equipmentDetail": "Hip Thrust Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Compound",
+      "movementPattern": "Hinge",
+      "forceType": "Push",
+      "estimatedCalories": 70,
+      "averageDurationSeconds": 210,
+      "instructions": [
+        "Step into the perched glute machine and position the pad across your hips with your torso supported on the forward rest.",
+        "Set your feet on the platform about shoulder-width with your shins vertical at the top.",
+        "Brace your core, then drive through your heels to extend the hips against the pad, squeezing the glutes.",
+        "Hold the contraction briefly at full extension, then lower under control.",
+        "Repeat for the recommended repetitions."
+      ],
+      "safetyNotes": [
+        "Keep the movement at the hips; avoid hyperextending the lower back at the top."
+      ],
+      "commonMistakes": [
+        "Cutting the range short and not reaching full hip extension.",
+        "Driving through the toes rather than the heels."
+      ],
+      "aliases": [
+        "perched hip thrust machine"
+      ],
+      "tags": [
+        "lower",
+        "hinge",
+        "glutes"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "gluteal"
+      ],
+      "detailedSecondaryMuscles": [
+        "hamstring"
+      ],
+      "imageUrl": ""
     },
     {
       "slug": "glute-bridge",
@@ -2026,7 +2174,7 @@
         "obliques",
         "forearm"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Hanging_Leg_Raise/0.jpg"
     },
     {
       "slug": "cable-crunch",
@@ -2267,7 +2415,7 @@
         "quadriceps",
         "gluteal"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Farmers_Walk/0.jpg"
     },
     {
       "slug": "sled-push",
@@ -2578,7 +2726,7 @@
         "calves"
       ],
       "detailedSecondaryMuscles": [],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Rope_Jumping/0.jpg"
     },
     {
       "slug": "thoracic-extension-foam-roller",
@@ -3179,7 +3327,7 @@
         "gluteal",
         "calves"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Standing_Leg_Curl/0.jpg"
     },
     {
       "slug": "dumbbell-romanian-deadlift",
@@ -3225,7 +3373,7 @@
         "gluteal",
         "lower-back"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Stiff-Legged_Dumbbell_Deadlift/0.jpg"
     },
     {
       "slug": "back-extension",
@@ -3270,7 +3418,7 @@
         "gluteal",
         "hamstring"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Hyperextensions_Back_Extensions/0.jpg"
     },
     {
       "slug": "frog-pump",
@@ -3728,7 +3876,7 @@
       "detailedSecondaryMuscles": [
         "biceps"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/V-Bar_Pulldown/0.jpg"
     },
     {
       "slug": "dumbbell-neutral-grip-chest-press",
@@ -3947,7 +4095,7 @@
         "gluteal"
       ],
       "detailedSecondaryMuscles": [],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Thigh_Abductor/0.jpg"
     },
     {
       "slug": "preacher-curl",
@@ -4032,7 +4180,7 @@
         "adductors"
       ],
       "detailedSecondaryMuscles": [],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Thigh_Adductor/0.jpg"
     },
     {
       "slug": "standing-cable-overhead-triceps-extension",
@@ -4078,7 +4226,7 @@
         "triceps"
       ],
       "detailedSecondaryMuscles": [],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Cable_Rope_Overhead_Triceps_Extension/0.jpg"
     },
     {
       "slug": "high-cable-rear-delt-cuff",
@@ -4126,7 +4274,7 @@
         "deltoids"
       ],
       "detailedSecondaryMuscles": [],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Cable_Rear_Delt_Fly/0.jpg"
     },
     {
       "slug": "stationary-bike",
@@ -4852,7 +5000,7 @@
       "detailedSecondaryMuscles": [
         "forearm"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Battling_Ropes/0.jpg"
     },
     {
       "slug": "shadow-boxing",
@@ -4987,7 +5135,7 @@
         "chest",
         "deltoids"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Push-Ups_-_Close_Triceps_Position/0.jpg"
     },
     {
       "slug": "t-bar-row",
@@ -5072,7 +5220,7 @@
         "forearm",
         "trapezius"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Bent_Over_Barbell_Row/0.jpg"
     },
     {
       "slug": "inverted-row",
@@ -5545,7 +5693,7 @@
       "detailedSecondaryMuscles": [
         "upper-back"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Reverse_Machine_Flyes/0.jpg"
     },
     {
       "slug": "cable-curl",
@@ -5670,7 +5818,7 @@
         "triceps"
       ],
       "detailedSecondaryMuscles": [],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Lying_Triceps_Press/0.jpg"
     },
     {
       "slug": "triceps-kickback",
@@ -5710,7 +5858,7 @@
         "triceps"
       ],
       "detailedSecondaryMuscles": [],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Tricep_Dumbbell_Kickback/0.jpg"
     },
     {
       "slug": "hack-squat",
@@ -6352,7 +6500,7 @@
       "detailedSecondaryMuscles": [
         "lower-back"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Ab_Roller/0.jpg"
     },
     {
       "slug": "side-plank",
@@ -6484,7 +6632,7 @@
         "abs",
         "deltoids"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Standing_Cable_Wood_Chop/0.jpg"
     },
     {
       "slug": "pallof-press",
@@ -36145,7 +36293,7 @@
         "trapezius",
         "biceps"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Upright_Cable_Row/0.jpg"
     },
     {
       "slug": "dumbbell-reverse-lunge",
@@ -36194,7 +36342,7 @@
         "hamstring",
         "calves"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Dumbbell_Rear_Lunge/0.jpg"
     },
     {
       "slug": "single-arm-cable-curl",
@@ -36236,7 +36384,7 @@
       "detailedSecondaryMuscles": [
         "forearm"
       ],
-      "imageUrl": ""
+      "imageUrl": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/Standing_One-Arm_Cable_Curl/0.jpg"
     },
     {
       "slug": "cable-reverse-lunge",
@@ -36359,6 +36507,54 @@
         "seated lateral raise machine",
         "machine side raise",
         "seated machine lateral raise"
+      ],
+      "tags": [
+        "push",
+        "shoulders",
+        "machine"
+      ],
+      "isActive": true,
+      "detailedPrimaryMuscles": [
+        "deltoids"
+      ],
+      "detailedSecondaryMuscles": [
+        "trapezius"
+      ],
+      "imageUrl": ""
+    },
+    {
+      "slug": "plate-loaded-machine-lateral-raise",
+      "name": "Plate-Loaded Machine Lateral Raise",
+      "description": "Plate-loaded lateral raise machine that isolates the side delts on a fixed arc with constant tension through the raise.",
+      "category": "shoulders",
+      "type": "Strength",
+      "trackingType": "Strength",
+      "primaryMuscle": "Shoulders",
+      "secondaryMuscles": [],
+      "equipment": "Machine",
+      "equipmentDetail": "Plate-Loaded Lateral Raise Machine",
+      "difficulty": "Beginner",
+      "mechanics": "Isolation",
+      "movementPattern": "Lateral Raise",
+      "forceType": "Push",
+      "estimatedCalories": 25,
+      "averageDurationSeconds": 180,
+      "instructions": [
+        "Load the desired plates and sit in the machine with your torso upright and the pads against the outside of your upper arms.",
+        "Lead with your elbows to drive the pads up and out to about shoulder height.",
+        "Pause briefly at the top, then lower slowly under control.",
+        "Repeat for the recommended repetitions."
+      ],
+      "safetyNotes": [
+        "Lead with the elbows rather than the hands, and avoid shrugging the traps."
+      ],
+      "commonMistakes": [
+        "Using momentum to swing the weight up.",
+        "Raising above shoulder height and shrugging."
+      ],
+      "aliases": [
+        "plate loaded lateral raise",
+        "plate-loaded side raise"
       ],
       "tags": [
         "push",

@@ -84,13 +84,111 @@ public sealed record LiftDirectionDto(
 /// <summary>
 /// The trainee Progress home in one payload: this-week adherence, 12-week consistency, top-lift strength
 /// direction, and a PR teaser. Always returned (empty-but-valid for a brand-new user) — never a 204.
+///
+/// <para>The v2 window-differentiation layer ([WINDOW-DIFFERENTIATION.md]) is ADDITIVE on this same call: the short
+/// (4-week "block") view reads <see cref="Period"/> deltas + <see cref="Load"/>; the long (12-week "phase") view reads
+/// <see cref="StrengthGain"/>, <see cref="Period"/>'s weekly trajectory and <see cref="MuscleVolume"/>; both lead with
+/// the rule-based <see cref="Coach"/> verdict. All are computed in-memory from the same self-scoped reads — no new
+/// endpoint, no migration. Empty-but-valid for a brand-new user.</para>
 /// </summary>
 public sealed record ProgressOverviewDto(
     WeekAdherenceDto ThisWeek,
     ConsistencyDto Consistency,
     IReadOnlyList<LiftDirectionDto> TopLifts,
     IReadOnlyList<PersonalRecordDto> RecentPrs,
-    DateTimeOffset GeneratedAtUtc);
+    DateTimeOffset GeneratedAtUtc,
+    PeriodStatsDto Period,
+    StrengthGainDto StrengthGain,
+    IReadOnlyList<MuscleVolumeDto> MuscleVolume,
+    LoadBalanceDto Load,
+    CoachReadDto Coach);
+
+// ── Progress page — v2 window differentiation (4-week block vs 12-week phase; WINDOW-DIFFERENTIATION.md) ──
+
+/// <summary>
+/// Period-over-period training output: the selected window vs the immediately-preceding window of equal length.
+/// <see cref="VolumeKg"/> = Σ weight×reps over NON-WARMUP sets carrying both values (matches
+/// <c>SessionMapping.ComputeVolumeKg</c>; drop/AMRAP stages count). <see cref="WorkingSets"/> = Working LEAD sets
+/// (<c>ParentSetId == null</c>, a drop cluster = one set). <see cref="PrCount"/> = the TRUE count of PRs set within
+/// the window (the <c>RecentPrs</c> teaser still caps display at 3). <see cref="WeeklyVolumeKg"/> is the dense
+/// per-week volume across the window, oldest→newest (one entry per window week, 0 for quiet weeks), for the long
+/// window's trajectory slope. The 4-week block view reads the <c>Prev*</c> deltas; the 12-week phase view reads
+/// <see cref="WeeklyVolumeKg"/>.
+/// </summary>
+public sealed record PeriodStatsDto(
+    int Sessions,
+    int PrevSessions,
+    decimal VolumeKg,
+    decimal PrevVolumeKg,
+    int WorkingSets,
+    int PrevWorkingSets,
+    int PrCount,
+    IReadOnlyList<decimal> WeeklyVolumeKg);
+
+/// <summary>
+/// One lift's strength change across the window: first vs latest session-best e1RM, the absolute/percent gain, and
+/// <see cref="PlateauWeeks"/> = weeks since the window's best e1RM was set (0 while still climbing — the actionable
+/// "flat N weeks" signal). Honesty-gated identically to <see cref="LiftDirectionDto"/> (≥ 4 qualifying sessions); a
+/// thin lift never appears, so a gain is never fabricated from one data point.
+/// </summary>
+public sealed record LiftGainDto(
+    Guid ExerciseId,
+    string? ExerciseName,
+    decimal StartE1rmKg,
+    decimal CurrentE1rmKg,
+    decimal GainKg,
+    decimal GainPct,
+    int PlateauWeeks);
+
+/// <summary>Aggregate strength adaptation over the window: the mean per-lift gain % across qualifying lifts and the
+/// per-lift breakdown (e1RM-descending). Empty list + 0 mean when no lift qualifies — never fabricated.</summary>
+public sealed record StrengthGainDto(
+    decimal AvgGainPct,
+    IReadOnlyList<LiftGainDto> Lifts);
+
+/// <summary>
+/// Hard-set dosing for one primary muscle group over the window: Working LEAD sets (<c>ParentSetId == null</c>) on
+/// lifts whose resolved PRIMARY group is this one, averaged per week, with the previous window for a delta. Six
+/// coarse groups only (chest|back|legs|shoulders|arms|core); NO MEV/MAV/MRV bands — the 10–20 "growth zone" is a soft
+/// client-side reference, never a prescription ([FEASIBILITY.md §3b]).
+/// </summary>
+public sealed record MuscleVolumeDto(
+    string Muscle,
+    decimal SetsPerWeek,
+    decimal PrevSetsPerWeek);
+
+/// <summary>
+/// The trainee's OWN acute-vs-chronic training load (self-scoped, cross-gym) — the trainee analogue of the coach
+/// <see cref="AcuteChronicLoadDto"/>. Exposes TWO raw volumes + a SOFT band, NEVER an ACWR ratio ([FEASIBILITY.md R10] —
+/// a ratio reads as a clinical injury claim on RPE-free data). <see cref="AcuteVolumeKg"/> = Σ working-set volume over
+/// the last 7 days; <see cref="ChronicWeeklyVolumeKg"/> = (Σ over the last 28 days) ÷ 4. Volume predicate matches
+/// <c>SessionMapping.ComputeVolumeKg</c>. This is NOT a readiness score (no HRV/sleep — that stays Phase 5+ deferred).
+/// </summary>
+public sealed record LoadBalanceDto(
+    decimal AcuteVolumeKg,
+    decimal ChronicWeeklyVolumeKg,
+    LoadTrend Trend);
+
+/// <summary>The window's coaching tone — drives the client's accent on the verdict banner.</summary>
+public enum CoachTone
+{
+    Positive,
+    Neutral,
+    Watch
+}
+
+/// <summary>
+/// A plain-language "coach's read" for the selected window: a one-line <see cref="Headline"/> verdict, a supporting
+/// <see cref="Detail"/>, and the single highest-priority <see cref="Action"/> (null when nothing needs fixing).
+/// DETERMINISTIC and rule-based over the already-computed aggregates — a WRITER, not a calculator; it invents no
+/// number. The short window frames a BLOCK (execution + momentum), the long window a PHASE (adaptation + program
+/// effectiveness). A drop-in LLM upgrade ([AI-NARRATIVE.md]) would keep this exact shape.
+/// </summary>
+public sealed record CoachReadDto(
+    string Headline,
+    string Detail,
+    string? Action,
+    CoachTone Tone);
 
 // ── Progress page — full strength-lift list (api/me/exercises/strength-lifts, Phase 2) ──
 

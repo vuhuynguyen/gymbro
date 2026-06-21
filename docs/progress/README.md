@@ -103,6 +103,7 @@ never contradict it.
 | [ROADMAP.md](ROADMAP.md) | Phased rollout | …what ships in Phase 1 (no migration) through wearables (deferred) |
 | [MARKET-BENCHMARK.md](MARKET-BENCHMARK.md) | Competitive benchmark + code-verified feasibility | …how GymBro's reporting compares to ~45 products, and what each gap costs to close |
 | [AI-NARRATIVE.md](AI-NARRATIVE.md) | Design proposal (not frozen) | …the LLM weekly-narrative lane — writer-not-calculator, span-checked, fallback-guarded |
+| [WINDOW-DIFFERENTIATION.md](WINDOW-DIFFERENTIATION.md) | v2 layer (on top of Phases 1–4) | …why 4w and 12w are two dashboards (block/execution vs phase/strategy), the period-over-period deltas, and the coach's-read |
 
 ## What changes on day one (Phase 1, no migration)
 

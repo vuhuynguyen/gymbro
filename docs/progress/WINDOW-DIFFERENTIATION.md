@@ -47,7 +47,8 @@ fabricated trend (the existing honesty gate).
 | 4 | **Execution detail** (merge consistency + nutrition + sleep) | Where did execution slip this block? | existing consistency + nutrition-adherence + sleep series |
 | 5 | **Recent PRs** | Wins this block (motivation) | existing `RecentPrs` |
 
-*Demoted on 4w:* bodyweight (too noisy < 4 wk → one muted line) and full muscle-distribution (a strategic concern).
+*Demoted on 4w:* full muscle-distribution (a strategic concern — the 12w hero). Bodyweight stays on every trend
+window (Week/4w/12w) by user preference — short-window weight is noisy, but trainees still want to see it.
 
 ### 3b. 12-week — "This Phase" (adaptation & strategy)
 
@@ -72,7 +73,7 @@ fabricated trend (the existing honesty gate).
 | Consistency | execution heatmap + misses | compressed to adherence ratio | 4w full, 12w lite |
 | PRs | recent wins | phase achievements | both |
 | Volume | vs last block | trajectory slope | **new — both** |
-| Body | one muted line | hero trajectory vs goal | mostly 12w |
+| Body | trend shown | hero trajectory vs goal | both (user preference) |
 | Nutrition | adherence this block | trend, paired with body | both, merged on 12w |
 | Sleep | folded into Execution | sustainability trend | both |
 | Recovery (load) | load balance (acute vs chronic) | — (sleep covers it) | 4w only, soft |
@@ -130,7 +131,7 @@ Each phase is independently shippable; backend merges first (endpoint live via C
 > zero migrations; reuses the shared `StrengthLiftSeries`, the `ResolveExerciseMuscleGroupsQuery` muscle map, and the
 > `GetClientLoadHandler` acute/chronic logic). 592 backend tests green. Flutter: model mirrors the new DTOs;
 > `progress_screen` branches 4w (coach's-read + `_BlockScorecard`) vs 12w (coach's-read + `_PhaseScorecard` +
-> `_MuscleBalanceCard`); body demoted off 4w. 251 FE tests green. The coach's-read is rule-based (W4 LLM swap deferred
+> `_MuscleBalanceCard`); bodyweight trend shown on every window (user preference). 251 FE tests green. The coach's-read is rule-based (W4 LLM swap deferred
 > to [AI-NARRATIVE.md]). `LoadBalance` reuses the existing `LoadTrend` enum (no UI load card yet — the verdict carries
 > the ramping signal). Forward-compatible: a pre-v2 payload degrades to empty defaults, so the app can ship before
 > the backend deploys.

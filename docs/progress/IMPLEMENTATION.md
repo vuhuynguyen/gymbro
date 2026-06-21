@@ -4,6 +4,9 @@
 > session reads §0 and is fully oriented. The *what/why* lives in [SPEC.md](SPEC.md); the *frozen how* lives in
 > [PHASE-1.md](PHASE-1.md) + [API-CONTRACTS.md](API-CONTRACTS.md); this file owns **execution order, decisions,
 > tasks, tests, acceptance, rollout, and progress.** Update the checklists in §8 as work lands.
+>
+> **v2 layer (in progress, post-Phase-1–4):** the 4w-block vs 12w-phase differentiation is specced in
+> [WINDOW-DIFFERENTIATION.md](WINDOW-DIFFERENTIATION.md) — additive to the frozen contracts, zero migrations.
 
 ---
 

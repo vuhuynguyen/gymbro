@@ -3,6 +3,7 @@ using BuildingBlocks.Shared.Abstractions;
 using BuildingBlocks.Shared.Results;
 using BuildingBlocks.Shared.Tracking;
 using MediatR;
+using Modules.ExerciseModule.Application.Queries;
 using Modules.WorkoutPlanModule.Application.DTOs;
 using Modules.WorkoutPlanModule.Application.Queries;
 using Modules.WorkoutSessionModule.Application.Abstractions;
@@ -61,11 +62,14 @@ public sealed class GetMyProgressOverviewHandlerTests
         Guid userId,
         IEnumerable<WorkoutSession> sessions,
         IReadOnlyList<OwnActiveAssignmentDto>? activeAssignments = null,
-        IReadOnlyList<PersonalRecordDto>? records = null)
+        IReadOnlyList<PersonalRecordDto>? records = null,
+        IReadOnlyDictionary<Guid, string>? muscleMap = null)
     {
         var repo = Substitute.For<IWorkoutSessionRepository>();
+        // The handler reads QueryOwnAcrossGyms TWICE (strength points + the v2 stats read) — hand back a FRESH
+        // re-enumerable each call so the second read isn't enumerating a spent sequence.
         repo.QueryOwnAcrossGyms(userId)
-            .Returns(new TestAsyncEnumerable<WorkoutSession>(sessions));
+            .Returns(_ => new TestAsyncEnumerable<WorkoutSession>(sessions));
 
         var currentUser = Substitute.For<ICurrentUser>();
         currentUser.UserId.Returns(userId);
@@ -76,6 +80,9 @@ public sealed class GetMyProgressOverviewHandlerTests
             .Returns(Result<IReadOnlyList<OwnActiveAssignmentDto>>.Success(activeAssignments ?? []));
         mediator.Send(Arg.Any<GetMyPersonalRecordsQuery>(), Arg.Any<CancellationToken>())
             .Returns(Result<PersonalRecordListDto>.Success(new PersonalRecordListDto(records ?? [])));
+        mediator.Send(Arg.Any<ResolveExerciseMuscleGroupsQuery>(), Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyDictionary<Guid, string>>.Success(
+                muscleMap ?? new Dictionary<Guid, string>()));
 
         return (new GetMyProgressOverviewHandler(repo, mediator, currentUser), mediator);
     }
@@ -85,9 +92,10 @@ public sealed class GetMyProgressOverviewHandlerTests
         IEnumerable<WorkoutSession> sessions,
         IReadOnlyList<OwnActiveAssignmentDto>? activeAssignments = null,
         IReadOnlyList<PersonalRecordDto>? records = null,
-        int? weeks = null)
+        int? weeks = null,
+        IReadOnlyDictionary<Guid, string>? muscleMap = null)
     {
-        var (sut, _) = CreateSut(userId, sessions, activeAssignments, records);
+        var (sut, _) = CreateSut(userId, sessions, activeAssignments, records, muscleMap);
         return sut.Handle(new GetMyProgressOverviewQuery(weeks), CancellationToken.None);
     }
 
@@ -699,6 +707,142 @@ public sealed class GetMyProgressOverviewHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Equal(new[] { "Deadlift" },
             result.Value!.RecentPrs.Select(p => p.ExerciseName).ToArray());
+    }
+
+    // ── v2 window differentiation (WINDOW-DIFFERENTIATION.md) ──
+
+    [Fact]
+    public async Task Period_stats_split_the_current_window_from_the_previous_equal_length_window()
+    {
+        var userId = Guid.NewGuid();
+        var lift = Guid.NewGuid();
+        PerformedExercise Bench() =>
+            Exercise(lift, "Bench", ExerciseTrackingType.Strength, WorkingSet(5, 100m)); // 500kg vol, 1 hard set
+
+        // weeks=4 → current window = weeks 0..3, previous window = weeks 4..7.
+        var result = await Run(userId,
+        [
+            CompletedSession(userId, MondayInstant(0), Bench()),  // current
+            CompletedSession(userId, MondayInstant(1), Bench()),  // current
+            CompletedSession(userId, MondayInstant(4), Bench()),  // previous window
+        ], weeks: 4);
+
+        Assert.True(result.IsSuccess);
+        var p = result.Value!.Period;
+        Assert.Equal(2, p.Sessions);
+        Assert.Equal(1, p.PrevSessions);
+        Assert.Equal(1000m, p.VolumeKg);
+        Assert.Equal(500m, p.PrevVolumeKg);
+        Assert.Equal(2, p.WorkingSets);
+        Assert.Equal(1, p.PrevWorkingSets);
+        Assert.Equal(4, p.WeeklyVolumeKg.Count);       // one entry per window week
+        Assert.Equal(500m, p.WeeklyVolumeKg[^1]);      // newest entry = this week
+        Assert.Equal(1000m, p.WeeklyVolumeKg.Sum());
+    }
+
+    [Fact]
+    public async Task Strength_gain_is_first_to_latest_e1rm_over_the_window()
+    {
+        var userId = Guid.NewGuid();
+        var lift = Guid.NewGuid();
+
+        // Four ascending sessions: 100→105→110→120 kg × 5 → e1RM 116.7 → 140.0.
+        var weights = new (int weeksAgo, decimal weight)[] { (3, 100m), (2, 105m), (1, 110m), (0, 120m) };
+        var sessions = weights
+            .Select(w => CompletedSession(userId, MondayInstant(w.weeksAgo),
+                Exercise(lift, "Squat", ExerciseTrackingType.Strength, WorkingSet(5, w.weight))))
+            .ToList();
+
+        var result = await Run(userId, sessions);
+
+        Assert.True(result.IsSuccess);
+        var gain = Assert.Single(result.Value!.StrengthGain.Lifts);
+        Assert.Equal(116.7m, gain.StartE1rmKg);
+        Assert.Equal(140.0m, gain.CurrentE1rmKg);
+        Assert.Equal(23.3m, gain.GainKg);
+        Assert.Equal(0, gain.PlateauWeeks);            // newest session is the best → still climbing
+        Assert.Equal(20.0m, result.Value!.StrengthGain.AvgGainPct);
+    }
+
+    [Fact]
+    public async Task Muscle_volume_averages_working_lead_sets_per_week_by_primary_group()
+    {
+        var userId = Guid.NewGuid();
+        var bench = Guid.NewGuid();
+        PerformedExercise Bench() =>
+            Exercise(bench, "Bench", ExerciseTrackingType.Strength,
+                WorkingSet(5, 100m), WorkingSet(5, 100m), WorkingSet(5, 100m)); // 3 hard sets
+
+        // weeks=4 → ÷4. Current: 2×3 = 6 sets → 1.5/wk. Previous: 1×3 = 3 → 0.75 → 0.8/wk at 1 dp (parity with
+        // how volume/e1RM are rounded server-side).
+        var result = await Run(userId,
+        [
+            CompletedSession(userId, MondayInstant(0), Bench()),
+            CompletedSession(userId, MondayInstant(1), Bench()),
+            CompletedSession(userId, MondayInstant(4), Bench()),
+        ],
+        weeks: 4,
+        muscleMap: new Dictionary<Guid, string> { [bench] = "chest" });
+
+        Assert.True(result.IsSuccess);
+        var m = Assert.Single(result.Value!.MuscleVolume);
+        Assert.Equal("chest", m.Muscle);
+        Assert.Equal(1.5m, m.SetsPerWeek);
+        Assert.Equal(0.8m, m.PrevSetsPerWeek);
+    }
+
+    [Fact]
+    public async Task Load_balance_flags_ramping_when_the_recent_week_dwarfs_the_chronic_average()
+    {
+        var userId = Guid.NewGuid();
+        var lift = Guid.NewGuid();
+
+        // One 500kg session this week, nothing prior → chronic 28d Σ = 500, weekly avg = 125; acute (7d) = 500 >
+        // 125 × 1.5 → Ramping. Two raw volumes are exposed, never a ratio (R10).
+        var result = await Run(userId,
+            [CompletedSession(userId, ThisMondayInstant,
+                Exercise(lift, "Bench", ExerciseTrackingType.Strength, WorkingSet(5, 100m)))],
+            weeks: 4);
+
+        Assert.True(result.IsSuccess);
+        var load = result.Value!.Load;
+        Assert.Equal(500m, load.AcuteVolumeKg);
+        Assert.Equal(125m, load.ChronicWeeklyVolumeKg);
+        Assert.Equal(LoadTrend.Ramping, load.Trend);
+    }
+
+    [Fact]
+    public async Task Coach_read_is_an_honest_empty_state_for_a_brand_new_user()
+    {
+        var userId = Guid.NewGuid();
+
+        var result = await Run(userId, []);
+
+        Assert.True(result.IsSuccess);
+        var coach = result.Value!.Coach;
+        Assert.Equal(CoachTone.Neutral, coach.Tone);
+        Assert.Null(coach.Action);
+        Assert.Contains("not enough", coach.Headline, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Coach_read_surfaces_a_stalled_lift_as_the_block_action()
+    {
+        var userId = Guid.NewGuid();
+        var lift = Guid.NewGuid();
+
+        // Best early, then three flat exposures → the lift is stalled; the 4-week (block) coach action calls it out.
+        var weights = new (int weeksAgo, decimal weight)[] { (3, 120m), (2, 110m), (1, 110m), (0, 110m) };
+        var sessions = weights
+            .Select(w => CompletedSession(userId, MondayInstant(w.weeksAgo),
+                Exercise(lift, "Squat", ExerciseTrackingType.Strength, WorkingSet(5, w.weight))))
+            .ToList();
+
+        var result = await Run(userId, sessions, weeks: 4);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value!.Coach.Action);
+        Assert.Contains("stall", result.Value!.Coach.Action!, StringComparison.OrdinalIgnoreCase);
     }
 
     private Task<Result<ProgressOverviewDto>> WithSessions(Guid userId, params WorkoutSession[] sessions)

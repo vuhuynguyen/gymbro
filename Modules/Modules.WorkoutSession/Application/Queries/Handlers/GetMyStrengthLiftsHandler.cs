@@ -27,7 +27,8 @@ public sealed class GetMyStrengthLiftsHandler(
     : IRequestHandler<GetMyStrengthLiftsQuery, Result<StrengthLiftListDto>>
 {
     private const int DefaultWindowWeeks = 12;
-    private const int MinWindowWeeks = 4;
+    // Floor is 1 — mirrors the overview so the "Week" tab (weeks=1) shows the current Monday-week only.
+    private const int MinWindowWeeks = 1;
     private const int MaxWindowWeeks = 52;
 
     public async Task<Result<StrengthLiftListDto>> Handle(

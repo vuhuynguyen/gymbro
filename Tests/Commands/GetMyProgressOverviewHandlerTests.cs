@@ -591,23 +591,44 @@ public sealed class GetMyProgressOverviewHandlerTests
     }
 
     [Fact]
-    public async Task Weeks_below_minimum_clamps_up_to_four()
+    public async Task Weeks_one_shows_only_the_current_week()
     {
         var userId = Guid.NewGuid();
 
-        // weeks=2 is below the floor → clamps to 4, and the reported WindowWeeks reflects the EFFECTIVE
-        // clamped window. A session 5 weeks ago is outside the clamped 4-week window → dropped.
+        // weeks=1 is the narrowest selectable window — the current Monday-week only (the "Week" tab). A
+        // session ONE week ago falls outside it and is dropped; only the current-week day remains.
         var sessions = new[]
         {
             CompletedSession(userId, MondayInstant(0)),
-            CompletedSession(userId, MondayInstant(5)),
+            CompletedSession(userId, MondayInstant(1)),
         };
 
-        var result = await Run(userId, sessions, weeks: 2);
+        var result = await Run(userId, sessions, weeks: 1);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(4, result.Value!.Consistency.WindowWeeks);   // clamped 2 → 4
-        Assert.Single(result.Value!.Consistency.Days);            // 5-weeks-ago session excluded
+        Assert.Equal(1, result.Value!.Consistency.WindowWeeks);
+        Assert.Single(result.Value!.Consistency.Days);            // last-week session excluded
+        Assert.Equal(ThisMonday, result.Value!.Consistency.Days[0].Date);
+    }
+
+    [Fact]
+    public async Task Weeks_below_minimum_clamps_up_to_one()
+    {
+        var userId = Guid.NewGuid();
+
+        // weeks=0 is below the floor → clamps to 1, and the reported WindowWeeks reflects the EFFECTIVE
+        // clamped window. A session one week ago is outside the clamped current-week window → dropped.
+        var sessions = new[]
+        {
+            CompletedSession(userId, MondayInstant(0)),
+            CompletedSession(userId, MondayInstant(1)),
+        };
+
+        var result = await Run(userId, sessions, weeks: 0);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value!.Consistency.WindowWeeks);   // clamped 0 → 1
+        Assert.Single(result.Value!.Consistency.Days);            // one-week-ago session excluded
     }
 
     [Fact]

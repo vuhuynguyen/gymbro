@@ -17,7 +17,7 @@ namespace Modules.WorkoutSessionModule.Application.Queries.Handlers;
 /// The single-call trainee Progress home. Self-scoped via
 /// <see cref="IWorkoutSessionRepository.QueryOwnAcrossGyms"/> (<c>currentUser.UserId</c> only) across every
 /// gym the caller trains in; only completed sessions count. Computes, over a user-selectable Monday-anchored
-/// window (<see cref="GetMyProgressOverviewQuery.Weeks"/>, clamped to [4, 52], default 12) in the trainee's
+/// window (<see cref="GetMyProgressOverviewQuery.Weeks"/>, clamped to [1, 52], default 12) in the trainee's
 /// zone: current-week adherence against the authoritative active-plan goal (Decision D1, resolved via an
 /// internal <see cref="GetOwnActiveAssignmentsQuery"/>), daily consistency + streak, top-3 honesty-gated lift
 /// e1RM directions, and a PR teaser (the top 3 PRs whose best was SET within the selected window, from
@@ -33,7 +33,8 @@ public sealed class GetMyProgressOverviewHandler(
     : IRequestHandler<GetMyProgressOverviewQuery, Result<ProgressOverviewDto>>
 {
     private const int DefaultWindowWeeks = 12;
-    private const int MinWindowWeeks = 4;
+    // Floor is 1 — the "Week" tab selects the current Monday-week only; a 0/negative weeks clamps up to 1.
+    private const int MinWindowWeeks = 1;
     private const int MaxWindowWeeks = 52;
     // Shared with the full strength-lift list so the top-3 strip and the lift list can never diverge on the
     // honesty gate — both omit/flag lifts below the same qualifying-session count.
@@ -61,8 +62,9 @@ public sealed class GetMyProgressOverviewHandler(
     {
         var now = DateTimeOffset.UtcNow;
         // The user-selectable window (consistency window + heatmap span + top-lift gathering), clamped to
-        // [4, 52], default 12 when null. The This-Week hero/goal, the trailing-4-week strength baseline, and
-        // the 3-exposure stall are NOT driven by this — they stay fixed regardless of the selected window.
+        // [1, 52], default 12 when null (weeks=1 = the current Monday-week only). The This-Week hero/goal, the
+        // trailing-4-week strength baseline, and the 3-exposure stall are NOT driven by this — they stay fixed
+        // regardless of the selected window.
         var windowWeeks = Math.Clamp(request.Weeks ?? DefaultWindowWeeks, MinWindowWeeks, MaxWindowWeeks);
         // The trainee's own stored zone anchors "this week" and the selected window; per-session captured
         // zones still decide each session's own local day below.

@@ -56,7 +56,7 @@ public sealed class MeController(IMediator mediator) : ControllerBase
     }
 
     /// <summary>The single-call trainee Progress home: adherence, consistency, top-lift direction, PR teaser.
-    /// Optional <paramref name="weeks"/> selects the consistency/heatmap/top-lift window (clamped to [4, 52],
+    /// Optional <paramref name="weeks"/> selects the consistency/heatmap/top-lift window (clamped to [1, 52],
     /// default 12); the This-Week hero and goal are unaffected.</summary>
     [HttpGet("progress/overview")]
     public async Task<IActionResult> ProgressOverview([FromQuery] int? weeks, CancellationToken ct)
@@ -76,7 +76,7 @@ public sealed class MeController(IMediator mediator) : ControllerBase
     }
 
     /// <summary>The caller's own FULL strength-lift list over the selected window — the uncapped sibling of the
-    /// overview's top-3 strip. <paramref name="weeks"/> is clamped to [4, 52] (default 12). <paramref
+    /// overview's top-3 strip. <paramref name="weeks"/> is clamped to [1, 52] (default 12). <paramref
     /// name="muscleGroup"/> optionally narrows by primary group (tolerant camelCase parse — an unknown value is
     /// ignored, i.e. no filter). Self-scoped, cross-gym; sorted by current e1RM desc; 200 + empty list for a
     /// brand-new user.</summary>

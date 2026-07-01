@@ -27,6 +27,10 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <!-- Transitive pin (CentralPackageTransitivePinningEnabled): Microsoft.AspNetCore.OpenApi 10.0.x
+         still pulls Microsoft.OpenApi 2.0.0, which has a HIGH advisory (GHSA-v5pm-xwqc-g5wc, NU1903 →
+         build error). Pin to the latest 2.x (same major → API-compatible) to clear it. -->
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.9.0" />
     <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.17.0" />
 
     <!-- Extensions: configuration / DI / caching -->

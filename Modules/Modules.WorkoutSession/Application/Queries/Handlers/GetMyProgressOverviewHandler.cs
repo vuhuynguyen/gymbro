@@ -182,6 +182,14 @@ public sealed class GetMyProgressOverviewHandler(
             isBlock: windowWeeks <= BlockWindowMaxWeeks,
             thisWeek, consistency, topLifts, strengthGain, period, muscleVolume, load);
 
+        // Window-INDEPENDENT "has the trainee EVER trained" flag, so the client shows the brand-new-user
+        // hero ONLY for a genuinely new trainee — never for a returning one whose selected window is empty
+        // (e.g. the default Week view early in a fresh week). The bounded read above already proves training
+        // whenever it returned any row, so only an empty window pays for the cheap all-time EXISTS.
+        var hasEverTrained = rows.Count > 0
+            || await sessionRepository.QueryOwnAcrossGyms(currentUser.UserId)
+                .AnyAsync(s => s.Status == SessionStatus.Completed, cancellationToken);
+
         return Result<ProgressOverviewDto>.Success(new ProgressOverviewDto(
             thisWeek,
             consistency,
@@ -192,7 +200,8 @@ public sealed class GetMyProgressOverviewHandler(
             StrengthGain: strengthGain,
             MuscleVolume: muscleVolume,
             Load: load,
-            Coach: coach));
+            Coach: coach,
+            HasEverTrained: hasEverTrained));
     }
 
     // ── D1: the active assignment whose gym has the most completed sessions THIS week, tie-broken by latest

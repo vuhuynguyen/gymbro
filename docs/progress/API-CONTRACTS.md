@@ -51,7 +51,9 @@ public sealed record ProgressOverviewDto(
     ConsistencyDto Consistency,
     IReadOnlyList<LiftDirectionDto> TopLifts,      // 0–3 lifts, honesty-gated
     IReadOnlyList<PersonalRecordDto> RecentPrs,    // reuse existing DTO, top 3 by e1RM
-    DateTimeOffset GeneratedAtUtc);
+    DateTimeOffset GeneratedAtUtc,
+    // … v2 window-differentiation fields (Period/StrengthGain/MuscleVolume/Load/Coach) — see WINDOW-DIFFERENTIATION.md …
+    bool HasEverTrained);                          // window-INDEPENDENT: ever completed a session (any gym, any time)
 
 public sealed record WeekAdherenceDto(
     DateOnly WeekStart,            // Monday, in trainee's ClientTimezone/user TZ
@@ -91,6 +93,7 @@ public enum LiftTrendDirection { Up, Flat, Down }
 - **Adherence:** `CompletedSessions` = `Status == Completed` only, current Monday-anchored week in the trainee's zone. `Goal` = `FrequencyDaysPerWeek` of the **authoritative** active assignment (Decision **D1**: active assignment with the most completed sessions this week, tie-broken by latest `StartDate`). No active assignment → `Goal: null`, `HasActivePlan: false` (client hides the ring, shows raw `CompletedSessions`).
 - **Consistency:** `Days` lists only local days with ≥1 completed session over 12 weeks; the client renders the full grid and fills gaps. `ConsistencyPct` = weeks-hitting-goal ÷ **weeks observed**, where weeks-observed counts from the **first completed session in the window** through the current week, capped at 12 (**D10** — forgiving for new users, honest for laggards); null when there's no goal or no sessions. `CurrentStreakWeeks` = 0 when no goal. **Forgiving:** prescribed rest is not a miss; never expose a "broken streak" red state.
 - **PR teaser:** `RecentPrs` = top 3 of the existing `GetMyPersonalRecordsQuery` result (current best per lift, already e1RM-sorted) via an internal mediator call. **Single source for PRs** (Decision **D2**) — never sum `PrCount`.
+- **New-user gate (`HasEverTrained`):** a **window-independent** flag — `true` iff the trainee has **ever** completed a session (any gym, any time), computed OUTSIDE the look-back window. The client shows the brand-new-user first-run hero **only** when this is `false`, so a *returning* trainee whose **selected window is empty** (e.g. the default Week view early in a fresh week, before this week's first session) keeps the normal dashboard instead of "Start your first session". Cheap: the windowed read already proves training whenever it returns a row, so only an empty window pays the extra all-time `EXISTS`. Older clients that don't read the flag fall back to the legacy windowed-emptiness heuristic, so the field is purely additive.
 
 **Sample response**
 ```json
@@ -113,7 +116,8 @@ public enum LiftTrendDirection { Up, Flat, Down }
     { "exerciseId": "…", "exerciseName": "Deadlift", "weightKg": 140.0, "reps": 3,
       "estimatedOneRepMaxKg": 153.0, "achievedAt": "2026-06-09T18:22:00+07:00" }
   ],
-  "generatedAtUtc": "2026-06-14T03:00:00Z"
+  "generatedAtUtc": "2026-06-14T03:00:00Z",
+  "hasEverTrained": true
 }
 ```
 

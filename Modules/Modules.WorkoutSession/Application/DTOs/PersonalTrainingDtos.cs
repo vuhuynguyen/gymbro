@@ -101,7 +101,12 @@ public sealed record ProgressOverviewDto(
     StrengthGainDto StrengthGain,
     IReadOnlyList<MuscleVolumeDto> MuscleVolume,
     LoadBalanceDto Load,
-    CoachReadDto Coach);
+    CoachReadDto Coach,
+    // Window-INDEPENDENT: has the trainee EVER completed a session (any gym, any time)? Lets the client
+    // show the brand-new-user hero ONLY for a genuinely new trainee — never for a returning one whose
+    // SELECTED window happens to be empty (e.g. the default Week view early in a fresh week). Computed
+    // outside the look-back window, so it does not move with Period/Consistency.
+    bool HasEverTrained);
 
 // ── Progress page — v2 window differentiation (4-week block vs 12-week phase; WINDOW-DIFFERENTIATION.md) ──
 

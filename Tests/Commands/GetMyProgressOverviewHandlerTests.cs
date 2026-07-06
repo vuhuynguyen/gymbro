@@ -162,6 +162,25 @@ public sealed class GetMyProgressOverviewHandlerTests
         Assert.Null(dto.Consistency.ConsistencyPct);
         Assert.Equal(0, dto.Consistency.CurrentStreakWeeks);
         Assert.Equal(12, dto.Consistency.WindowWeeks);
+        Assert.False(dto.HasEverTrained);   // genuinely new → the client shows the first-run hero
+    }
+
+    [Fact]
+    public async Task HasEverTrained_is_true_for_a_returning_user_whose_selected_window_is_empty()
+    {
+        var userId = Guid.NewGuid();
+        // A completed session three weeks ago — OUTSIDE the weeks=1 (current-week-only) window.
+        var threeWeeksAgo = MondayInstant(3).AddDays(1);
+
+        var result = await Run(userId, [CompletedSession(userId, threeWeeksAgo)], weeks: 1);
+
+        Assert.True(result.IsSuccess);
+        var dto = result.Value!;
+        // The window itself is empty — nothing completed THIS week, no in-window consistency days …
+        Assert.Equal(0, dto.ThisWeek.CompletedSessions);
+        Assert.Empty(dto.Consistency.Days);
+        // … but the trainee HAS trained before, so the client keeps the normal dashboard (no first-run hero).
+        Assert.True(dto.HasEverTrained);
     }
 
     // ── adherence: completed-only, current week ──

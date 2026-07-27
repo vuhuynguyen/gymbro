@@ -11,10 +11,16 @@ public sealed class ReconciliationOptions
 {
     public const string SectionName = "Reconciliation";
 
-    /// <summary>Master switch; set false to disable the periodic check entirely.</summary>
-    public bool Enabled { get; set; } = true;
+    /// <summary>
+    /// Master switch. Default <b>false</b>: this is a read-only drift <i>detector</i> (it never mutates), and
+    /// the cross-store transaction already keeps the two stores consistent at write time — so on a
+    /// single-instance / personal deployment it adds only a periodic pair of full-table scans that keep the
+    /// database awake. Set <c>Reconciliation:Enabled=true</c> to opt back in (e.g. after suspected drift or on
+    /// a multi-instance deploy).
+    /// </summary>
+    public bool Enabled { get; set; } = false;
 
-    /// <summary>How often the consistency check runs.</summary>
+    /// <summary>How often the consistency check runs (only when <see cref="Enabled"/>).</summary>
     public TimeSpan Interval { get; set; } = TimeSpan.FromHours(6);
 
     /// <summary>Delay before the first run, so it does not contend with startup migrations/seeding.</summary>

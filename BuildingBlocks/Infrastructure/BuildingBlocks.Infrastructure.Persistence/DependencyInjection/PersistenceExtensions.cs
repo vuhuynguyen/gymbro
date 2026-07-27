@@ -44,8 +44,13 @@ public static class PersistenceExtensions
         // AddXModulePersistence; the cross-module FK contributor comes from the composition root.
         services.AddSingleton<IModelConfiguration, CoreModelConfiguration>();
 
-        // Transactional-outbox dispatcher (the hosted polling loop lives at the composition root).
+        // Transactional-outbox dispatcher (the hosted drain loop lives at the composition root).
         services.AddScoped<OutboxDispatcher>();
+
+        // Singleton wake signal shared by every DbContext scope (writer) and the OutboxProcessor (reader):
+        // a committing write signals it and the processor drains immediately, so there is NO fixed poll
+        // keeping the database awake while the app is idle. See IOutboxSignal.
+        services.AddSingleton<IOutboxSignal, OutboxSignal>();
 
         // Generic repository
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));

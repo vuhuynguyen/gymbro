@@ -1,6 +1,7 @@
 using BuildingBlocks.Infrastructure.Persistence;
 using BuildingBlocks.Shared.Time;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Modules.NutritionModule.Entities;
 
 namespace WebApi.Composition;
@@ -14,23 +15,26 @@ namespace WebApi.Composition;
 /// </summary>
 public sealed class NutritionStaleDayCloser(
     IServiceScopeFactory scopeFactory,
+    IOptions<NutritionMaintenanceOptions> options,
     ILogger<NutritionStaleDayCloser> logger) : BackgroundService
 {
-    private static readonly TimeSpan InitialDelay = TimeSpan.FromMinutes(1);
-    private static readonly TimeSpan Interval = TimeSpan.FromMinutes(15);
+    private readonly NutritionMaintenanceOptions _options = options.Value;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (!_options.DayCloseEnabled)
+            return; // opt-out: no timer, no periodic query — lets the database stay idle
+
         try
         {
-            await Task.Delay(InitialDelay, stoppingToken);
+            await Task.Delay(_options.DayCloseInitialDelay, stoppingToken);
         }
         catch (OperationCanceledException)
         {
             return;
         }
 
-        using var timer = new PeriodicTimer(Interval);
+        using var timer = new PeriodicTimer(_options.DayCloseInterval);
 
         while (!stoppingToken.IsCancellationRequested)
         {

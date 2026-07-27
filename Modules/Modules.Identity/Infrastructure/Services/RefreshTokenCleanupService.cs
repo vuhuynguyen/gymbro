@@ -20,8 +20,14 @@ public sealed class RefreshTokenCleanupService(
     ILogger<RefreshTokenCleanupService> logger)
     : BackgroundService
 {
+    /// <summary>Opt-out switch. Purging expired tokens is only table hygiene, so a personal deployment can
+    /// turn it off (<c>Jwt:RefreshTokenCleanupEnabled=false</c>) to drop one more periodic query and let the
+    /// database stay idle.</summary>
+    private bool Enabled =>
+        configuration.GetValue("Jwt:RefreshTokenCleanupEnabled", true);
+
     private TimeSpan Interval =>
-        TimeSpan.FromHours(configuration.GetValue("Jwt:RefreshTokenCleanupIntervalHours", 6));
+        TimeSpan.FromHours(configuration.GetValue("Jwt:RefreshTokenCleanupIntervalHours", 24));
 
     /// <summary>Grace period kept past expiry before a row is purged (audit/debug headroom).</summary>
     private TimeSpan Retention =>
@@ -29,6 +35,9 @@ public sealed class RefreshTokenCleanupService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (!Enabled)
+            return; // opt-out: no timer, no periodic query — lets the database stay idle
+
         // Sweep once at startup, then on the configured cadence.
         using var timer = new PeriodicTimer(Interval);
         do

@@ -12,11 +12,22 @@ namespace BuildingBlocks.Infrastructure.Persistence;
 public class AppDbContext(
     DbContextOptions<AppDbContext> options,
     IDbContextServices services,
-    IEnumerable<IModelConfiguration> modelConfigurations)
+    IEnumerable<IModelConfiguration> modelConfigurations,
+    IOutboxSignal? outboxSignal = null)
     : DbContext(options), IUnitOfWork
 {
     public ICurrentUser CurrentUser { get; } = services.CurrentUser;
     public ITenantContext TenantContext { get; } = services.TenantContext;
+
+    // Wakes the OutboxProcessor the moment a write commits domain events, so they dispatch immediately
+    // instead of on a poll — which lets the database stay idle (and scale to zero) between writes. Optional:
+    // the design-time factory and unit tests construct the context with no signal (a null no-op).
+    private readonly IOutboxSignal? _outboxSignal = outboxSignal;
+
+    // Set when SaveChanges commits outbox message(s) inside an EXPLICIT transaction: the rows are not yet
+    // visible to the processor's own transaction, so we defer the wake until the outer transaction commits
+    // (see ExecuteTransactionalAsync). A single scoped context is never used concurrently, so a plain field is safe.
+    private bool _pendingOutboxSignal;
 
     // The kernel owns NO module DbSets — module entity access goes through Set<T>() (in the module repositories)
     // and the model is assembled from injected IModelConfiguration contributors. This is what keeps the
@@ -51,7 +62,15 @@ public class AppDbContext(
         catch
         {
             await transaction.RollbackAsync(cancellationToken);
+            _pendingOutboxSignal = false; // rolled back — the outbox rows are gone, nothing to dispatch
             throw;
+        }
+
+        // Outbox rows written during the action are now committed and visible — wake the processor.
+        if (_pendingOutboxSignal)
+        {
+            _pendingOutboxSignal = false;
+            _outboxSignal?.Notify();
         }
     }
 
@@ -62,7 +81,7 @@ public class AppDbContext(
         // Drain domain events into the outbox BEFORE saving so they commit atomically with the changes
         // that raised them. The OutboxProcessor then publishes them out-of-band (at-least-once), making
         // post-commit delivery durable and load-balancer-safe instead of at-most-once fire-and-forget.
-        WriteDomainEventsToOutbox(utcNow);
+        var outboxWritten = WriteDomainEventsToOutbox(utcNow);
 
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
@@ -100,10 +119,25 @@ public class AppDbContext(
             }
         }
 
-        return await base.SaveChangesAsync(cancellationToken);
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        // Wake the OutboxProcessor so the events just committed dispatch immediately. Inside an explicit
+        // transaction the rows are not yet visible to the processor's own transaction, so defer the wake
+        // until that transaction commits (ExecuteTransactionalAsync); otherwise SaveChanges' implicit
+        // transaction has already committed and it is safe to signal now.
+        if (outboxWritten > 0)
+        {
+            if (Database.CurrentTransaction is null)
+                _outboxSignal?.Notify();
+            else
+                _pendingOutboxSignal = true;
+        }
+
+        return result;
     }
 
-    private void WriteDomainEventsToOutbox(DateTime utcNow)
+    /// <summary>Drains raised domain events into the outbox and returns how many messages were written.</summary>
+    private int WriteDomainEventsToOutbox(DateTime utcNow)
     {
         var entitiesWithEvents = ChangeTracker
             .Entries<Entity>()
@@ -111,13 +145,19 @@ public class AppDbContext(
             .Where(e => e.DomainEvents.Count > 0)
             .ToList();
 
+        var written = 0;
         foreach (var entity in entitiesWithEvents)
         {
             foreach (var domainEvent in entity.DomainEvents)
+            {
                 OutboxMessages.Add(OutboxMessage.Create(domainEvent, utcNow));
+                written++;
+            }
 
             entity.ClearDomainEvents();
         }
+
+        return written;
     }
 
     private void ApplyGlobalFilters(ModelBuilder modelBuilder)

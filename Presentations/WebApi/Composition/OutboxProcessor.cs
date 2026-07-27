@@ -4,12 +4,16 @@ using Microsoft.Extensions.Options;
 namespace WebApi.Composition;
 
 /// <summary>
-/// Background polling loop that drains the transactional outbox: every <c>PollInterval</c> it dispatches a
-/// batch of pending domain events via <see cref="OutboxDispatcher"/> in a fresh DI scope. Failures are
-/// logged and retried on the next tick; a batch error never stops the loop.
+/// Drains the transactional outbox. Rather than polling the database on a fixed interval — which would keep a
+/// serverless Postgres (e.g. Neon) permanently awake and prevent it scaling to zero — it blocks on an
+/// in-process <see cref="IOutboxSignal"/> that each committing write raises, and dispatches immediately.
+/// A slow <c>FallbackInterval</c> still forces a periodic safety-net drain (crash recovery, a missed signal,
+/// or events written by another instance). Failures are logged and retried on the next signal/fallback tick;
+/// a batch error never stops the loop.
 /// </summary>
 public sealed class OutboxProcessor(
     IServiceScopeFactory scopeFactory,
+    IOutboxSignal signal,
     IOptions<OutboxOptions> options,
     ILogger<OutboxProcessor> logger) : BackgroundService
 {
@@ -17,25 +21,42 @@ public sealed class OutboxProcessor(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(_options.PollInterval);
+        // Catch up on anything left pending from a previous run — in-process signals do not survive a restart.
+        await DrainAsync(stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            await RunOnceAsync(stoppingToken);
-
             try
             {
-                if (!await timer.WaitForNextTickAsync(stoppingToken))
-                    break;
+                // Block with NO database access until a write signals work (immediate dispatch) or the slow
+                // safety-net interval elapses. This idle-with-no-queries state is what lets Neon scale to zero.
+                await signal.WaitAsync(_options.FallbackInterval, stoppingToken);
             }
             catch (OperationCanceledException)
             {
                 break;
             }
+
+            await DrainAsync(stoppingToken);
         }
     }
 
-    private async Task RunOnceAsync(CancellationToken stoppingToken)
+    /// <summary>
+    /// Dispatches batches until the backlog is cleared. A full successful batch implies more may be waiting,
+    /// so we loop; a short batch (fewer than <c>BatchSize</c> published, e.g. because some failed) stops the
+    /// loop so poison messages are retried on a later tick rather than hammered here.
+    /// </summary>
+    private async Task DrainAsync(CancellationToken stoppingToken)
+    {
+        int dispatched;
+        do
+        {
+            dispatched = await RunBatchAsync(stoppingToken);
+        }
+        while (dispatched == _options.BatchSize && !stoppingToken.IsCancellationRequested);
+    }
+
+    private async Task<int> RunBatchAsync(CancellationToken stoppingToken)
     {
         try
         {
@@ -49,14 +70,18 @@ public sealed class OutboxProcessor(
 
             if (dispatched > 0)
                 logger.LogDebug("Outbox dispatched {Count} message(s).", dispatched);
+
+            return dispatched;
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
             // Shutting down — nothing to do.
+            return 0;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Outbox processing batch failed; will retry on the next tick.");
+            logger.LogError(ex, "Outbox processing batch failed; will retry on the next signal or fallback tick.");
+            return 0;
         }
     }
 }

@@ -108,7 +108,9 @@ builder.Services.AddOutboxProcessing(builder.Configuration);
 // store (User), which are linked only by convention (AppUser.DomainUserId == User.Id) with no cross-store FK.
 builder.Services.AddCrossStoreReconciliation(builder.Configuration);
 // Closes nutrition days at the trainee's local midnight out-of-band, so finalization is never a read side
-// effect and a day closes even if the trainee never reopens the app.
+// effect and a day closes even if the trainee never reopens the app. Cadence/opt-out via "NutritionMaintenance".
+builder.Services.Configure<NutritionMaintenanceOptions>(
+    builder.Configuration.GetSection(NutritionMaintenanceOptions.SectionName));
 builder.Services.AddHostedService<NutritionStaleDayCloser>();
 // OpenTelemetry traces + metrics (OTLP export opt-in via OpenTelemetry:OtlpEndpoint / OTEL_EXPORTER_OTLP_ENDPOINT).
 builder.Services.AddGymBroObservability(builder.Configuration);

@@ -16,6 +16,9 @@ public sealed class OutboxCleanupService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (!_options.CleanupEnabled)
+            return; // opt-out: no timer, no periodic query — lets the database stay idle
+
         using var timer = new PeriodicTimer(_options.CleanupInterval);
 
         while (!stoppingToken.IsCancellationRequested)

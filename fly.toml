@@ -1,0 +1,49 @@
+# Fly.io app definition for the GymBro API (reference production environment — see docs/DEPLOYMENT.md).
+#
+# One shared-cpu Machine in Singapore (next to the Neon database in ap-southeast-1) that auto-stops when idle
+# and auto-starts on the first request, so an idle personal deployment costs only its root disk. The Machine
+# is the only instance, so the in-process `Memory` cache provider replaces Redis and `Database__AutoMigrate`
+# applies both EF migration chains on boot.
+#
+# Secrets (never here — `flyctl secrets set`):  ConnectionStrings__Database  Jwt__Secret  [Seed__AdminEmail Seed__AdminPassword]
+
+app = "gymbro-api"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ASPNETCORE_ENVIRONMENT = "Production"
+  ASPNETCORE_HTTP_PORTS = "8080"
+  Cache__Provider = "Memory"
+  Database__AutoMigrate = "true"
+  # Fly's edge terminates TLS and sets X-Forwarded-Proto/-For, so the `Secure` refresh cookie and the real
+  # client IP are recovered. ForwardLimit stays at the default 2: browser traffic arrives via the portal's
+  # Cloudflare Pages proxy (client, worker) and mobile traffic directly (client).
+  ForwardedHeaders__Enabled = "true"
+  Jwt__Issuer = "gymbro"
+  Jwt__Audience = "gymbro"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

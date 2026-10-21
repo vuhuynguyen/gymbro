@@ -1,17 +1,16 @@
 name: CD
 
-# Builds the API image, publishes it to GHCR, then deploys to the VM by pulling the new image and
-# restarting the `api` container (image swap — no build on the host). The API self-applies both EF
-# migration chains on boot (Database__AutoMigrate=true on the single-instance VM).
+# Builds the API image once, publishes it to GHCR (for compose / self-hosting) AND to the Fly.io registry,
+# then deploys that exact image to the Fly app declared in fly.toml. The API self-applies both EF migration
+# chains on boot (Database__AutoMigrate=true, single Machine).
 #
-# Required repo secrets:  VM_HOST (public IP), VM_USER (ubuntu), DEPLOY_SSH_KEY (private deploy key).
-# GHCR auth on the VM uses the workflow's own GITHUB_TOKEN — no long-lived token stored on the host.
+# Required repo secret:  FLY_API_TOKEN (a deploy token for the app: `flyctl tokens create deploy -a gymbro-api`).
 on:
   push:
     branches: [main, master]
     tags: ['v*']
 
-# One deploy at a time — never let two pushes race to update the single VM.
+# One deploy at a time — never let two pushes race to update the single Machine.
 concurrency:
   group: cd-${{ github.ref }}
   cancel-in-progress: false
@@ -41,6 +40,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log in to the Fly.io registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.fly.io
+          username: x
+          password: ${{ secrets.FLY_API_TOKEN }}
+
       - name: Image metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -58,7 +64,9 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            registry.fly.io/gymbro-api:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -66,29 +74,12 @@ jobs:
   deploy:
     needs: image
     runs-on: ubuntu-latest
-    permissions:
-      packages: read
     steps:
-      - name: Deploy API to the VM
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script: |
-            set -e
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            cd ~/gymbro-app
-            # GHCR layer extraction can transiently fail on the VM (half-extracted overlayfs layer),
-            # so retry the pull a few times before giving up.
-            pulled=
-            for attempt in 1 2 3; do
-              if docker compose pull api; then pulled=1; break; fi
-              echo "docker compose pull api failed (attempt $attempt/3); retrying in 5s..."
-              sleep 5
-            done
-            [ -n "$pulled" ] || { echo "docker compose pull api failed after 3 attempts"; exit 1; }
-            # --no-deps: deploy ONLY this service, independent of the other pipeline.
-            docker compose up -d --no-deps api
-            docker image prune -f
-            docker logout ghcr.io
+      - uses: actions/checkout@v4   # for fly.toml
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy the built image to Fly.io
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --image registry.fly.io/gymbro-api:${{ github.sha }} --config fly.toml
